@@ -1,0 +1,263 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,graphics,setspace}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{bm}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied Machine Learning\\ \large Topic 09 (optional): Gaussian Classifier and Naive Bayes Classifier}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Introduction}
+In the previous topic, we discussed two common parametric modeling techniques for dealing with \(p(\bm{x}|c_i)\):
+\begin{itemize}
+    \item Introducing strong assumptions about the distribution of \(p(\bm{x}|c_i)\); examples include:
+    \begin{itemize}
+        \item A multivariate Gaussian distribution for \(p(\bm{x}|c_i)\).
+        \item A Gaussian mixture model or a combination of multiple Gaussian models.
+        \item Assuming conditional independence, which leads to a Naive Bayes model.
+    \end{itemize}
+    \item Introducing more complex causal relations among the components of \(\bm{x}\), which generally gives rise to Bayesian networks.
+\end{itemize}
+
+In this topic, we cover the basics for modeling \(p(\bm{x}|c_i)\) using both multivariate Gaussian and Naive Bayes models. We will leave `Bayesian Networks' alone, but we may say that the Naive Bayes, as the simplest Bayesian Network, belongs to the Bayesian Network families.  
+
+\section{Multi-class Gaussian Classification}
+\subsection{Formulation}
+Assume that the class-conditional probability density \(p(\bm{x} | c_i)\) is given by:
+\begin{equation}
+p(\bm{x} | c_i) = \frac{1}{(2\pi)^{d/2}|\bm{\Sigma}_i|^{1/2}}\exp\left(-\frac{1}{2}(\bm{x} - \bm{\mu}_i)^T \bm{\Sigma}_i^{-1} (\bm{x} - \bm{\mu}_i)\right)
+\end{equation}
+where \(d\) is the dimensionality of the input features, \(\bm{\mu}_i\) is the mean vector for class \(c_i\), and \(\bm{\Sigma}_i\) is the covariance matrix for class \(c_i\).
+
+Given these Gaussian class-conditional densities, we can compute the posterior probabilities using Bayes' rule and classify an input sample by selecting the class with the highest posterior probability. For simplicity, we assume a binary classification problem so that we can understand, in a parametric sense, how the underlying decision boundary is formed.
+
+In the case of Gaussian-distribution based binary classification, we consider two classes, \(c_1\) and \(c_2\). The class-conditional densities \(p(\bm{x} | c_1)\) and \(p(\bm{x} | c_2)\) follow Gaussian distributions. We now discuss the role of covariance matrices and how to evaluate the posterior probabilities for binary classification.
+
+\textbf{I. Covariance Matrix:} \\
+For each class \(c_i\), the Gaussian distribution is defined by a mean vector \(\bm{\mu}_i\) and a covariance matrix \(\bm{\Sigma}_i\). The covariance matrix is symmetric and positive-definite, capturing the relationships between the dimensions of the feature vector \(\bm{x}\). Its diagonal elements represent the variances of each feature, while the off-diagonal elements represent the covariances between pairs of features.
+
+For binary classification, there are two covariance matrices: \(\bm{\Sigma}_1\) for class \(c_1\) and \(\bm{\Sigma}_2\) for class \(c_2\). If these are equal, i.e., \(\bm{\Sigma}_1 = \bm{\Sigma}_2 = \bm{\Sigma}\), the resulting decision boundary is linear, a case known as Linear Discriminant Analysis (LDA). Otherwise, a quadratic decision boundary arises, leading to Quadratic Discriminant Analysis (QDA).
+
+\textbf{II. Evaluating Posterior Probabilities:} \\
+Using Bayes' rule, we first calculate the posterior probabilities \(p(c_1 | \bm{x})\) and \(p(c_2 | \bm{x})\). To classify a new sample \(\bm{x}\), we compare these probabilities. Since the denominator \(p(\bm{x})\) is common to both classes, we compare:
+\begin{equation}
+p(\bm{x} | c_1) p(c_1) \quad \text{vs.} \quad p(\bm{x} | c_2) p(c_2)
+\end{equation}
+Taking the logarithm of both sides yields the log-posterior probabilities:
+\begin{equation}
+\log p(\bm{x} | c_1) + \log p(c_1) \quad \text{vs.} \quad \log p(\bm{x} | c_2) + \log p(c_2)
+\end{equation}
+Plugging in the Gaussian density function for both classes, we arrive at:
+\[
+\left( -\frac{1}{2}(\bm{x} - \bm{\mu}_1)^T \bm{\Sigma}_1^{-1} (\bm{x} - \bm{\mu}_1) - \frac{1}{2}\log |\bm{\Sigma}_1| + \log p(c_1) \right)
+\]
+\begin{center}\textbf{vs.}\end{center}
+\[
+\left( -\frac{1}{2}(\bm{x} - \bm{\mu}_2)^T \bm{\Sigma}_2^{-1} (\bm{x} - \bm{\mu}_2) - \frac{1}{2}\log |\bm{\Sigma}_2| + \log p(c_2) \right)
+\]
+We then define a decision function \(g(\bm{x})\):
+\begin{equation}
+g(\bm{x}) = -\frac{1}{2}(\bm{x} - \bm{\mu}_1)^T \bm{\Sigma}_1^{-1} (\bm{x} - \bm{\mu}_1) + \frac{1}{2}(\bm{x} - \bm{\mu}_2)^T \bm{\Sigma}_2^{-1} (\bm{x} - \bm{\mu}_2) + \frac{1}{2}\log \frac{|\bm{\Sigma}_1|}{|\bm{\Sigma}_2|} + \log \frac{p(c_1)}{p(c_2)}
+\end{equation}
+The decision function \(g(\bm{x})\) classifies a sample as follows:
+\begin{itemize}
+    \item If \(g(\bm{x}) > 0\), assign \(\bm{x}\) to class \(c_1\).
+    \item If \(g(\bm{x}) < 0\), assign \(\bm{x}\) to class \(c_2\).
+    \item If \(g(\bm{x}) = 0\), \(\bm{x}\) lies exactly on the decision boundary.
+\end{itemize}
+
+In summary, for Gaussian-based binary classification we use the covariance matrices \(\bm{\Sigma}_1\) and \(\bm{\Sigma}_2\) along with the Gaussian densities to compute the (log-)posterior probabilities and classify new inputs accordingly.
+
+\subsection{Model Fitting}
+To perform the parametric inference discussed above, the learning task is to fit the models to the dataset \(\mathcal{D}\). As mentioned in the previous topic, one can theoretically use the MAP estimation procedure (which incorporates a hyperprior). In the binary Gaussian classification case, we must estimate the parameter sets
+\[
+\bm{\theta}_1 = \{ \bm{\mu}_1, \bm{\Sigma}_1 \} \quad \text{and} \quad \bm{\theta}_2 = \{ \bm{\mu}_2, \bm{\Sigma}_2 \}
+\]
+for \(p(\bm{x}|\bm{\theta}_1)\) and \(p(\bm{x}|\bm{\theta}_2)\), respectively.
+
+Nonetheless, a simpler approach is to invoke the i.i.d. assumption and ignore the priors, thereby using Maximum Likelihood Estimation (MLE) to estimate the parameters. For binary classification, the total number of parameters is:
+\[
+2 \left( d + \frac{d(d+1)}{2} \right),
+\]
+since a symmetric \(d \times d\) covariance matrix has \(\frac{d(d+1)}{2}\) parameters.
+
+\subsection{Theoretical Bayes Error}
+If \(P(\bm{x}|c_1)\) and \(P(\bm{x}|c_2)\) are Gaussian with known means and covariances, and the class priors \(P(c_1)\) and \(P(c_2)\) are known, we can formulate the theoretical Bayes error. This error represents the minimum possible misclassification rate, determined by the true underlying distributions.
+
+Using the Gaussian density
+\begin{equation}
+P(\bm{x} | c_i) = \frac{1}{(2\pi)^{D/2} |\bm{\Sigma}_i|^{1/2}} \exp\left(-\frac{1}{2}(\bm{x} - \bm{\mu}_i)^T \bm{\Sigma}_i^{-1} (\bm{x} - \bm{\mu}_i)\right), \quad i = 1,2
+\end{equation}
+and applying Bayes' rule,
+\begin{equation}
+P(c_i | \bm{x}) = \frac{P(\bm{x} | c_i) P(c_i)}{P(\bm{x})},
+\end{equation}
+the optimal Bayes classifier assigns \(\bm{x}\) to class \(c_1\) if \(P(c_1|\bm{x}) > P(c_2|\bm{x})\) and to class \(c_2\) otherwise.
+
+The Bayes error is then computed by integrating the joint probability over the regions where misclassification occurs:
+\begin{equation}
+\text{Bayes error} = \int_{\mathcal{R}_1} P(\bm{x}, c_2) \, d\bm{x} + \int_{\mathcal{R}_2} P(\bm{x}, c_1) \, d\bm{x},
+\end{equation}
+where \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are the regions where the classifier assigns points to class 1 and class 2, respectively. In many practical cases, numerical integration techniques may be used to estimate the Bayes error.
+
+\section{Naive Bayes Classification}
+Naive Bayes is a popular probabilistic classifier based on Bayes' theorem. The term "naive" refers to the assumption that the features are conditionally independent given the class label—a simplification that rarely holds perfectly in real applications but often yields competitive performance.
+
+The advantages of Naive Bayes include:
+\begin{itemize}
+  \item \textbf{Simplicity:} Easy to understand and implement.
+  \item \textbf{Scalability:} Efficiently handles high-dimensional data.
+  \item \textbf{Robustness to Irrelevant Features:} Irrelevant features impact all class probabilities equally and cancel out.
+  \item \textbf{Handling Missing Data:} Can cope with missing values by ignoring them in probability computations.
+  \item \textbf{Multi-class Classification:} Naturally extends to multiple classes.
+  \item \textbf{Speed:} Requires only a single pass through the data.
+  \item \textbf{Good Baseline Model:} Often serves as a benchmark for more complex classifiers.
+\end{itemize}
+
+\subsection{Formulation}
+In Naive Bayes classification, we wish to determine the most probable class \(c_k\) for a given feature vector \(\bm{x} = (x_1, x_2, \dots, x_d)\). According to Bayes' theorem,
+\begin{equation}
+P(c_k|\bm{x}) = \frac{P(\bm{x}|c_k) P(c_k)}{P(\bm{x})}.
+\end{equation}
+Since \(P(\bm{x})\) is common to all classes, we can find the predicted class by maximizing:
+\begin{equation}
+c_{k^*} = \arg\max_{c_k} \, P(\bm{x}|c_k) P(c_k).
+\end{equation}
+Assuming conditional independence, the likelihood factors as:
+\begin{equation}
+P(\bm{x}|c_k) = \prod_{i=1}^{d} P(x_i|c_k).
+\end{equation}
+Thus, the decision rule becomes:
+\begin{equation}
+c_{k^*} = \arg\max_{c_k} \left( \prod_{i=1}^{d} P(x_i|c_k) \, P(c_k) \right).
+\end{equation}
+To avoid numerical underflow, we typically work with logarithms:
+\begin{equation}
+c_{k^*} = \arg\max_{c_k} \left( \sum_{i=1}^{d} \log P(x_i|c_k) + \log P(c_k) \right).
+\end{equation}
+
+\subsection{Variants of the Naive Bayes Classifier}
+Different probability distributions for \(P(x_i|c_k)\) yield several variants of Naive Bayes:
+\begin{enumerate}
+    \item \textbf{Gaussian Naive Bayes:} Assumes continuous features are normally distributed. The likelihood is given by
+    $$
+    P(x_i|c_k) = \frac{1}{\sqrt{2\pi\sigma_{ki}^2}}\exp\left(-\frac{(x_i - \mu_{ki})^2}{2\sigma_{ki}^2}\right).
+    $$
+    \item \textbf{Multinomial Naive Bayes:} Suitable for discrete count data, often used in text classification, with the likelihood modeled as
+    $$
+    P(\bm{x}|c_k) = \frac{(\sum_{i=1}^{d} x_i)!}{\prod_{i=1}^{d} x_i!} \prod_{i=1}^{d} p_{ki}^{x_i},
+    $$
+    where \(p_{ki}\) is the probability of the \(i\)-th feature given class \(c_k\).
+    \item \textbf{Bernoulli Naive Bayes:} Appropriate for binary features, using the likelihood
+    $$
+    P(x_i|c_k) = p_{ki}^{x_i} (1 - p_{ki})^{1 - x_i}.
+    $$
+\end{enumerate}
+
+\subsection{Learning Naive Bayes from Data}
+\subsubsection{Gaussian Distributed Naive Bayes Classifier}
+To train a Gaussian Naive Bayes classifier on a dataset \(\{(x_i, c_i) \mid i = 1, 2, \dots, N\}\) where each \(x_i\) is \(D\)-dimensional and there are \(K\) classes:
+\begin{enumerate}
+    \item \textbf{Estimate Class Priors and Gaussian Parameters:}
+    \begin{itemize}
+        \item For each class \(c_k\) (\(k = 1, 2, \dots, K\)), compute the prior:
+        $$
+        P(c_k) = \frac{N_k}{N},
+        $$
+        where \(N_k\) is the number of instances in class \(c_k\).
+        \item For each feature \(x_j\) (\(j = 1, 2, \dots, D\)) and each class \(c_k\), compute the mean and variance:
+        \begin{align}
+        \mu_{k,j} &= \frac{1}{N_k}\sum_{i=1}^{N_k} x_{i,j}, \\
+        \sigma_{k,j}^2 &= \frac{1}{N_k}\sum_{i=1}^{N_k} \left(x_{i,j} - \mu_{k,j}\right)^2.
+        \end{align}
+    \end{itemize}
+    \item \textbf{Note on Estimation:} \\
+    These estimates are obtained via MLE without incorporating a hyperprior; hence, they may be biased. In Gaussian Naive Bayes, the variance estimate can be made unbiased by using \(N_k - 1\) in the denominator instead of \(N_k\) (using the method of moments).
+    \item \textbf{Classification:} \\
+    For a new instance \(\bm{x} = (x_1, x_2, \dots, x_D)\), compute the posterior for each class:
+    $$
+    P(c_k|\bm{x}) \propto P(c_k) \prod_{j=1}^{D} \frac{1}{\sqrt{2\pi\sigma_{kj}^2}}\exp\left(-\frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}\right).
+    $$
+    Assign \(\bm{x}\) to the class with the highest posterior probability.
+\end{enumerate}
+
+\subsubsection{Multinomial Naive Bayes Classifier Training}
+A Multinomial Naive Bayes classifier is particularly effective for handling discrete data (e.g., text). Consider the following simple example:
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Message & Label \\
+\hline
+win money now & spam \\
+save money on bills & ham \\
+win a free vacation & spam \\
+buy groceries save & ham \\
+vacation discount sale & spam \\
+save on gas bills & ham \\
+\hline
+\end{tabular}
+\end{center}
+To classify a new message such as “win a vacation now”:
+\begin{enumerate}
+    \item Preprocess the data and convert the messages into a bag-of-words representation.
+    \item Compute the prior probabilities, e.g., \(P(\text{spam}) = 0.5\) and \(P(\text{ham}) = 0.5\).
+    \item Estimate the likelihood \(P(x_j|c_k)\) for each word using Laplace smoothing.
+    \item Classify the new message by calculating:
+    $$
+    P(c_k|\bm{x}) \propto P(c_k) \prod_{j=1}^{d} p_{kj}^{x_j},
+    $$
+    and assigning the message to the class with the highest posterior probability.
+\end{enumerate}
+
+\subsection{Practical Considerations}
+\begin{enumerate}
+    \item \textbf{Smoothing (Handling Missing Data):} \\
+    When a feature value has not been observed for a particular class, smoothing (e.g., Laplace smoothing) is applied to avoid zero probabilities:
+    $$
+    P(x_i|c_k) = \frac{N_{ki} + \alpha}{N_k + \alpha d},
+    $$
+    where \(N_{ki}\) is the count of feature \(x_i\) in class \(c_k\), \(d\) is the number of distinct feature values, and \(\alpha\) is the smoothing parameter.
+    \item \textbf{Feature Scaling:} \\
+    For continuous features, applying normalization or scaling is crucial, especially for Gaussian Naive Bayes, to ensure all features contribute equally.
+    \item \textbf{Limitations:} \\
+    The main limitation of Naive Bayes is the assumption of feature independence, which may not hold in real-world data. Despite this, Naive Bayes often performs competitively and serves as a useful baseline classifier.
+\end{enumerate}
+
+\section{Conclusion}
+In this topic, we reviewed two popular probabilistic classification approaches. The Gaussian classifier uses multivariate Gaussian distributions to model class-conditional densities, with the decision boundary determined by the covariance structures. In contrast, the Naive Bayes classifier relies on the simplifying assumption of feature independence to provide an efficient and scalable classification rule. Both methods play important roles in practical machine learning applications, offering simple yet effective frameworks for classification.
+
+\end{document}

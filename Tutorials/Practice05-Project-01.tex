@@ -1,0 +1,290 @@
+\documentclass[german,10pt]{beamer}
+\usepackage{tcolorbox}
+\usepackage{graphicx} \graphicspath{ {./figs/} }
+%% Integer set
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\Rset}{\field{R}}
+\newcommand{\Zset}{\field{Z}}
+\newcommand{\Qset}{\field{Q}}
+\newcommand{\Nset}{\field{N}}
+
+% Beamer specific settings
+
+% Other styles can be used instead of Boadilla, e.g., to add an index column.
+\mode<presentation>
+{
+  \usetheme{Boadilla} % Without index, with footer
+}
+
+\title{CE 401/5501: Multi-class Classification - all considered!}
+\subtitle{Exploring Handwritten Digits}
+\author[]{Professor ZhiQiang Chen}
+\date{}
+\institute[UMKC]
+{
+  School of Science and Engineering \\
+  University of Missouri Kansas City
+}
+
+% This command makes the logo appear at the right side which does not fit
+% the UGent style. A solution is found further below.
+% \logo{\includegraphics[scale=0.25]{logolabel.jpg}}
+
+
+
+
+% before \begin{document}
+\AtBeginSection[]{
+  \begin{frame}<beamer>\frametitle{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+  \begin{frame}[plain]
+    \centering
+    \vfill
+    {\usebeamerfont{section title}\insertsectionhead\par}
+    \vfill
+  \end{frame}
+}
+
+\setbeamersize{text margin left=1cm}
+\setbeamersize{text margin right=1cm}
+
+
+\begin{document}
+
+% Title page
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% Outline
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Dataset Introduction}
+
+\subsection{NIST SD19 and MNIST }
+\begin{frame}{Dataset: NIST SD19 \& MNIST}
+
+  \begin{block}{NIST Special Database 19 (SD19)}
+    \begin{itemize}
+      \item Public corpus of hand‑printed characters for OCR
+      \item Collected from 3,600 writers (3,669 sample forms)
+      \item 814,255 segmented images at \(\,128\times128\)\,px
+      \item 62 ASCII classes: 10 digits, 26 uppercase, 26 lowercase
+    \end{itemize}
+  \end{block}
+  
+  \vspace{0.5em}
+  
+  \begin{block}{MNIST (LeCun, Cortes \& Burges)}
+    \begin{itemize}
+      \item Derived from SD19 by size‑normalizing \& centering digits
+      \item 60{,}000 training + 10{,}000 test samples
+      \item Grayscale images at \(\,28\times28\)\,px
+      \item 10 classes: digits 0–9
+      \item De facto benchmark for multi‑class digit classification
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}{Sample MNIST Digits}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{MnistExamplesModified.png}
+  \end{center}
+  \vspace{-1em}
+  \begin{flushright}
+    {\tiny Source: Wikimedia Commons}
+  \end{flushright}
+\end{frame}
+
+
+\section{Benchmark Results Over Time}
+
+\begin{frame}{Definition of Error Rate $\epsilon$}
+  Let the test set be 
+  \[
+    D_{\mathrm{test}} = \{(x_i,y_i)\}_{i=1}^N,
+    \quad
+    \hat{y}_i = f(x_i)
+  \]
+  where $y_i$ is the true label and $\hat y_i$ the predicted label.  Then the \emph{error rate} $\epsilon$ is
+  \[
+    \epsilon
+    \;=\;
+    \frac{1}{N}
+    \sum_{i=1}^N
+    \mathbf{1}\{\hat{y}_i \neq y_i\}
+    \;=\;
+    \frac{\bigl|\{\,i : \hat{y}_i \neq y_i\}\bigr|}{N}\,,
+  \]
+  and the classification \emph{accuracy} is 
+  \[
+    \mathrm{Accuracy} = 1 - \epsilon\,.
+  \]
+\end{frame}
+
+\begin{frame}{Milestone Results on MNIST}
+  \begin{itemize}
+    \item \textbf{1998 – LeNet‑5}  
+      Convolutional NN; error rate $\epsilon$ = 0.95 \% (99.05 \% acc.)  
+      \cite{lecun1998gradient}
+    \item \textbf{2004 – LIRA Classifier}  
+      3‑layer perceptron with domain constraints; $\epsilon$ = 0.42 \% (99.58 \% acc.)
+    \item \textbf{2011 – MCDNN}  
+      Multi‑column deep CNN ensemble; $\epsilon$ = 0.23 \% (99.77 \% acc.)
+    \item \textbf{2013 – DropConnect}  
+      Weight‑level dropout; $\epsilon$ = 0.21 \% (99.79 \% acc.)
+    \item \textbf{2016 – CNN Ensembles}  
+      Single CNN: $\epsilon$ = 0.25 \% (99.75 \% acc.)  
+      Ensemble of 5: $\epsilon$ = 0.21 \% (99.79 \% acc.)
+    \item \textbf{2020 – HVC (Capsules)}  
+      Homogeneous vector capsules; single: $\epsilon$ = 0.21 \% (99.79 \% acc.)  
+      ensemble: $\epsilon$ = 0.16 \% (99.84 \% acc.)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Commonality: End-to-End Neural Network Models}
+  \begin{itemize}
+    \item \textbf{End‑to‑end training:}  
+      All milestone models are trained directly on raw pixel inputs.
+    \item \textbf{Minimal preprocessing:}  
+      Only simple normalization, centering (and optional deskewing) of 28×28 px (or 128×128 px) images.
+    \item \textbf{Integrated feature learning:}  
+      Convolutional or capsule layers automatically learn hierarchical features.
+    \item \textbf{No separate feature extraction:}  
+      There is no hand‑engineered pre‑extraction step – the network learns all necessary representations internally.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Note Classical Feature + Non‑Deep Methods?}
+  \begin{itemize}
+    \item \textbf{HOG + SVM (Khan et al.\ 2017)}:  
+      Error rate $\epsilon = 0.64\%$ (Accuracy 99.36 \%) \cite{Khan2017}
+    \item \textbf{Tangent‑Distance \& Shape‑Context + K‑NN (Simard et al.\ 1993)}:  
+      $\epsilon \approx 0.6\%$ (Accuracy 99.4 \%) \cite{Simard1993}
+    \item \textbf{Random Forests (Breiman 2001)}:  
+      $\epsilon \approx 2.8\%$ (Accuracy 97.2 \%) \cite{Breiman2001} \small{(see feature extraction next page)}
+    \item \textbf{Naïve Bayes (Zhang 2004)}:  
+      $\epsilon \approx 4\%–15\%$ (Accuracy 85 \%–96 \%) \cite{Zhang2004} \small{(see details next page)}
+  \end{itemize}
+  \vspace{0.8em}
+  \begin{block}{Why Superseded by End‑to‑End Deep Nets?}
+    \begin{itemize}
+      \item Manual feature design tailored to each dataset
+      \item Separate feature‑extraction and classification stages
+      \item No joint optimization of representation and classifier
+      \item Outperformed (in both accuracy and speed) by CNNs/capsule networks
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Feature Extraction for Classical Models}
+  \begin{itemize}
+    \item \textbf{Random Forest}
+      \begin{itemize}
+        \item Histogram of Oriented Gradients (HOG) descriptors  
+              (3×3 cells, 4 orientations)  
+        \item Optional PCA for dimensionality reduction  
+        \item Features fed into Random Forest classifier  
+        \item \cite{Khan2017RF}
+      \end{itemize}
+    \item \textbf{Naive Bayes}
+      \begin{itemize}
+        \item Raw pixel intensities vectorized:  
+              \(\,x = (x_1,\dots,x_{784})\)\  
+        \item Gaussian likelihood per pixel (or binarized by thresholding at 128)  
+        \item No additional feature engineering  
+        \item \cite{Kothari2020NB}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{100\% Accuracy?}
+
+
+\begin{frame}{Recall the best performance on MNIST}
+  \begin{itemize}
+    \item \textbf{Best published test error:}  
+      $\varepsilon = 0.16\%$ by homogeneous vector capsules (Sabour et al.\ 2017) \cite{Sabour2017}
+    \item \textbf{Near‐limit performance:}  
+      DropConnect CNNs: $\varepsilon = 0.21\%$ (Wan et al.\ 2013) \cite{Wan2013}  
+      MCDNN ensemble: $\varepsilon = 0.23\%$ (Cireşan et al.\ 2012) \cite{Ciresan2012}
+    \item \textbf{Implied irreducible (Bayes) error:}  
+      Approximately $0.1\%$–$0.2\%$, reflecting inherent label noise and ambiguity. \begin{quote} ``…the fact that many of these works approach an error rate of 0.2\% suggests that this value can be irreducible for this problem. For this reason, MNIST is considered to be already solved.  \cite{Baldominos2019}''
+  \end{quote}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Irreducible (Bayes) Error}
+  \begin{itemize}
+    \item \textbf{Label noise \& ambiguity:}
+      \begin{itemize}
+        \item Smudged or poorly written digits (e.g.\ a “4” that looks like a “9”)
+        \item Occasional mis‑labeling in the dataset
+      \end{itemize}
+    \item \textbf{Bayes error rate lower bound:}
+      \[
+        \varepsilon_{\mathrm{Bayes}}
+        = \min_f \Pr\bigl(f(x)\neq y\bigr)
+        \approx 0.1\% \text{–}0.2\%
+        \quad\Longrightarrow\quad
+        \max\text{Acc}\approx 99.8\%\text{–}99.9\%
+      \]
+    \item No model can surpass this fundamental noise floor.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Beyond Testing: Generalization}
+  \begin{itemize}
+    \item \textbf{Memorization of test idiosyncrasies:}
+      \begin{itemize}
+        \item Over‑fitting to specific blemishes or scanner artifacts
+        \item Model “cheats” by rote recall of exact test patterns
+      \end{itemize}
+    \item \textbf{Poor out‑of‑distribution robustness:}
+      \begin{itemize}
+        \item New handwriting styles or image corruptions
+        \item Adversarial perturbations can break “perfect” models
+      \end{itemize}
+    \item True \emph{generalization} implies learning the concept of “digit” beyond the benchmark.
+  \end{itemize}
+\end{frame}
+
+\section{Is it really solved? What about generalization?}
+\begin{frame}{Test‑Set vs Real‑World}
+  \begin{itemize}
+    \item \textbf{Homogeneous pipeline:}
+      MNIST train/test share the same scanning, centering, normalization.
+    \item \textbf{Unseen handwriting styles:}
+      New writers may use strokes, ink densities, or layouts not in MNIST.
+    \item \textbf{Domain shift factors:}
+      Paper type, pen pressure, camera/scanner quality cause distribution mismatch.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Robustness Requirements}
+  \begin{itemize}
+    \item \textbf{Sensitivity to perturbations:}
+      Noise, blur, occlusion or slight shifts can degrade accuracy sharply.
+    \item \textbf{Adversarial vulnerability:}
+      Small, targeted changes can fool “perfect” models.
+    \item \textbf{Beyond memorization:}
+      \begin{itemize}
+        \item Learn robust features that generalize across datasets.
+        \item Evaluate on diverse, real‑world handwriting collections.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{References}
+  \tiny
+  \bibliographystyle{apalike} % or whatever style you prefer
+  \bibliography{References}
+\end{frame}
+
+\end{document}

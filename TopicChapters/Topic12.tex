@@ -1,0 +1,210 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} \graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{bm}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied Machine Learning\\ \large Topic 12: Unsupervised Learning: Clustering}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Introduction}
+
+Unsupervised learning is a branch of machine learning that deals with finding patterns or structures in data without explicit labels or guidance. Together with supervised learning, they form the two most common data-driven ML paradigms. 
+
+In other words, the algorithm learns from the data itself rather than being told what the correct output should be. This type of learning is particularly useful when we do not have labeled data or when we want to discover hidden patterns or relationships within the data.
+
+Given a dataset below:
+\[
+ \mathcal{D} = \{ \bm{x}_n | n = 1, 2, \cdots, N\}
+\]
+where each data point $\bm{x}_n\in \mathbb{R}^d$. Compared with our previous supervised learning datasets, we see that now there are no `labels'.
+
+In ML/AI, there are three common Unsupervised Learning techniques. In the following, we use the dataset $\mathcal{D}$ above and describe their characteristics.
+
+\begin{itemize}
+    \item Clustering: Clustering algorithms attempt to group similar data points together based on their features, forming clusters. In the context of the dataset $\mathcal{D}$, clustering algorithms would analyze the $N$ data points in $\mathbb{R}^d$ and assign them to different groups, such that the data points within each group are more similar to each other than to those in other groups. 
+    \item Dimensionality reduction: Dimensionality reduction techniques aim to reduce the number of features or dimensions in the dataset while preserving its essential structure. In the context of the dataset $\mathcal{D}$, these techniques would attempt to find a lower-dimensional representation of the $d$-dimensional data points, often leading a new dataset $\mathcal{Y} = \{\bm{y}_n| n = 1, \cdots, N\}$ such that the dimension of $\bm{y}_n$ is much lower but most of the information in the original data is retained.
+    \item Feature extraction. Feature extraction is the process of transforming the raw data into a set of meaningful features or representations that can be used as input for machine learning algorithms. In the context of the dataset $\mathcal{D}$, feature extraction would seek to find alternative representations of the $d$-dimensional data points that capture their essential characteristics while potentially reducing noise or redundancy. 
+\end{itemize}
+
+
+\section{Clustering}
+ Clustering is the process of grouping similar data points together based on their features or attributes. It helps in identifying the underlying structure within the data and can be used for tasks such as customer segmentation, image segmentation, and anomaly detection. Common clustering algorithms include K-means, hierarchical clustering, and DBSCAN.
+
+ 
+Using the dataset $\mathcal{D} = {\bm{x}_n | n = 1, 2, \cdots, N}$, where $\bm{x}_n\in \mathbb{R}^d$, we can introduce a few key clustering methods:
+
+% \subsection{K-means clustering}
+% K-means is a popular clustering method that partitions the data into $K$ clusters by minimizing the sum of squared distances between the data points and their corresponding cluster centroids. The basic steps of the K-means algorithm, which can be viewed as an Expectation-Maximization (E-M) procedure, are as follows:
+% \begin{itemize}
+% \item[\textbf{E-step}] Assign each data point to the nearest centroid:
+% \begin{equation}
+% S_i = {n : | \bm{x}_n - \bm{\mu}_i | \leq | \bm{x}_n - \bm{\mu}_j |, ; \forall j \neq i }
+% \end{equation}
+% where $S_i$ is the set of data points assigned to the $i$-th centroid $\bm{\mu}_i$.
+
+% \item[\textbf{M-step}] Update the centroids by calculating the mean of the data points assigned to each centroid:
+% \begin{equation}
+% \bm{\mu}i = \frac{1}{|S_i|} \sum{n \in S_i} \bm{x}_n
+% \end{equation}
+% \end{itemize}
+
+% The E-M steps are iterated until the centroids' positions converge or a stopping criterion is met.
+
+
+\subsection{K-means clustering}
+
+K-means is a popular clustering method that partitions a dataset 
+\[
+\mathcal{D} = \{ \bm{x}_n \mid n=1,2,\ldots,N\}, \quad \bm{x}_n \in \mathbb{R}^d,
+\]
+into $K$ clusters by minimizing the sum of squared distances between each data point and its corresponding cluster centroid. In this context, the objective function is defined as:
+\begin{equation}
+J = \sum_{k=1}^{K} \sum_{\bm{x}_i \in S_k} \lVert \bm{x}_i - \bm{\mu}_k \rVert^2,
+\end{equation}
+where $\bm{\mu}_k$ is the centroid of cluster $k$, and $S_k$ is the set of points assigned to that cluster. 
+
+The objective function $J$ directly measures clustering quality. By minimizing $J$, k-means aims to reduce intra-cluster variance and, consequently, enhance the separability of different clusters.
+
+\subsubsection{History and Significance}
+
+K-means has deep roots in pattern recognition and vector quantization:
+\begin{itemize}
+    \item \textbf{Early Formulations:} Variants of the algorithm appeared in the 1950s and 1960s. It was formalized by James MacQueen in 1967 and later popularized by Stuart Lloyd in 1980 (commonly known as Lloyd’s algorithm).
+    \item \textbf{Simplicity and Efficiency:} The method's straightforward iterative process, assigning points to the nearest centroid and then updating centroids based on the cluster means, makes it easy to understand.
+    \item \textbf{Wide Applicability:} K-means has been successfully applied in diverse areas, such as image segmentation, market segmentation, document clustering, and bioinformatics, making it a baseline method for many clustering tasks.
+\end{itemize}
+
+
+\subsubsection{Expectation-Maximization (EM) Algorithm}
+The Expectation-Maximization (EM) algorithm is a powerful iterative method used to find maximum likelihood estimates of parameters in statistical models when the data is incomplete or has missing values. It is also used in models with latent variables (unobserved variables that influence the data), where the likelihood function is challenging to optimize directly. The EM algorithm was formally introduced by Dempster, Laird, and Rubin in their seminal 1977 paper titled "Maximum Likelihood from Incomplete Data via the EM Algorithm". To date, it is one of the most influential and widely used machine learning algorithms and beyond ML fields. 
+
+
+K-means can be viewed as a special case of the EM algorithm with hard assignments:
+\begin{enumerate}
+    \item \textbf{E-step (Assignment):} For each data point $\bm{x}_n$, assign it to the closest centroid:
+    \begin{equation}
+    S_k = \{ i : \lVert \bm{x}_i - \bm{\mu}_k \rVert \leq \lVert \bm{x}_i - \bm{\mu}_j \rVert,\ \forall\, j \neq k \}
+    \end{equation}
+    \item \textbf{M-step (Update):} Update each centroid by minimizing the objective function with respect to $\bm{\mu}_i$, which is achieved by computing the sample mean:
+    \begin{equation}
+    \bm{\mu}_k = \frac{1}{|S_k|} \sum_{i \in S_k} \bm{x}_i
+    \end{equation}
+\end{enumerate}
+Each iteration decreases the objective function $J$ because:
+\begin{itemize}
+    \item The E-step minimizes $J$ by assigning each data point to the closest centroid.
+    \item The M-step minimizes $J$ with respect to $\bm{\mu}_k$, as the sample mean is the least-squares estimator.
+\end{itemize}
+It has been proven that k-means, through an EM process, converge in a finite number of iterations to a local minimum. Note that while convergence is guaranteed, it is to a local, not global, optimum, making initialization critical.
+
+\subsubsection{Computational Considerations}
+
+Several factors influence the performance of k-means in practice:
+\begin{itemize}
+    \item \textbf{Distance Metric:} K-means conventionally employs the Euclidean distance:
+    \[
+    \lVert \bm{x}_i - \bm{\mu}_k \rVert^2,
+    \]
+    which aligns with the objective function. Alternative metrics may be used for specific applications but require adaptations in the algorithm’s theoretical framework.
+    \item \textbf{Convergence Criteria:} The algorithm is typically terminated when:
+    \begin{itemize}
+        \item \textit{Centroid Stability:} The relative change in centroid positions is below a threshold $\epsilon$:
+        \[
+        \frac{\lVert \bm{\mu}_k^{(t+1)} - \bm{\mu}_k^{(t)} \rVert}{\lVert \bm{\mu}_k^{(t)} \rVert} < \epsilon \quad \forall\, k.
+        \]
+        \item \textit{Objective Function Change:} The decrease in $J$ between iterations is negligible:
+        \[
+        \frac{|J^{(t+1)} - J^{(t)}|}{J^{(t)}} < \epsilon.
+        \]
+    \end{itemize}
+    \item \textbf{High-dimensionality:} Each iteration’s computational cost is approximately
+    \[
+    \mathcal{O}(N \times K \times d),
+    \]
+    where $d$ is the dimensionality. In high-dimensional spaces, not only does the computation become more intensive, but the Euclidean distance can lose discriminative power, often necessitating the use of dimensionality reduction techniques (e.g., PCA) prior to clustering.
+\end{itemize}
+
+\subsubsection{Determining the Number of Clusters}
+
+Choosing the number of clusters $K$ is a classical challenge in k-means clustering. Common methods include:
+\begin{itemize}
+    \item \textbf{Elbow Method:} Plot the objective function $J$ versus $K$ and identify the point where the reduction in $J$ begins to plateau ("elbow"), suggesting that additional clusters provide diminishing returns.
+    \item \textbf{Silhouette Analysis:} Compute the silhouette coefficient,
+    \[
+    s(\bm{x}_n) = \frac{b(\bm{x}_n) - a(\bm{x}_n)}{\max\{a(\bm{x}_n), b(\bm{x}_n)\}},
+    \]
+    where $a(\bm{x}_n)$ is the average distance to points in the same cluster and $b(\bm{x}_n)$ is the minimum average distance to points in another cluster. A higher average silhouette score indicates a better clustering structure.
+    % \item \textbf{Information Criterion Methods:} When k-means is seen as a limiting case of a Gaussian Mixture Model, criteria such as the Bayesian Information Criterion (BIC) or Akaike Information Criterion (AIC) can help balance model fit and complexity.
+\end{itemize}
+% These methods provide insights into the trade-offs of different choices of $K$, and in practice, a combination of approaches is often used.
+
+
+\subsection{DBSCAN}
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a density-based clustering method that groups data points that are closely packed, based on a density estimation. It can find clusters of arbitrary shapes and is robust to noise. The key idea is to define a neighborhood around each data point, and then form clusters based on the density of data points in these neighborhoods.
+
+% \subsection{Hierarchical clustering}
+% Hierarchical clustering is a family of clustering methods that build a tree of clusters, either from the bottom up (agglomerative) or from the top down (divisive). Agglomerative hierarchical clustering starts with each data point as its own cluster and iteratively merges the closest pairs of clusters until a single cluster remains. Divisive hierarchical clustering starts with a single cluster containing all data points and iteratively splits the clusters into smaller clusters until each data point is in its own cluster. The tree of clusters can be represented as a dendrogram, which can be cut at different levels to obtain different numbers of clusters.
+
+% These clustering methods can be applied to the dataset $\mathcal{D}$ to group similar data points together and reveal the underlying structure in the data.
+
+\section{Performance Evaluation}
+Performance evaluation of unsupervised classification or clustering is much different; after all, there are no true labels. There are two categories of methods for performance evaluation: internal evaluation and external evaluation.
+
+\subsection{Internal evaluation}
+ Internal evaluation methods assess the quality of the clustering or dimensionality reduction without using any external information. Some common internal evaluation metrics include:
+    \begin{itemize}
+      \item \textit{Inertia (Sum of Squared Errors)}: Inertia measures the sum of squared distances between each data point and its assigned cluster centroid. A lower inertia value indicates tighter clusters. Inertia is primarily used for evaluating K-means clustering.
+      \item \textit{Silhouette Score}: The silhouette score measures the average intra-cluster cohesion and inter-cluster separation. It ranges from -1 to 1, with a higher score indicating better clustering.
+      \item \textit{Calinski-Harabasz Index}: The Calinski-Harabasz index measures the ratio of between-cluster dispersion to within-cluster dispersion. A higher value indicates better clustering.
+    \end{itemize}
+  These internal evaluation metrics can be useful for model selection, such as choosing the optimal number of clusters or tuning hyperparameters.
+
+
+\subsection{External evaluation}
+External evaluation methods compare the clustering or dimensionality reduction results with some external ground truth or reference information, such as class labels or expert annotations. Some common external evaluation metrics include:
+
+    \begin{itemize}
+      \item \textit{Adjusted Rand Index (ARI)}: The ARI measures the similarity between two clustering assignments, adjusting for chance. It ranges from -1 to 1, with 1 indicating perfect agreement and 0 indicating the expected agreement by chance.
+      \item \textit{Normalized Mutual Information (NMI)}: NMI measures the mutual information between two clustering assignments, normalized by the geometric mean of their individual entropy's. It ranges from 0 to 1, with 1 indicating perfect agreement and 0 indicating no shared information.
+      \item \textit{Fowlkes-Mallows Index}: The Fowlkes-Mallows index measures the geometric mean of precision and recall, with values ranging from 0 to 1. A higher value indicates better agreement between the clustering and the ground truth.
+    \end{itemize}
+  External evaluation methods can provide more objective performance assessments, but they require external information, which may not always be available.
+
+\section{Conclusion Remarks}
+In this chapter, we look at the other paradigm of ML - unsupervised learning, where ground truth data are provided with labels. Clustering is particularly focused. The Expectation-Maximization algorithm is introduced, which features an iterative optimization corresponding to a graphically intuitive centroids-searching process. Performance evaluation of unsupervised clustering methods is conceptually covered. In the next chapter, two related techniques - dimensionality reduction and feature extraction, will be introduced, which are often treated pre-processing steps prior to adopting a supervised or unsupervised classification/clustering model. 
+
+\end{document}

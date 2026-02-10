@@ -1,0 +1,640 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} \graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied AI \\ \large Topic 15: Generative AI and Knowledge Representation}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+\section{GPT Representation of  Knowledge and Response to Promptings}
+
+In this document, we explore how a GPT model represents knowledge and processes a prompt to generate a response. We delve into the mathematical foundations of the model, including how knowledge is encoded, how prompts are processed, and how responses are generated.
+
+\subsection{Knowledge Representation in the Model}
+
+The knowledge in a GPT model is stored implicitly within its parameters, which are learned during training on vast amounts of textual data. The model does not store explicit facts or use external databases during inference; instead, it captures patterns, syntax, semantics, and factual information in the weights of its neural network.
+
+\subsubsection{Model Parameters (\( \theta \))}
+
+The model consists of millions or billions of parameters (weights and biases), denoted as \( \theta \). These parameters are adjusted during training to minimize the difference between the model's predictions and the actual next words in the training data.
+
+\subsubsection{Distributed Representations}
+
+Knowledge is distributed across the network's parameters rather than being localized. This means that any piece of knowledge affects multiple parameters, and each parameter contributes to multiple pieces of knowledge.
+
+\subsection{Processing the Prompt}
+
+When a prompt is provided, the model processes it through several steps:
+
+\subsubsection{Tokenization}
+
+The input text is split into a sequence of tokens \( (x_1, x_2, \dots, x_T) \), where \( T \) is the length of the input.
+
+\subsubsection{Embedding}
+
+Each token \( x_i \) is converted into a continuous vector (embedding) \( \mathbf{e}_i \) using an embedding matrix \( E \):
+
+\[
+\mathbf{e}_i = E \cdot \text{one\_hot}(x_i)
+\]
+
+where \( \text{one\_hot}(x_i) \) is a one-hot encoded vector of the token \( x_i \).
+
+\subsubsection{Positional Encoding}
+
+Positional information is added to each token embedding to retain the order of the sequence:
+
+\[
+\mathbf{z}_i^{(0)} = \mathbf{e}_i + \mathbf{p}_i
+\]
+
+where \( \mathbf{p}_i \) is the positional encoding vector for position \( i \).
+
+\subsection{Transformer Architecture}
+
+The core of the GPT model is based on the Transformer architecture, which uses self-attention mechanisms to process the input sequence.
+
+\subsubsection{Self-Attention Mechanism}
+
+For each position \( i \), the model computes queries \( \mathbf{q}_i \), keys \( \mathbf{k}_i \), and values \( \mathbf{v}_i \):
+
+\[
+\begin{aligned}
+\mathbf{q}_i &= W^Q \mathbf{z}_i^{(l-1)} \\
+\mathbf{k}_i &= W^K \mathbf{z}_i^{(l-1)} \\
+\mathbf{v}_i &= W^V \mathbf{z}_i^{(l-1)}
+\end{aligned}
+\]
+
+where \( W^Q, W^K, W^V \) are learned projection matrices, and \( l \) denotes the layer.
+
+The attention weights between token \( i \) and token \( j \) are calculated:
+
+\[
+\alpha_{ij} = \frac{\exp\left( \frac{\mathbf{q}_i^\top \mathbf{k}_j}{\sqrt{d_k}} \right)}{\sum_{j'=1}^{T} \exp\left( \frac{\mathbf{q}_i^\top \mathbf{k}_{j'}}{\sqrt{d_k}} \right)}
+\]
+
+where \( d_k \) is the dimension of the key/query vectors.
+
+The output for position \( i \) is:
+
+\[
+\mathbf{z}_i^{(l)} = \sum_{j=1}^{T} \alpha_{ij} \mathbf{v}_j
+\]
+
+\subsubsection{Feedforward Networks and Residual Connections}
+
+The output of the attention mechanism is passed through a feedforward neural network (FFN):
+
+\[
+\mathbf{f}_i^{(l)} = \text{FFN}(\mathbf{z}_i^{(l)})
+\]
+
+Residual connections and layer normalization are applied:
+
+\[
+\mathbf{h}_i^{(l)} = \text{LayerNorm}(\mathbf{z}_i^{(l)} + \mathbf{f}_i^{(l)})
+\]
+
+\subsection{Generating the Response}
+
+\subsubsection{Output Probabilities}
+
+After processing the input through \( N \) layers, the model computes the logits for the next token:
+
+\[
+\mathbf{o} = W^O \mathbf{h}_T^{(N)} + \mathbf{b}^O
+\]
+
+where \( W^O \) and \( \mathbf{b}^O \) are the output weights and biases.
+
+The probabilities over the vocabulary are obtained using the softmax function:
+
+\[
+P(y \mid x) = \text{softmax}(\mathbf{o})
+\]
+
+\subsubsection{Autoregressive Generation}
+
+The model generates one token at a time. The predicted token is appended to the input, and the process repeats to generate subsequent tokens.
+
+\subsection{Knowledge Representation During Inference}
+
+The model's knowledge influences the output at each step through its parameters:
+
+\subsubsection{Implicit Retrieval}
+
+While generating a response, the model implicitly retrieves relevant information encoded in its weights based on the input context.
+
+\subsubsection{Attention Mechanism}
+
+The self-attention allows the model to focus on different parts of the input when generating each word, effectively modeling dependencies and contextual relationships.
+
+\subsection{Role of Embeddings and Similarity}
+
+\subsubsection{Embeddings}
+
+Embeddings \( \mathbf{e}_i \) represent tokens in a continuous vector space where semantically similar words are closer.
+
+These embeddings are learned during training and capture semantic and syntactic properties.
+
+\subsubsection{Similarity and Attention}
+
+The attention scores \( \alpha_{ij} \) are calculated based on the dot product similarity between queries and keys:
+
+\[
+\text{Similarity}(\mathbf{q}_i, \mathbf{k}_j) = \mathbf{q}_i^\top \mathbf{k}_j
+\]
+
+Higher similarity leads to higher attention weights, meaning the model focuses more on relevant tokens when generating the response.
+
+\subsection{Mathematical Process Summary}
+
+\subsubsection{Step-by-Step}
+
+\textbf{1. Input Tokenization and Embedding}
+
+\begin{itemize}
+    \item Tokens: \( x = (x_1, x_2, \dots, x_T) \)
+    \item Embeddings: \( \mathbf{e}_i = E \cdot \text{one\_hot}(x_i) \)
+    \item Positional Encoding: \( \mathbf{z}_i^{(0)} = \mathbf{e}_i + \mathbf{p}_i \)
+\end{itemize}
+
+\textbf{2. For Each Layer \( l = 1 \) to \( N \):}
+
+\begin{itemize}
+    \item Self-Attention:
+    \[
+    \begin{aligned}
+    \mathbf{q}_i &= W^Q \mathbf{z}_i^{(l-1)} \\
+    \mathbf{k}_i &= W^K \mathbf{z}_i^{(l-1)} \\
+    \mathbf{v}_i &= W^V \mathbf{z}_i^{(l-1)} \\
+    \alpha_{ij} &= \frac{\exp\left( \frac{\mathbf{q}_i^\top \mathbf{k}_j}{\sqrt{d_k}} \right)}{\sum_{j'=1}^{T} \exp\left( \frac{\mathbf{q}_i^\top \mathbf{k}_{j'}}{\sqrt{d_k}} \right)} \\
+    \mathbf{z}_i^{(l)} &= \sum_{j=1}^{T} \alpha_{ij} \mathbf{v}_j
+    \end{aligned}
+    \]
+    \item Feedforward and Residual:
+    \[
+    \begin{aligned}
+    \mathbf{f}_i^{(l)} &= \text{FFN}(\mathbf{z}_i^{(l)}) \\
+    \mathbf{h}_i^{(l)} &= \text{LayerNorm}(\mathbf{z}_i^{(l)} + \mathbf{f}_i^{(l)})
+    \end{aligned}
+    \]
+\end{itemize}
+
+\textbf{3. Output Layer:}
+
+\begin{itemize}
+    \item Compute logits:
+    \[
+    \mathbf{o} = W^O \mathbf{h}_T^{(N)} + \mathbf{b}^O
+    \]
+    \item Compute probabilities:
+    \[
+    P(y \mid x) = \text{softmax}(\mathbf{o})
+    \]
+\end{itemize}
+
+\textbf{4. Token Generation:}
+
+\begin{itemize}
+    \item Sample or select the next token \( y \) based on \( P(y \mid x) \).
+\end{itemize}
+
+\subsection{Does the Model Use Embedding Similarity Retrieval?}
+
+No, during inference, the model does not perform explicit retrieval of information based on embedding similarity from an external database. All the knowledge is contained within the model's parameters.
+
+\subsubsection{Implicit Knowledge}
+
+The model's responses are generated based on the patterns and representations learned during training.
+
+\subsubsection{No External Embeddings Comparison}
+
+The embeddings are used internally within the model for processing the input but are not compared against a separate knowledge base.
+
+\subsubsection{Self-Contained Generation}
+
+The model relies on its internal mechanisms (attention, learned weights) to produce outputs.
+
+\subsection{Analytical Representation of Knowledge Encoding}
+
+The model's knowledge encoding can be thought of as a complex function approximation:
+
+\subsubsection{Function Approximation}
+
+\[
+y = f_\theta(x)
+\]
+
+where \( f_\theta \) represents the neural network with parameters \( \theta \), mapping input text \( x \) to output text \( y \).
+
+\subsubsection{Learning Objective}
+
+During training, the model minimizes the cross-entropy loss between the predicted probability distribution and the true distribution:
+
+\[
+\mathcal{L}(\theta) = -\sum_{(x, y)} \log P(y \mid x; \theta)
+\]
+
+\subsubsection{Parameter Update}
+
+The parameters \( \theta \) are updated using gradient descent algorithms based on the loss \( \mathcal{L}(\theta) \).
+
+\subsection{Summary of Mathematical Processes}
+
+\begin{itemize}
+    \item \textbf{Embeddings}: Map discrete tokens to continuous vectors.
+    \item \textbf{Self-Attention}: Compute attention weights based on similarity between queries and keys to focus on relevant information.
+    \item \textbf{Feedforward Networks}: Apply non-linear transformations to capture complex patterns.
+    \item \textbf{Softmax Output}: Convert logits to probabilities over the vocabulary.
+    \item \textbf{Autoregressive Generation}: Generate text sequentially, conditioning on all previous tokens.
+\end{itemize}
+
+\subsection{Conclusion}
+
+\begin{itemize}
+    \item \textbf{Implicit Knowledge Representation}: The model's knowledge is encoded in its parameters, learned from extensive training data.
+    \item \textbf{Response Generation}: The model processes the input prompt using embeddings and the Transformer architecture to generate responses without external retrieval.
+    \item \textbf{Mathematical Foundations}: The operations involve linear algebra (matrix multiplications), non-linear activations, and probabilistic modeling using the softmax function.
+\end{itemize}
+
+
+
+
+
+\section{General Process for Parsing Multi-Modal PDF Documents}
+
+Processing a multi-modal PDF document involves several sophisticated steps that integrate technologies such as Optical Character Recognition (OCR), Natural Language Processing (NLP), Computer Vision (CV), and Large Language Models (LLMs). Below is a detailed technical explanation of the general process.
+
+\subsection{Document Parsing and Data Extraction}
+
+\subsubsection{Text Extraction}
+
+\begin{itemize}
+    \item \textbf{Optical Character Recognition (OCR):}
+    \begin{itemize}
+        \item \textbf{Purpose:} Convert scanned images of text into machine-encoded text.
+        \item \textbf{Technique:} Use OCR engines like Tesseract or advanced models like Google Vision API.
+        \item \textbf{Process:}
+        \[
+        \text{Image}_{\text{text}} \xrightarrow{\text{OCR}} \text{Extracted Text}
+        \]
+    \end{itemize}
+    \item \textbf{Text Segmentation:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Break down the text into smaller units (sentences, words).
+        \item \textbf{Technique:} Utilize tokenizers and sentence splitters from NLP libraries (e.g., NLTK, spaCy).
+        \item \textbf{Process:}
+        \[
+        \text{Extracted Text} \xrightarrow{\text{Tokenization}} \{\text{Sentences}, \text{Tokens}\}
+        \]
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Figure and Image Processing}
+
+\begin{itemize}
+    \item \textbf{Image Extraction:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Extract images embedded in the PDF.
+        \item \textbf{Technique:} Use PDF parsing libraries (e.g., PyPDF2, pdfminer.six).
+    \end{itemize}
+    \item \textbf{Image Understanding:}
+    \begin{itemize}
+        \item \textbf{Image Captioning:}
+        \begin{itemize}
+            \item \textbf{Purpose:} Generate descriptive captions for images.
+            \item \textbf{Model:} Encoder-Decoder architectures combining Convolutional Neural Networks (CNNs) and Recurrent Neural Networks (RNNs).
+            \item \textbf{Process:}
+            \[
+            \text{Image} \xrightarrow{\text{CNN+RNN}} \text{Caption}
+            \]
+        \end{itemize}
+        \item \textbf{Object Detection:}
+        \begin{itemize}
+            \item \textbf{Purpose:} Identify and label objects within images.
+            \item \textbf{Model:} Use models like YOLO (You Only Look Once) or Faster R-CNN.
+            \item \textbf{Process:}
+            \[
+            \text{Image} \xrightarrow{\text{Object Detection Model}} \{\text{Object Labels}, \text{Bounding Boxes}\}
+            \]
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Table Extraction}
+
+\begin{itemize}
+    \item \textbf{Detection and Recognition:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Detect tables and extract structured data.
+        \item \textbf{Technique:} Use models like TableNet or Camelot for table detection and parsing.
+        \item \textbf{Process:}
+        \[
+        \text{PDF Page} \xrightarrow{\text{Table Detection}} \text{Table Images} \xrightarrow{\text{Table Parsing}} \text{Structured Data}
+        \]
+    \end{itemize}
+\end{itemize}
+
+\subsection{Data Representation and Knowledge Embedding}
+
+\subsubsection{Text Embedding}
+
+\begin{itemize}
+    \item \textbf{Purpose:} Convert textual data into numerical vectors for computational processing.
+    \item \textbf{Technique:} Use pre-trained language models (e.g., BERT, GPT embeddings).
+    \item \textbf{Process:}
+    \[
+    \text{Sentence or Token} \xrightarrow{\text{Embedding Model}} \mathbf{v} \in \mathbb{R}^n
+    \]
+    where \( \mathbf{v} \) is the embedding vector of dimension \( n \).
+\end{itemize}
+
+\subsubsection{Knowledge Graph Construction}
+
+\begin{itemize}
+    \item \textbf{Entity Recognition and Relation Extraction:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Identify entities and their relationships in the text.
+        \item \textbf{Technique:} Use NLP techniques like Named Entity Recognition (NER) and Relation Extraction models.
+        \item \textbf{Process:}
+        \[
+        \text{Text} \xrightarrow{\text{NER}} \{\text{Entities}\} \xrightarrow{\text{Relation Extraction}} \text{Knowledge Graph}
+        \]
+    \end{itemize}
+    \item \textbf{Graph Representation:}
+    \begin{itemize}
+        \item \textbf{Mathematical Model:}
+        \[
+        G = (V, E)
+        \]
+        where \( V \) is a set of vertices (entities) and \( E \) is a set of edges (relationships).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Multimodal Embeddings}
+
+\begin{itemize}
+    \item \textbf{Purpose:} Combine textual and visual information into a unified representation.
+    \item \textbf{Technique:} Use models like CLIP (Contrastive Language-Image Pre-training) to align image and text embeddings.
+    \item \textbf{Process:}
+    \[
+    \begin{align*}
+    \mathbf{v}_{\text{text}} &= \text{Embed}_{\text{text}}(\text{Caption/Text}) \\
+    \mathbf{v}_{\text{image}} &= \text{Embed}_{\text{image}}(\text{Image}) \\
+    \mathbf{v}_{\text{multimodal}} &= \mathbf{v}_{\text{text}} + \mathbf{v}_{\text{image}}
+    \end{align*}
+    \]
+\end{itemize}
+
+\subsection{User Query Understanding}
+
+\subsubsection{Query Processing}
+
+\begin{itemize}
+    \item \textbf{Intent Detection:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Understand the purpose of the user's question.
+        \item \textbf{Technique:} Use LLMs to parse and interpret the query.
+        \item \textbf{Process:}
+        \[
+        \text{User Query} \xrightarrow{\text{LLM}} \{\text{Intent}, \text{Entities}\}
+        \]
+    \end{itemize}
+    \item \textbf{Query Embedding:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Represent the query in the same embedding space as the document data.
+        \item \textbf{Process:}
+        \[
+        \mathbf{v}_{\text{query}} = \text{Embed}(\text{User Query})
+        \]
+    \end{itemize}
+\end{itemize}
+
+\subsection{Information Retrieval}
+
+\subsubsection{Similarity Matching}
+
+\begin{itemize}
+    \item \textbf{Purpose:} Find relevant sections of the document that match the user's query.
+    \item \textbf{Technique:} Calculate cosine similarity between the query embedding and document embeddings.
+    \item \textbf{Process:}
+    \[
+    \cos(\theta) = \frac{\mathbf{v}_{\text{query}} \cdot \mathbf{v}_{\text{doc}}}{\|\mathbf{v}_{\text{query}}\| \|\mathbf{v}_{\text{doc}}\|}
+    \]
+    \item \textbf{Retrieval:} Retrieve documents or sections where the similarity exceeds a certain threshold.
+\end{itemize}
+
+\subsubsection{Knowledge Graph Querying}
+
+\begin{itemize}
+    \item \textbf{Purpose:} Navigate the knowledge graph to find relevant information.
+    \item \textbf{Technique:} Use graph traversal algorithms to find paths between entities.
+    \item \textbf{Process:}
+    \begin{itemize}
+        \item \textbf{Traversal Algorithms:} Depth-First Search (DFS), Breadth-First Search (BFS), Dijkstra's algorithm for weighted graphs.
+        \item \textbf{Subgraph Extraction:} Extract subgraphs that are relevant to the query entities.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Response Generation}
+
+\subsubsection{Contextual Response Formulation}
+
+\begin{itemize}
+    \item \textbf{Input Construction:}
+    \begin{itemize}
+        \item Combine relevant text snippets, image captions, and table data into a context for the LLM.
+        \item \textbf{Process:}
+        \[
+        \text{Context} = \text{Concatenate}(\text{Relevant Texts}, \text{Captions}, \text{Data})
+        \]
+    \end{itemize}
+    \item \textbf{LLM Response Generation:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Generate a coherent and informative answer.
+        \item \textbf{Technique:} Use the LLM to generate text based on the input context and user query.
+        \item \textbf{Process:}
+        \[
+        \text{Answer} = \text{LLM}(\text{User Query} + \text{Context})
+        \]
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Post-processing}
+
+\begin{itemize}
+    \item \textbf{Verification:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Ensure the accuracy and relevance of the generated answer.
+        \item \textbf{Technique:} Cross-validate with the original data.
+    \end{itemize}
+    \item \textbf{Formatting:}
+    \begin{itemize}
+        \item \textbf{Purpose:} Present the answer in a user-friendly format.
+        \item \textbf{Technique:} Use templates or markdown for better readability.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Mathematical Foundations and Models}
+
+\subsubsection{Embedding Spaces}
+
+\begin{itemize}
+    \item \textbf{Definition:} An embedding space is a vector space where words, sentences, or images are represented as continuous vectors.
+    \item \textbf{Properties:} Semantic similarity is represented by proximity in the vector space.
+\end{itemize}
+
+\subsubsection{Transformer Models}
+
+\begin{itemize}
+    \item \textbf{Architecture:} Utilizes self-attention mechanisms to weigh the significance of each part of the input data.
+    \item \textbf{Self-Attention Mechanism:}
+    \[
+    \text{Attention}(Q, K, V) = \text{softmax}\left( \frac{QK^\top}{\sqrt{d_k}} \right)V
+    \]
+    where \( Q \), \( K \), and \( V \) are the query, key, and value matrices, and \( d_k \) is the dimension of the key vectors.
+\end{itemize}
+
+\subsubsection{Cosine Similarity}
+
+\begin{itemize}
+    \item \textbf{Formula:}
+    \[
+    \cos(\theta) = \frac{\sum_{i=1}^{n} \mathbf{v}_{i}^{\text{query}} \cdot \mathbf{v}_{i}^{\text{doc}}}{\sqrt{\sum_{i=1}^{n} (\mathbf{v}_{i}^{\text{query}})^2} \cdot \sqrt{\sum_{i=1}^{n} (\mathbf{v}_{i}^{\text{doc}})^2}}
+    \]
+    \item \textbf{Purpose:} Measures the cosine of the angle between two vectors, providing a measure of similarity.
+\end{itemize}
+
+\subsection{Putting It All Together}
+
+\begin{enumerate}
+    \item \textbf{Data Extraction:} Extract text, images, and tables from the PDF.
+    \item \textbf{Data Representation:} Convert all extracted data into embeddings and construct a knowledge graph.
+    \item \textbf{User Query Processing:} Embed the user's question and understand the intent.
+    \item \textbf{Information Retrieval:} Use similarity measures and graph queries to find relevant information.
+    \item \textbf{Response Generation:} Input the combined context into the LLM to generate an answer.
+    \item \textbf{Output Delivery:} Present the answer to the user with appropriate formatting and references.
+\end{enumerate}
+
+\subsection{Example Workflow}
+
+\textbf{User Query:} "What are the main findings in Table 2 regarding the growth rate?"
+
+\begin{enumerate}
+    \item \textbf{Extract Table 2 Data:}
+    \begin{itemize}
+        \item Parse Table 2 and convert it into structured data.
+    \end{itemize}
+    \item \textbf{Embed Query and Data:}
+    \begin{itemize}
+        \item Embed the user's query and the textual description of Table 2.
+    \end{itemize}
+    \item \textbf{Calculate Similarity:}
+    \begin{itemize}
+        \item Determine relevance by computing the cosine similarity between embeddings.
+    \end{itemize}
+    \item \textbf{Generate Response:}
+    \begin{itemize}
+        \item Use the LLM to formulate an answer summarizing the main findings in Table 2.
+    \end{itemize}
+    \item \textbf{Deliver Answer:}
+    \begin{itemize}
+        \item Present the summarized findings to the user.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Considerations and Limitations}
+
+\begin{itemize}
+    \item \textbf{Computational Resources:} Processing large documents and running LLMs require significant computational power.
+    \item \textbf{Context Window Limitations:} LLMs have a maximum context window (e.g., GPT-4 has a limit of 8K or 32K tokens).
+    \item \textbf{Accuracy and Bias:} The quality of the answer depends on the accuracy of OCR and the underlying models.
+    \item \textbf{Data Privacy:} Ensure that the processing complies with data protection regulations (e.g., GDPR).
+\end{itemize}
+
+\section{ChatGPT Approach for Handling Multi-Modal PDF Tasks}
+
+ChatGPT takes a simplified approach tailored to its environment and constraints.
+
+\subsection{Document Parsing}
+
+\begin{itemize}
+    \item \textbf{Text Extraction:} Text is extracted using PDF parsing libraries like PyPDF2 or pdfplumber.
+    \item \textbf{Figure and Table Handling:}
+    \begin{itemize}
+        \item \textbf{Figures:} Captions are extracted if available; images are not directly analyzed.
+        \item \textbf{Tables:} Parsed into structured text formats (e.g., CSV-like rows).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Query Understanding and Information Retrieval}
+
+\begin{itemize}
+    \item \textbf{Keyword Matching:} Identifies relevant sections of the document using keywords and phrases from the user query.
+    \item \textbf{Context Matching:} Relevance is determined using pattern matching and GPT's internal language understanding capabilities.
+\end{itemize}
+
+\subsection{Response Generation}
+
+\begin{itemize}
+    \item \textbf{Dynamic Summarization:} Formulates answers by synthesizing the relevant text extracted from the document.
+    \item \textbf{Text-Based Outputs:} Answers are derived entirely from the textual content of the document, with no additional processing for visual data.
+\end{itemize}
+
+\section{Comparison of Approaches}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|p{5cm}|p{5cm}|}
+\hline
+\textbf{Aspect} & \textbf{General Process} & \textbf{ChatGPT Approach} \\ \hline
+Data Representation & Uses embeddings and knowledge graphs for semantic understanding & Relies on plain text parsing and GPT's language capabilities \\ \hline
+Multimodal Handling & Processes images and tables using ML models; combines modalities using multimodal embeddings & Limited to text extraction from captions and tables; no direct image processing \\ \hline
+Information Retrieval & Employs semantic retrieval using embeddings and similarity measures like cosine similarity & Uses keyword matching and pattern recognition within the text \\ \hline
+Response Generation & Generates responses using LLMs with contextualized inputs from various data sources & Generates responses based on dynamically summarized text extracted from the document \\ \hline
+Capabilities for Figures/Tables & Analyzes visual data using advanced models; integrates results into responses & Considers only textual descriptions; cannot analyze visual content \\ \hline
+\end{tabular}
+\caption{Comparison of General Process and ChatGPT Approach}
+\end{table}
+
+\section{Conclusion}
+
+The general process involves advanced techniques like embeddings, knowledge graphs, and multimodal processing to provide a comprehensive understanding and response generation. In contrast, the ChatGPT approach simplifies the task by focusing on text extraction and leveraging GPT's language understanding capabilities without employing complex data representations or processing visual content directly.
+
+
+
+\end{document}

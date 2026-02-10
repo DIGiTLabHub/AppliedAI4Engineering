@@ -1,0 +1,763 @@
+\documentclass[12pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{hyperref}
+\usepackage{ragged2e}
+\usepackage{etoolbox}
+\AtBeginEnvironment{frame}{\justifying}
+
+\title{CE 488/5588: Applied AI for Engineering}
+\subtitle{Topic 1: Intelligence: How to Equip a Machine with Intelligence}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\begin{frame}{Motivation}
+  \begin{conceptbox}{Why study intelligence?}
+    Artificial Intelligence (AI) has become a pervasive term in contemporary science, engineering, and society at large. Throughout this semester-long course, we will examine what AI entails beyond its popularized usage. As a starting point, we raise a fundamental question that motivates the study of AI: to what extent can intelligence be instantiated, approximated, or operationalized in artificial systems?
+  \end{conceptbox}
+\end{frame}
+
+\section{Primitive Cognition to Human Intelligence}
+
+\begin{frame}{Intelligence is not uniquely human}
+  \begin{itemize}
+    \item Intelligence is often regarded as a uniquely human attribute.
+    \item This intuition is incomplete.
+    \item Intelligence is not exclusive to humans.
+    \item Intelligence does not manifest in a single, well-defined form.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A spectrum of intelligent behavior}
+  \begin{itemize}
+    \item No universal scale measures intelligence across systems.
+    \item Qualitative comparisons reveal a broad spectrum.
+    \item Behaviors range from stimulus-driven responses to abstract reasoning.
+    \item These examples contextualize modern AI within the spectrum.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Paramecium}
+  \begin{itemize}
+    \item Single-celled organism with no nervous system.\footnote{Paramecia exhibit stimulus-driven behaviors such as avoidance responses mediated by ciliary reversal; \bhref{https://www.journals.uchicago.edu/doi/10.1086/physzool.11.1.30151437}{UChicago Press}.}
+      \begin{itemize}
+        \item It moves toward nutrients, avoids harmful stimuli, and adjusts motion based on feedback.
+        \item These behaviors arise from biochemical and biophysical processes rather than symbolic reasoning.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ant colony}
+  \begin{itemize}
+    \item Individuals follow simple local rules.\footnote{Ant foraging trails arise from pheromone deposition and response, enabling collective foraging patterns; \bhref{https://shorturl.at/1K6oe}{Stanford (Gordon 2019)}.}
+      \begin{itemize}
+        \item Colonies show emergent intelligence such as efficient foraging and adaptive path planning.
+        \item Intelligence emerges at the system level rather than the individual level.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{American crows and African greys}
+  \begin{itemize}
+    \item Birds demonstrate advanced cognitive abilities.
+      \begin{itemize}
+        \item They show tool use, causal reasoning, episodic-like memory, and symbolic communication.
+        \item These abilities indicate sophisticated reasoning outside primate brains.
+      \end{itemize}
+    \item Supporting evidence for tool use and symbolic communication.
+      \begin{itemize}
+        \item American crows can learn tool use in experimental tasks.\bhref{https://sefs.uw.edu/2023/10/sefs-led-research-on-tool-use-by-crows-published-in-nature-communications/}{University of Washington}.
+        \item African grey parrots can label colors and quantities (Alex). \bhref{https://www.brandeis.edu/now/2008/january/alex.html}{Brandeis University}.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Orangutans}
+  \begin{itemize}
+    \item High-level intelligence comparable to early hominins.
+      \begin{itemize}
+        \item They show long-term planning, social learning, deception, and tool construction.
+        \item They can mentally simulate future scenarios and prepare tools in advance.
+        \item Orangutans demonstrate tool use and planning in maze-based tasks. \bhref{https://shorturl.at/KdzWO}{RIT (Keller \& DeLong, 2016)}.
+       \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Intelligence spans a spectrum}
+  \begin{itemize}
+    \item Intelligence ranges from reflexive to abstract.
+    \item It includes sensing, perception, learning, memory, and adaptation.
+    \item Different organisms realize different subsets of capabilities.
+    \item Physical substrates vary widely across organisms.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Operational definition of intelligence}
+  \begin{conceptbox}{Working definition for engineering}
+    Intelligence is the ability of a system to acquire internal representations from experience and
+    use them to predict, decide, and act under uncertainty in pursuit of specified objectives.
+  \end{conceptbox}
+  \begin{itemize}
+    \item This definition emphasizes functional capability over consciousness.
+    \item Machine learning supplies practical mechanisms when explicit models are infeasible.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Embodied intelligence gap}
+  \begin{itemize}
+    \item Modern artificial systems remain limited in embodiment.
+      \begin{itemize}
+        \item Even a paramecium can sense, navigate, acquire energy, avoid threats, and self-maintain.
+        \item No existing artificial system completes this full loop of perception and self-sustenance.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% \begin{frame}{Embodied intelligence loop}
+%   \centering
+%   \begin{tikzpicture}[
+%     node distance=2.0cm,
+%     every node/.style={draw, rounded corners, align=center, minimum height=0.9cm, minimum width=2.2cm, fill=blue!5},
+%     >=Stealth
+%   ]
+%     \node (sensing) at (90:2.4) {Sensing};
+%     \node (perception) at (18:2.4) {Perception};
+%     \node (decision) at (-54:2.4) {Decision};
+%     \node (action) at (-126:2.4) {Action};
+%     \node (feedback) at (162:2.4) {Feedback};
+
+%     \draw[->] (sensing) -- (perception);
+%     \draw[->] (perception) -- (decision);
+%     \draw[->] (decision) -- (action);
+%     \draw[->] (action) -- (feedback);
+%     \draw[->] (feedback) -- (sensing);
+%   \end{tikzpicture}
+% \end{frame}
+
+\begin{frame}{AI as input--output mapping}
+  \begin{itemize}
+    \item Most AI systems operate as input--output machines.
+      \begin{itemize}
+        \item They compute outputs from sensory data according to learned or programmed functions.
+        \item Even advanced systems remain end-to-end mappings with limited autonomy.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{AI as a powerful calculator}
+  \begin{itemize}
+    \item Contemporary AI can be viewed as a powerful calculator.
+      \begin{itemize}
+        \item It can encode vast knowledge and perform remarkable pattern matching.
+        \item It excels at ``easy problems'' such as logic, mathematics, recognition, and language.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The hard problems remain}
+  \begin{itemize}
+    \item Hard problems include survival, adaptation, and open-ended goal formation.
+      \begin{itemize}
+        \item Addressing them likely requires persistent world models and causal reasoning.
+        \item Tasks effortless for biological organisms often remain difficult for machines.
+        \item Debates on AGI and ASI reflect this unresolved gap.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Course focus}
+  \begin{itemize}
+    \item The course narrows its focus to the intelligence machines realized today.
+      \begin{itemize}
+        \item We begin by examining the reasoning processes used in decision-making.
+        \item These processes underlie the design of modern AI systems.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Human Decision-Making and Reasoning}
+
+\begin{frame}{Reasoning foundations}
+  \begin{itemize}
+    \item Reasoning guides decision-making and problem-solving.
+      \begin{itemize}
+        \item It interprets information, generalizes it, and applies it to guide action.
+        \item Deduction, induction, abduction, and analogy are core reasoning types.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Human vs. machine reasoning}
+  \begin{itemize}
+    \item Machine reasoning is computational and optimization-driven.
+    \item Human reasoning emerges from biological processes and lived experience.
+    \item Drawing analogies helps map cognitive ideas to algorithmic systems.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Human's Inductive--deductive loop}
+  \begin{itemize}
+    \item Human intelligence cycles among reasoning modes.
+      \begin{itemize}
+        \item People induce general principles from experience and apply them deductively.
+        \item This loop underlies scientific discovery and engineering design.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% \begin{frame}{Induction--deduction cycle}
+%   \centering
+%   \begin{tikzpicture}[
+%     node distance=2.2cm,
+%     every node/.style={draw, rounded corners, align=center, minimum height=0.9cm, minimum width=2.3cm, fill=blue!5},
+%     >=Stealth
+%   ]
+%     \node (data) {Data};
+%     \node (induction) [right=of data] {Induction\\(Training)};
+%     \node (model) [right=of induction] {Model};
+%     \node (deduction) [right=of model] {Deduction\\(Inference)};
+%     \node (newdata) [right=of deduction] {New Data};
+
+%     \draw[->] (data) -- (induction);
+%     \draw[->] (induction) -- (model);
+%     \draw[->] (model) -- (deduction);
+%     \draw[->] (deduction) -- (newdata);
+%     \draw[->, bend left=20] (newdata) to (data);
+%   \end{tikzpicture}
+% \end{frame}
+
+\begin{frame}{Reasoning types in focus}
+  \begin{itemize}
+    \item Deduction and induction are foundational in AI.
+    \item Abduction and analogy support hypothesis and transfer.
+    \item We emphasize the first two types.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Reasoning types in AI systems}
+  \begin{itemize}
+    \item Deductive reasoning appears in rule-based systems and inference using trained models.
+    \item Inductive reasoning underlies supervised, unsupervised, and reinforcement learning.
+    \item Abductive reasoning aligns with probabilistic and generative modeling under uncertainty.
+    \item Analogical reasoning appears in representation and transfer learning.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Deduction vs. induction}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figure0101}
+    \caption{Deduction vs. induction steps.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Deduction}
+  \begin{itemize}
+    \item Conclusions follow logically from premises.
+      \begin{itemize}
+        \item When premises are true and logic is valid, conclusions are necessarily true.
+        \item A deductive inference is therefore logically guaranteed by its premises.
+      \end{itemize}
+    \item Deductive process steps.
+  \end{itemize}
+  \[
+    \text{premise (idea)} \;\rightarrow\; \text{observation} \;\rightarrow\; \text{conclusion}.
+  \]
+\end{frame}
+
+\begin{frame}{Induction}
+  \begin{itemize}
+    \item General principles are derived from observations.
+      \begin{itemize}
+        \item Observations are treated as representative of a broader pattern.
+        \item Inductive generalizations can evolve into theories or laws.
+      \end{itemize}
+    \item Inductive process steps.
+  \end{itemize}
+  \[
+    \text{observation} \;\rightarrow\; \text{analysis or modeling} \;\rightarrow\; \text{theory}.
+  \]
+\end{frame}
+
+\begin{frame}{Abduction}
+  \begin{itemize}
+    \item Abduction seeks the most plausible explanation.\footnote{Stanford Encyclopedia of Philosophy defines abduction as inference to the best explanation; \bhref{https://plato.stanford.edu/entries/abduction/}{SEP: Abduction}.}
+      \begin{itemize}
+        \item It begins with an observation that is incomplete or surprising.
+        \item Conclusions are not guaranteed by their premises.
+      \end{itemize}
+    \item Abductive process steps.
+  \end{itemize}
+  \[
+    \text{observation} \;\rightarrow\; \text{hypothesis} \;\rightarrow\; \text{evaluation}.
+  \]
+\end{frame}
+
+\begin{frame}{Analogy}
+  \begin{itemize}
+    \item Analogy infers from structural similarity.
+      \begin{itemize}
+        \item It maps relationships from a familiar domain to a new domain.
+        \item It enables hypothesis generation and conceptual transfer.
+      \end{itemize}
+    \item Analogical process steps.
+  \end{itemize}
+  \[
+    \text{known case} \;\rightarrow\; \text{comparison} \;\rightarrow\; \text{inference about unknown case}.
+  \]
+\end{frame}
+
+\begin{frame}{Which is more prevalent?}
+  \begin{itemize}
+    \item Inductive reasoning often dominates daily experience.
+      \begin{itemize}
+        \item People generalize from repeated observations such as the sun rising and setting.
+        \item Early civilizations used induction to conclude the sun revolved around Earth.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{First principles and education}
+  \begin{itemize}
+    \item Formal education emphasizes established principles and laws.
+      \begin{itemize}
+        \item First principles are propositions that cannot be deduced from others.\footnote{Stanford Encyclopedia of Philosophy, ``Aristotle and First Principles in Greek Mathematics,'' \bhref{https://plato.stanford.edu/entries/aristotle-mathematics/supplement1.html}{SEP}.}
+        \item These principles are applied deductively in analysis and design.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Certainty of conclusions}
+  \begin{itemize}
+    \item Deductive conclusions are certain if premises are true.
+    \item Inductive conclusions are probable.
+      \begin{itemize}
+        \item Induction relies on interpolation or extrapolation from finite observations.
+        \item Certainty cannot be guaranteed in empirical contexts.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Induction by proof vs. inductive reasoning}
+  \begin{examplebox}{Remarks: Induction by Proof vs. Inductive Reasoning}
+    It is important to distinguish mathematical induction by proof from inductive reasoning. In a proof by induction (for example, proving that $1 + 2 + \cdots + n = n(n+1)/2$), the argument is mathematically rigorous because it relies on axioms governing the natural numbers.\footnote{Specifically, the step from $n = k$ to $n = k+1$ is justified by the axiomatic structure of arithmetic.}
+  \end{examplebox}
+\end{frame}
+
+
+
+\section{Classification of Modern AI and ML}
+
+\begin{frame}{Classification lenses}
+  \begin{conceptbox}{Multiple perspectives}
+    Modern AI systems can be organized along orthogonal lenses that emphasize learning, action,
+    representation, and scale rather than a single rigid taxonomy.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Relationship between learning and intelligence (AI vs. ML).
+    \item Nature of system actions and feedback.
+    \item Internal representation and uncertainty modeling.
+    \item Scale of learning and deployment.
+  \end{itemize}
+\end{frame}
+
+\subsection{AI and ML Relation as Processes}
+\begin{frame}{AI and ML as processes}
+  \begin{itemize}
+    \item AI is a process that emulates intelligent behavior.
+      \begin{itemize}
+        \item It uses predictive models to simulate human decision-making and reasoning.
+        \item It can perform deductive, inductive, and other reasoning types.
+      \end{itemize}
+    \item ML is a modeling process that generalizes observations.
+      \begin{itemize}
+        \item It infers predictions from new observations.
+        \item It is often considered a branch of AI.
+        \item Stanford: ``the science of getting computers to act without being explicitly programmed.''
+          \bhref{http://mlclass.stanford.edu/}{Stanford ML}.
+        \item Microsoft: ``an application of AI'' using mathematical models of data.
+          \bhref{https://azure.microsoft.com/en-us/resources/cloud-computing-dictionary/artificial-intelligence-vs-machine-learning}{Microsoft Azure}.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ML as inductive reasoning}
+  \begin{itemize}
+    \item ML modeling largely emulates induction.
+      \begin{itemize}
+        \item It generalizes from observed data to create knowledge.
+        \item It commonly uses supervised and unsupervised learning paradigms.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Inference as deduction}
+  \begin{itemize}
+    \item Inference is the process of using a trained model.
+      \begin{itemize}
+        \item The model is treated as true after training and validation.
+        \item The system deductively infers predictions for new inputs.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{ML focus and deep learning}
+  \begin{itemize}
+    \item ML focuses on models learned from observations.
+      \begin{itemize}
+        \item It emphasizes inductive inference during training.
+        \item Deep learning is a sub-branch of ML.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{AI and ML relations}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.45\textwidth]{figs/Figure0103.png}
+    \caption{AI and ML relations.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Inductive--deductive loop in AI}
+  \begin{itemize}
+    \item AI and ML realize a computational inductive--deductive loop.
+      \begin{itemize}
+        \item Training performs induction by generalizing from data.
+        \item Deployment performs deduction by applying the learned representation.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Classification based on Action}
+
+\begin{frame}{AI as A Pipeline}
+  \begin{itemize}
+    \item Engineers often view AI systems as a pipeline:
+      % \begin{itemize}
+      %   \item Input $\rightarrow$ representation $\rightarrow$ inference $\rightarrow$ action.
+ 
+      % \end{itemize}
+  \end{itemize}
+  \vspace{0.5em}
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.5cm,
+    every node/.style={draw, rounded corners, align=center, minimum height=0.8cm, minimum width=2.1cm, fill=blue!5},
+    >=Stealth
+  ]
+    \node (input) {Input};
+    \node (repr) [right=of input] {Representation};
+    \node (infer) [right=of repr] {Inference};
+    \node (action) [right=of infer] {Action};
+
+    \draw[->] (input) -- (repr);
+    \draw[->] (repr) -- (infer);
+    \draw[->] (infer) -- (action);
+  \end{tikzpicture}
+  \begin{itemize}
+     \item We can first classify AI by the action stage.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Action-based system types}
+  \begin{itemize}
+    \item Expert systems: explicit representations and logical inference.
+    \item Statistical ML systems: learn inference rules from data.
+    \item Deep learning systems: representation learning with hierarchical features.
+    \item Agentic AI systems: integrate models with planning, tools, and memory.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Toward embodied intelligence}
+  \begin{warningbox}{Embodiment remains limited}
+    Actions in most AI systems are executed once and evaluated externally, without a persistent
+    perception--action feedback loop. This limits autonomous exploration, survival-driven behavior,
+    and continual adaptation.
+  \end{warningbox}
+\end{frame}
+
+\subsection{Classification based on Representation}
+
+\begin{frame}{Representation-based classification}
+  \begin{itemize}
+    \item Systems differ in how knowledge and uncertainty are represented.
+    \item Representation choices determine transparency, adaptability, and robustness.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Symbolic AI}
+  \begin{itemize}
+    \item Symbolic AI encodes knowledge with rules and symbols.
+      \begin{itemize}
+        \item Humans perform induction and manually encode rules.
+        \item The system performs deductive reasoning at execution time.
+      \end{itemize}
+    \item Symbolic systems are transparent but brittle.
+      \begin{itemize}
+        \item They struggle with uncertainty, noise, and unanticipated situations.
+        \item They do not learn from data.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Supervised learning}
+  \begin{itemize}
+    \item Models learn from labeled examples.
+      \begin{itemize}
+        \item Training minimizes loss to learn a mapping from inputs to outputs.
+        \item Common tasks include regression and classification.
+      \end{itemize}
+    \item Reasoning perspective.
+      \begin{itemize}
+        \item Training performs induction from finite observations.
+        \item Inference applies the learned mapping deductively.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Unsupervised learning}
+  \begin{itemize}
+    \item The model discovers latent structure in unlabeled data.
+      \begin{itemize}
+        \item It finds clusters, low-dimensional representations, or distributions.
+        \item These representations support downstream tasks.
+      \end{itemize}
+    \item Unsupervised learning is induction without explicit supervision.
+      \begin{itemize}
+        \item It infers regularities solely from observations.
+        \item It can support anomaly detection and generative modeling.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Reinforcement learning}
+  \begin{itemize}
+    \item An agent interacts with an environment to maximize reward.
+      \begin{itemize}
+        \item It learns a policy through trial and error.
+        \item Correct actions are not explicitly provided.
+      \end{itemize}
+    \item Reasoning perspective.
+      \begin{itemize}
+        \item The agent inductively learns a policy or value function.
+        \item The learned policy is applied deductively to select actions.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Learning vs. inference}
+  \begin{itemize}
+    \item Learning constructs or updates internal models.
+      \begin{itemize}
+        \item Learning is typically inductive and data-driven.
+        \item It occurs during training or system design.
+      \end{itemize}
+    \item Inference applies a given model to new inputs.
+      \begin{itemize}
+        \item Inference is deductive once the model is fixed.
+        \item Symbolic AI performs only inference at runtime.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Classification based on Scale}
+
+\begin{frame}{Scale as a dominant factor}
+  \begin{conceptbox}{Scale-based classification}
+    Modern AI capabilities are increasingly shaped by training scale rather than new formalisms.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Small models target narrow tasks with limited data.
+    \item Foundation models train on massive, diverse datasets for broad reuse.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Foundation models}
+  \begin{itemize}
+    \item Foundation models are trained on massive, diverse datasets.
+      \begin{itemize}
+        \item They learn general representations reused across tasks.
+        \item They differ from narrow task-specific ML models.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Apparent induction at inference time}
+  \begin{itemize}
+    \item Foundation models appear to perform induction at inference.
+      \begin{itemize}
+        \item They adapt to tasks and infer intent from minimal prompting.
+        \item Model parameters remain fixed, so this is not new learning.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Scale of induction during training}
+  \begin{itemize}
+    \item The scope of induction shifts to pretraining.
+      \begin{itemize}
+        \item Massive training compresses vast data into a single model.
+        \item Inference can resemble abduction and analogy through pattern completion.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% \begin{frame}{AI reasoning comparison}
+%   \begin{itemize}
+%     \item The lifecycle perspective distinguishes paradigms.
+%       \begin{itemize}
+%         \item Classical symbolic AI uses human induction and machine deduction.
+%         \item Classical ML uses narrow induction followed by statistical inference.
+%       \end{itemize}
+%     \item Modern generative AI uses massive pretraining-time induction.
+%   \end{itemize}
+% \end{frame}
+
+% \begin{frame}{AI reasoning comparison: Classic Symbolic AI}
+%   \scriptsize
+%   \renewcommand{\arraystretch}{1.25}
+%   \setlength{\tabcolsep}{3pt}
+%   \begin{tabular}{|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{4.8cm}|>{\raggedright\arraybackslash}p{4.8cm}|}
+%     \hline
+%     \textbf{AI Paradigm} & \textbf{Phase 1: Learning / Construction} \newline \textit{(How intelligence is created)} & \textbf{Phase 2: Inference / Execution} \newline \textit{(How intelligence is applied)} \\
+%     \hline
+%     \textbf{Classic Symbolic AI} \newline \textit{(Rule-Based, Expert Systems)} &
+%     \textbf{No Learning (Manual Encoding)} \newline
+%     Humans perform the \textit{Induction}. They observe the world, figure out the rules, and hard-code them into the system. \newline
+%     \textit{(e.g., "If fever AND rash, THEN diagnosis is X")} &
+%     \textbf{Pure Deduction} \newline
+%     The system executes the logic perfectly. \newline
+%     $ \text{Rule} + \text{Input} \to \text{Certain Conclusion} $ \newline
+%     \textit{Rigid, brittle, but transparent.} \\
+%     \hline
+%   \end{tabular}
+% \end{frame}
+
+% \begin{frame}{AI reasoning comparison: Classic Machine Learning}
+%   \scriptsize
+%   \renewcommand{\arraystretch}{1.25}
+%   \setlength{\tabcolsep}{3pt}
+%   \begin{tabular}{|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{4.8cm}|>{\raggedright\arraybackslash}p{4.8cm}|}
+%     \hline
+%     \textbf{AI Paradigm} & \textbf{Phase 1: Learning / Construction} \newline \textit{(How intelligence is created)} & \textbf{Phase 2: Inference / Execution} \newline \textit{(How intelligence is applied)} \\
+%     \hline
+%     \textbf{Classic Machine Learning} \newline \textit{(Regression, SVMs, Decision Trees)} &
+%     \textbf{Pure Induction} \newline
+%     The algorithm looks at specific data points to find a general mathematical function (a hyperplane or curve) that separates them. \newline
+%     \textit{(Optimization of parameters)} &
+%     \textbf{Statistical Application} \newline
+%     Applies the induced function to new data. It does \textbf{not} reason during inference; it simply calculates a score based on the frozen formula. \newline
+%     \textit{"Input falls on side A, therefore Class A."} \\
+%     \hline
+%   \end{tabular}
+% \end{frame}
+
+% \begin{frame}{AI reasoning comparison: Modern Generative AI}
+%   \scriptsize
+%   \renewcommand{\arraystretch}{1.25}
+%   \setlength{\tabcolsep}{3pt}
+%   \begin{tabular}{|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{4.8cm}|>{\raggedright\arraybackslash}p{4.8cm}|}
+%     \hline
+%     \textbf{AI Paradigm} & \textbf{Phase 1: Learning / Construction} \newline \textit{(How intelligence is created)} & \textbf{Phase 2: Inference / Execution} \newline \textit{(How intelligence is applied)} \\
+%     \hline
+%     \textbf{Modern Generative AI} \newline \textit{(Transformers, LLMs)} &
+%     \textbf{Massive Induction (Compression)} \newline
+%     Ingests internet-scale text to learn probability distributions of words and concepts. It induces the "structure of language and logic" implicitly. \newline
+%     \textit{Learning the "world model."} &
+%     \textbf{Simulated Reasoning (Abduction)} \newline
+%     Predicts the next token based on context. It performs \textit{Abduction} (guessing intent) and \textit{Analogy} (mapping vectors) to simulate deductive steps. \newline
+%     \textit{"It looks like a logic puzzle, so I will complete the pattern."} \\
+%     \hline
+%   \end{tabular}
+% \end{frame}
+
+\begin{frame}{Comparison summary}
+  \begin{itemize}
+    \item Symbolic AI: human induction, machine deduction.
+    \item Classic ML: narrow induction, statistical application.
+    \item Modern generative AI: massive induction, simulated reasoning.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Final note on classifications}
+  \begin{itemize}
+    \item A single AI system can belong to multiple categories at once.
+    \item Classification lenses highlight design priorities rather than rigid boundaries.
+  \end{itemize}
+\end{frame}
+
+\section{Conclusions}
+
+\begin{frame}{Key takeaways}
+  \begin{itemize}
+    \item Intelligence is multifaceted and embodied.
+      \begin{itemize}
+        \item It spans from simple organisms to higher primates.
+        \item Modern AI realizes only a narrow subset of capabilities.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Reasoning and AI methods}
+  \begin{itemize}
+    \item Deduction and induction underlie AI methodologies.
+      \begin{itemize}
+        \item ML trains inductively and infers deductively.
+        \item AI systems remain constrained by lack of embodiment and agency.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Course perspective}
+  \begin{itemize}
+    \item The course adopts a primarily statistical perspective on AI.
+    \item Focus areas include supervised and unsupervised learning formalisms.
+    \item We emphasize generalization and quantitative evaluation of inference.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Secondary paradigms}
+  \begin{itemize}
+    \item Symbolic AI provides interpretability and conceptual clarity.
+    \item Reinforcement learning introduces action, feedback, and interaction.
+    \item Both appear as secondary, but essential, components in system design.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Generative models as infrastructure}
+  \begin{itemize}
+    \item Large pretrained models are treated as enabling infrastructure.
+    \item The focus is on how learned representations support decision-making.
+    \item We study integration with tools, environments, and objectives.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Next lecture}
+  \begin{itemize}
+    \item Next lecture: supervised and unsupervised learning.
+      \begin{itemize}
+        \item We will connect reasoning principles to concrete models.
+        \item We will emphasize responsible application in engineering contexts.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Q\&A}
+  \centering
+  Questions?
+\end{frame}
+
+\end{document}

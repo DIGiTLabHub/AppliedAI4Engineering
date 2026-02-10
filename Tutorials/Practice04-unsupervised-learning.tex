@@ -1,0 +1,78 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{bm}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied Machine Learning\\ \large Topic 12-13: Unsupervised Learning - Lab Session}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section*{Problem Statement}
+
+Given: A moderate-size, high-dimensionality dataset \(\{(x, y)\}\), where \(x\) represents a data point with a high number of features (dimensions), denoted by \(d\), and \(y\) represents the corresponding label for the data point. The collection of all data points \(x\) is represented by a matrix \(X \in \mathbb{R}^{d \times N}\), where \(N\) is the total number of data points.
+
+\subsection*{Objective}
+\begin{itemize}
+    \item \textbf{Data Exploration:} Gain an initial understanding of the data by visualizing relationships between features (e.g., using scatter plots of \(x_i\) vs. \(x_j\), where \(x_i\) indexes the \(i\)-th element of \(x\)). This exploration may reveal potential clustering trends within the data.
+    \item \textbf{Clustering with K-means:} Implement the K-means clustering algorithm using a custom function that demonstrates the Expectation-Maximization (E-M) steps involved in iteratively assigning data points to clusters and updating cluster centroids. Observe the convergence of the summed cluster distances to the cluster centroids during the algorithm's execution.
+    \item \textbf{Dimensionality Reduction and Visualization:} Apply dimensionality reduction techniques, specifically Principal Component Analysis (PCA) and t-distributed Stochastic Neighbor Embedding (t-SNE), to reduce the dimensionality of the data to 3. Visualize the reduced data to examine if clusters are apparent in the lower-dimensional space.
+\end{itemize}
+
+\subsection*{Formal Definition}
+
+Given a dataset \(X \in \mathbb{R}^{d \times N}\) and corresponding labels \(y \in \{1, 2, \dots, K\}^N\), where \(d\) is the dimensionality of the data, \(N\) is the number of data points, and \(K\) is the number of clusters:
+\begin{itemize}
+    \item \textbf{Data Exploration:} Visualize pairwise relationships between features of \(X\) to identify potential clustering patterns.
+    \item \textbf{Clustering with K-means:}
+    \begin{itemize}
+        \item Initialize \(k\) cluster centroids, \(c_1, c_2, \dots, c_k \in \mathbb{R}^d\).
+        \item \textbf{E-step:} Assign each data point \(x_i\) to the cluster with the nearest centroid:
+        \[
+        \text{cluster}(x_i) = \arg\min_j \|x_i - c_j\|^2.
+        \]
+        \item \textbf{M-step:} Update each cluster centroid to the mean of the data points assigned to it:
+        \[
+        c_j = \frac{1}{|C_j|} \sum_{x_i \in C_j} x_i.
+        \]
+        \item Repeat the E-step and M-step until convergence (i.e., until the centroids no longer change significantly or a maximum number of iterations is reached).
+    \end{itemize}
+    \item \textbf{Dimensionality Reduction and Visualization:} Apply PCA and t-SNE to reduce the dimensionality of \(X\) to 3, resulting in \(X_{pca} \in \mathbb{R}^{3 \times N}\) and \(X_{tsne} \in \mathbb{R}^{3 \times N}\). Visualize \(X_{pca}\) and \(X_{tsne}\) to explore the presence of clusters in the lower-dimensional space.
+\end{itemize}
+
+
+
+\end{document}

@@ -1,0 +1,388 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+\usepackage{bm}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\bm#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied Machine Learning\\ \large Topic 7: Multi-class Classification and Performance Measures}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Introduction}
+Multi-class classification is a natural extension of binary classification, yet it introduces several layers of complexity that demand a deeper understanding of the underlying models and performance metrics. In our previous work with binary classifiers such as multilayer perceptrons (MLPs), logistic regression, and support vector machines (SVMs), we have seen how these models effectively separate data into two distinct classes using well-defined measures such as true positives, false negatives, and overall accuracy.
+
+In transitioning to multi-class problems, one might initially consider a direct generalization by assigning integer labels (e.g., 1, 2, 3, \dots). However, such an approach risks imposing an artificial order among the classes and misinterpreting the distance between them. To overcome these limitations, we adopt one-hot encoding, which maintains the categorical nature of the labels without introducing unintended relationships.
+
+Once the labels are appropriately encoded, the extension from binary to multi-class classification is achieved through techniques such as the softmax activation function and strategic schemes like One-vs-All (OvA) and One-vs-Rest (OvR). In this framework, the confusion matrix is also generalized; rather than a 2 by 2 table as in binary classification, it becomes a \(K \times K\) matrix that captures the classification performance for each of the \(K\) classes.
+
+It is instructive at this point to return to the binary classification framework, reviewing the definitions and implications of performance metrics such as precision, recall, specificity, and the F1 score. Using a Venn diagram to illustrate the relationships reinforces our understanding of these basic measures and sets the stage for their adaptation to multi-class settings. With these foundations in place, we then introduce advanced visual analytics tools, including Receiver Operating Characteristic (ROC) and precision-recall curves, which provide a comprehensive visualization of model performance across different decision thresholds.
+
+\section{One-hot Encoding}
+One-hot encoding is a technique used to represent categorical data in a binary format. Given a set of \(K\) class labels, one-hot encoding transforms each label into a binary vector of length \(K\), where the position corresponding to the class label is set to 1, and all other positions are set to 0.
+
+For example, let's assume we have three class labels, \(C_1\), \(C_2\), and \(C_3\). Their one-hot encoded representations are as follows:
+\begin{equation}
+\mathbf{c}(1) = \begin{bmatrix}1 \ 0 \ 0\end{bmatrix}, \quad
+\mathbf{c}(2) = \begin{bmatrix}0 \ 1 \ 0\end{bmatrix}, \quad
+\mathbf{c}(3) = \begin{bmatrix}0 \ 0 \ 1\end{bmatrix}
+\end{equation}
+In general, we denote a one-hot vector as
+\begin{equation}
+\mathbf{c}_k = [0, 0, \cdots, 1, \cdots, 0],
+\end{equation}
+where only the \(k^{th}\) element takes the logical `1' value; all others are zeros. It is important to note that the sum of the vector values is one, which is consistent with the softmax function used in machine learning models or as the final layer of a neural network.
+
+Given one-hot encoded labels for \(N\) data points with \(K\) class labels, they can be efficiently represented in a matrix \(\mathbf{C}\) of dimensions \(N \times K\). Effectively, we have:
+\[
+N_k = \sum_{n} \mathbf{C}_{n,k}, \qquad \text{(sum over rows)}
+\]
+Thus, \(N_k\) simply records the number of instances for each class.
+
+\section{Softmax Function Scheme}
+Recall that in binary logistic regression or an MLP, a sigmoid function is used to express the classification score and further treated as a probability. Denote \(f[u(\bm{x})]\) as a discriminative classifier, where we let \(z = u(\bm{x})\) be the decision score, and then use the following sigmoid function to convert \(z\) into a probability:
+\[
+f(z) = \sigma(z) = \frac{1}{1+\exp(-z)}.
+\]
+
+When extending to a multi-class model, the softmax function comes into play to convert the output scores of a discriminative classifier into a probability distribution over multiple classes. Suppose we have \(K\) classes; the softmax function is defined as follows:
+\begin{equation}
+\sigma_i(\bm{z}) = \frac{e^{z_i}}{\sum_{j=1}^K e^{z_j}},
+\end{equation}
+where \(\bm{z}\) is the output vector of the classifier, \(\bm{z} = [z_1, z_2, \cdots, z_K]\), defining the decision scores for all \(K\) classes, and \(i\) and \(j\) are indices corresponding to the class labels. The softmax function ensures that the output probabilities sum to 1:
+\[
+\sum_{i=1}^K \sigma_i(\bm{z}) = 1.
+\]
+For a binary case, the softmax function reduces to the sigmoid function.
+
+The softmax function is commonly used as the activation function in the final layer of an MLP. Once the softmax output vector \(\bm{\sigma}\) is produced, the predicted class is given by
+\begin{align}
+    k &= \arg\max_i \sigma_i(\bm{z}), \\
+    c(k) &= 1.
+\end{align}
+
+\section{One-vs-All and One-vs-Rest Schemes}
+The One-vs-All (OvA) or One-vs-Rest (OvR) classification schemes are employed in multi-class classification problems when a classifier is inherently binary, or when it is computationally expensive or difficult to extend a binary classifier to handle multiple classes directly.
+
+SVM classifiers are an example of inherently binary models; therefore, OvA and OvR are commonly used to adapt SVMs for multi-class classification. For logistic regression and perceptron models that use binary activation, OvA and OvR can be used to achieve multi-class classification. Although MLPs and many other models can naturally handle multi-class classification using the softmax activation, one may still choose to use either OvA or OvR schemes, where each instance of the MLP conducts binary classification only.
+
+In the OvA approach, \(K\) binary classifiers are trained, where each classifier distinguishes samples from one class (the positive class) against samples from all other classes (the negative class). For example, in a three-class problem, we would train three binary classifiers: one for class 1 versus classes 2 and 3, one for class 2 versus classes 1 and 3, and one for class 3 versus classes 1 and 2. During prediction, the classifier with the highest score among the \(K\) binary classifiers is selected.
+
+In the OvR approach, \(\frac{K(K-1)}{2}\) binary classifiers are trained, each distinguishing samples from one class against samples from one other class. For example, in a three-class problem, we would train three binary classifiers: one for class 1 versus class 2, one for class 1 versus class 3, and one for class 2 versus class 3. During prediction, each binary classifier returns a score, and the final predicted class is the one with the highest sum of scores across all classifiers.
+
+The main difference between OvA and OvR is the number of binary classifiers used. OvA trains \(K\) classifiers, while OvR trains \(\frac{K(K-1)}{2}\) classifiers. OvA is typically used when the number of samples in each class is unbalanced, whereas OvR is preferred when the class samples are roughly balanced and the classes are separable.
+
+\section{Multi-class Accuracy Measures}
+Evaluating the performance of a multi-class classifier is crucial to determine its effectiveness in classifying data. Similar to binary classification, we can define the basic measures of True Positive (TP), True Negative (TN), False Positive (FP), and False Negative (FN); and subsequently, precision, recall, and the F1 score. However, since there is no inherent binary "positive" or "negative" label in a multi-class context, the definitions of TP, TN, FP, and FN must be associated with a particular class (treated as positive) while the others are treated as negative. Consequently, the confusion matrix is also generalized.
+
+Assume that there are \(M\) data points in a testing dataset:
+\[
+\mathcal{D}^{testing} = \{ (\bm{x}_m, c_m) \mid m = 1, 2, \cdots, M\},
+\]
+where \(c_m \in \{c_1, c_2, \cdots, c_K\}\) and \(\bm{x}_m\) is a feature vector as used in training.
+
+\subsection{Confusion Matrix}
+Suppose we have \(K\) classes in a multi-class classification problem. The confusion matrix is a \(K \times K\) matrix where the rows represent the true class labels and the columns represent the predicted class labels. In the following, we denote the confusion matrix as \(CF(i, j)\). First, note that the total number of samples is given by:
+\[
+M = \sum_i \sum_j CF(i, j).
+\]
+
+The \((i,j)^{th}\) element of the matrix indicates the number of samples from class \(j\) that are classified as class \(i\). The diagonal elements represent the number of samples correctly classified for each class, while the off-diagonal elements represent misclassifications.
+
+For example, consider a three-class classification problem with classes A, B, and C. Suppose the classifier predicted 11 samples as class A, where 8 were correctly classified and 3 were misclassified as class C. The classifier predicted 7 samples as class B, where 4 were correctly classified, 2 were misclassified as class A, and 1 was misclassified as class C. The classifier predicted 12 samples as class C, all of which were correctly classified. The corresponding confusion matrix is:
+
+\begin{table}[ht]
+\centering
+\caption{Confusion Matrix for a Three-Class Classification Problem}
+\begin{tabular}{c|c|c|c|}
+\cline{2-4}
+& \multicolumn{3}{c|}{True Class} \\ \hline
+\multicolumn{1}{|c|}{Predicted Class} & A & B & C \\ \hline
+\multicolumn{1}{|c|}{A} & 8 & 0 & 3 \\ \hline
+\multicolumn{1}{|c|}{B} & 2 & 4 & 1 \\ \hline
+\multicolumn{1}{|c|}{C} & 0 & 0 & 12 \\ \hline
+\end{tabular}
+\end{table}
+
+From this example, we can derive:
+\begin{itemize}
+    \item \(\sum_{j'} CF(i, j')\): The total number of instances predicted as class \(c_i\). For classes A, B, and C, these totals are 11, 7, and 12, respectively.
+    \item \(\sum_{i'} CF(i', j)\): The total number of instances that actually belong to class \(c_j\). For classes A, B, and C, these totals are 10, 4, and 16, respectively.
+    \item \(\sum_i CF(i, i)\): The total number of correctly classified instances; in this example, the sum is 24.
+\end{itemize}
+
+\subsection{TP, TN, FP, and FN}
+In binary classification, four outcomes are defined: True Positive (TP), True Negative (TN), False Positive (FP), and False Negative (FN)\footnote{Colloquially, TP is also called a \textit{hit}, TN is a \textit{correct rejection}, FP is a \textit{false alarm}, and FN is a \textit{miss}.}. 
+
+For a multi-class problem with classes \(c_1, c_2, \dots, c_K\), we extend these definitions for a selected class \(c_i\), treating the other classes as \(\bar{c_i}\):
+\begin{itemize}
+\item \textbf{True Positive (TP\(_i\))}: The number of samples correctly classified as \(c_i\).
+\item \textbf{True Negative (TN\(_i\))}: The number of samples correctly classified as not belonging to \(c_i\) (i.e., correctly classified as \(\bar{c_i}\)).
+\item \textbf{False Positive (FP\(_i\))}: The number of samples incorrectly classified as \(c_i\) when they actually belong to \(\bar{c_i}\).
+\item \textbf{False Negative (FN\(_i\))}: The number of samples incorrectly classified as belonging to \(\bar{c_i}\) when they actually belong to \(c_i\).
+\end{itemize}
+
+Based on the confusion matrix in Table 1, the formulas for calculating TP, FP, FN, and TN for a class \(c_i\) are as follows:
+\begin{enumerate}
+    \item \(\textbf{TP}_i\): The diagonal element \(CF(i,i)\).
+    \item \(\textbf{FP}_i\): The sum of the elements in the \(i\)th row, excluding the diagonal element:
+    \[
+    \text{FP}_i = \sum_{j' \neq i} CF(i,j').
+    \]
+    \item \(\textbf{FN}_i\): The sum of the elements in the \(i\)th column, excluding the diagonal element:
+    \[
+    \text{FN}_i = \sum_{i' \neq i} CF(i',i).
+    \]
+    \item \(\textbf{TN}_i\):
+    \[
+    TN_i = \sum_{i'}\sum_{j'} CF(i',j') - \sum_{j'} CF(i,j') - \sum_{i'} CF(i',i) + CF(i,i).
+    \]
+\end{enumerate}
+
+Thus, using the confusion matrix, we can compute the false positives and false negatives for each class, which in turn allow us to calculate precision and recall for each class.
+
+\subsection{Overall Accuracy}
+Given the confusion matrix \(CF(i,j)\), a commonly used accuracy measure is Overall Accuracy (OA), defined as:
+\[
+OA = \frac{\sum_i CF(i,i)}{\sum_i\sum_j CF(i,j)},
+\]
+which is the ratio of all correctly classified instances to the total number of test samples.
+
+In practice, the error rate (ER) is often used as a complement to OA, and is given by:
+\[
+ER = 1 - OA.
+\]
+
+\subsection{Precision and Recall}
+With the definitions of \(TP_i\), \(FP_i\), and \(FN_i\) for class \(c_i\), precision and recall are calculated as:
+\begin{equation}
+\text{Precision}_i = \frac{TP_i}{TP_i + FP_i},
+\end{equation}
+\begin{equation}
+\text{Recall}_i = \frac{TP_i}{TP_i + FN_i},
+\end{equation}
+where \(TP_i\) is the number of true positive samples, \(FP_i\) the number of false positive samples, and \(FN_i\) the number of false negative samples for class \(c_i\).
+
+To evaluate the performance across all classes, one can compute the average precision and recall using macro-averaging (unweighted average) or micro-averaging (weighted by the number of samples per class)\footnote{Micro-averaging gives more weight to larger classes, while macro-averaging treats all classes equally.}.
+
+The meanings of precision and recall are as follows:
+\begin{itemize}
+    \item \textbf{Precision}: The proportion of true positive predictions among all predicted positives, indicating the quality of positive predictions.
+    \item \textbf{Recall}: The proportion of true positives among all actual positives, measuring the model's ability to capture all relevant instances.
+\end{itemize}
+
+For example, consider a model designed to identify spam emails. If the model marks 80 out of 100 emails as spam and only 60 of these are truly spam, the precision is \(60/80 = 75\%\). Similarly, if there are 100 actual spam emails and the model correctly identifies 70, the recall is \(70/100 = 70\%\).
+
+\section{Model Accuracy Measures: Visual Understanding}
+
+\subsection{Binary Classification Consequences}
+In a binary classification problem, we are interested in predicting one of two possible outcomes, which we denote as positive (\(+\)) and negative (\(-\)) (in practice, these might be labeled as 0 and 1 or as two distinct objects). Suppose we have a dataset with \(N\) instances, each labeled as either positive or negative. When the model makes a prediction, four outcomes are possible:
+\begin{itemize}
+    \item \textbf{True Positive (TP)}: The model predicts positive, and the instance is actually positive.
+    \item \textbf{False Positive (FP)}: The model predicts positive, but the instance is actually negative.
+    \item \textbf{True Negative (TN)}: The model predicts negative, and the instance is actually negative.
+    \item \textbf{False Negative (FN)}: The model predicts negative, but the instance is actually positive.
+\end{itemize}
+
+\subsection{Confusion Matrix}
+Based on the four outcomes above, we can construct a \textit{confusion matrix}. For binary classification, the confusion matrix is a \(2 \times 2\) table summarizing the number of TP, FP, FN, and TN instances. An example confusion matrix is shown below:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+                   & Actual Positive & Actual Negative \\ \hline
+Predicted Positive & TP              & FP              \\ \hline
+Predicted Negative & FN              & TN              \\ \hline
+\end{tabular}
+\caption{Confusion matrix: TP, FP, FN, and TN represent the counts (or number of instances) of each prediction outcome.}
+\end{table}
+
+Fig.~\ref{t07fig01} illustrates the four prediction consequences using a Venn diagram. The relationships depicted in the diagram reinforce the definitions of the key performance measures.
+
+Given the confusion matrix, the overall accuracy (OA) of the model is calculated as:
+\begin{equation}
+OA = \frac{TP + TN}{TP + TN + FP + FN}.
+\end{equation}
+In practice, many machine learning libraries, such as \textit{scikit-learn}, provide a function (e.g., \verb|cm.score(X_test, y_test)|) to compute this metric.
+
+\subsection{Precision and Recall}
+While OA is a useful metric, it does not always provide a complete picture of a model's performance. Precision and recall focus on the model's ability to correctly identify positive instances.
+
+\textbf{Precision} measures the proportion of true positives among all predicted positives:
+\[
+\text{Precision} = \frac{TP}{TP + FP}.
+\]
+A high precision indicates that the model rarely misclassifies negative examples as positive.
+
+\textbf{Recall} (or sensitivity) measures the proportion of true positives among all actual positives:
+\[
+Recall = \frac{TP}{TP + FN}.
+\]
+A high recall indicates that the model successfully identifies most positive instances.
+
+These two metrics can be combined into the F1 score, which is the harmonic mean of precision and recall:
+\begin{equation}
+F1 = 2 \cdot \frac{\text{Precision} \cdot Recall}{\text{Precision} + Recall}.
+\end{equation}
+A high F1 score indicates that the model performs well in both correctly predicting positives and identifying all actual positives.
+
+\begin{tcolorbox}
+\pmb{Example}
+
+A common application in machine learning is detecting spam emails. Suppose that in a test set:
+\begin{enumerate}
+    \item The model predicts 100 emails as spam, of which 80 are true positives and 20 are false positives.
+    \item The model misses 80 spam emails (i.e., 80 false negatives).
+\end{enumerate}
+Then:
+\[
+Precision = \frac{80}{80+20} = 0.8,
+\]
+\[
+Recall = \frac{80}{80+80} = 0.5.
+\]
+The F1 score is:
+\[
+F1 = 2 \cdot \frac{0.8 \cdot 0.5}{0.8 + 0.5} \approx 0.62.
+\]
+Thus, the model has moderate performance in detecting spam.
+\end{tcolorbox}
+
+\subsection{Specificity}
+If we are equally concerned with both positive and negative predictions, another important metric is \textbf{Specificity}, which measures the proportion of true negatives among all actual negatives:
+\begin{equation}
+Specificity = \frac{TN}{TN + FP}.
+\end{equation}
+In practice, \(1 - \text{Specificity}\) is often used, especially in ROC analysis:
+\begin{equation}
+1 - \text{Specificity} = \frac{FP}{TN + FP}.
+\end{equation}
+
+\begin{tcolorbox}
+\pmb{Example}
+
+Continuing the spam detection example:
+\begin{enumerate}
+    \item There are 100 positive predictions (80 TP and 20 FP).
+    \item The model misses 80 spam emails (80 FN).
+    \item There are a total of 200 non-spam emails, so \(TN + FP = 200\).
+\end{enumerate}
+Thus, \(TN = 200 - 20 = 180\) and
+\[
+Specificity = \frac{180}{180+20} = 0.9.
+\]
+This indicates that the model is very effective at correctly identifying non-spam emails.
+\end{tcolorbox}
+
+We summarize these points as follows:
+\begin{itemize}
+    \item In a detection problem modeled as a classification problem, precision, recall, and the F1 score are key metrics.
+    \item In a no-preference classification problem, specificity is also important.
+    \item Overall accuracy (OA) provides a general measure of a model's performance.
+    \item Together, precision, recall, specificity, and OA provide a complete picture of a classifier's performance based on the underlying TP, FP, TN, and FN counts.
+\end{itemize}
+
+\section{Random-guess Classifier}
+It is instructive to study a scenario where a classifier makes predictions entirely by random guessing, referred to as a random-guess classifier (RGC). Fig.~\ref{t07fig02} illustrates the theoretical behavior of an RGC.
+
+Suppose there are \(N_1\) actual positive instances and \(N_0\) actual negative instances. By random guessing, the classifier randomly picks an instance and assigns it a positive or negative label. If we denote \(m_1\) as the number of correct positive guesses (TP) and \(m_0\) as the number of incorrect positive guesses (FP), then the ratio of \(m_1\) to \(m_0\) should be the same as the ratio of \(N_1\) to \(N_0\):
+\[
+\frac{m_1}{m_0} = \frac{N_1}{N_0}.
+\]
+Defining \(\beta = \frac{m_1}{N_1} = \frac{m_0}{N_0}\), where \(\beta\) depends on the number of positive predictions (which, in turn, depends on the decision threshold), and letting \(\alpha = \frac{N_1}{N_1+N_0}\) (a constant for a given dataset), we obtain the following accuracy measures for a random-guess classifier:
+\[
+Precision = \frac{TP}{TP+FP} = \alpha,
+\]
+\[
+Recall = \frac{TP}{TP+FN} = \beta,
+\]
+\[
+1 - \text{Specificity} = \frac{FP}{FP+TN} = \beta.
+\]
+Thus, for a random-guess classifier, precision remains constant (reflecting the class distribution), while recall and \(1 - \text{Specificity}\) vary with \(\beta \in [0, 1]\) (with \(\beta = 0\) when \(TP = 0\) and \(\beta = 1\) when \(FN = 0\)).
+
+\section{Advanced Visual Analytics}
+
+\subsection{Receiver Operating Characteristic}
+A Receiver Operating Characteristic (ROC) curve is a graphical representation of the performance of a binary classification model as the discrimination threshold (or a hyperparameter) is varied. The ROC curve is constructed by plotting the true positive rate (TPR, or recall/sensitivity) against the false positive rate (FPR, which is \(1 -\) Specificity) as a function of the threshold, denoted as \(ROC(\alpha)\).
+
+Intuitively, as the false positive rate increases, the true positive rate should also increase (except in pathological cases); thus, the ROC curve is expected to be monotonically increasing. A perfect classifier would have a TPR of 1 and an FPR of 0, resulting in a point at the top-left corner of the plot. In contrast, a random-guess classifier yields a ROC curve that is a straight line from the origin to the top-right corner. An ill-trained model may produce a ROC curve that lies below this diagonal.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width = 0.7\textwidth]{figs/Topic08fig01.png}
+\caption{ROC curve illustrating the capacity of a classification model.}
+\label{t07fig02}
+\end{figure}
+
+The area under the ROC curve (AUC) is a widely used metric for evaluating the overall performance of a binary classifier:
+\[
+AUC = \int ROC(\alpha) \, d\alpha.
+\]
+An AUC value of 1 indicates a perfect classifier, 0.5 corresponds to random guessing, and values below 0.5 suggest performance worse than random.
+
+Constructing a ROC curve or calculating the AUC can be computationally demanding, as it often requires training numerous models with varying thresholds to compute the corresponding TPRs and FPRs.
+
+It is also important to note that while ROC curves are powerful tools, their usefulness may be limited in cases of extreme class imbalance.
+
+\subsection{Precision-Recall Curves}
+The precision-recall (PR) curve is another valuable visual tool in machine learning, illustrating the trade-off between precision and recall as the classification threshold is varied. As defined earlier, precision is the fraction of true positive predictions among all positive predictions, while recall is the fraction of true positives among all actual positives. The PR curve plots precision against recall for different thresholds.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{figs/Topic08fig02.png}
+\caption{An example of a precision-recall curve.}
+\label{Topic08fig02}
+\end{figure}
+
+Key observations about the PR curve include:
+\begin{itemize}
+    \item A perfect classifier would yield both high precision and high recall, resulting in a curve that approaches the point \((1,1)\).
+    \item For a random-guess classifier, as discussed earlier, precision remains constant (equal to the ratio of positive instances in the dataset), while recall varies with the threshold. Consequently, the PR curve for a random-guess classifier is a horizontal line.
+    \item For a model that has learned from the data, the PR curve should lie above the random-guess line.
+\end{itemize}
+
+Similarly to the ROC curve, the area under the PR curve (AUC-PR) is a summary metric for model performance, with values ranging from 0 to 1; higher values indicate better performance.
+
+\section{Summary Remarks}
+In this chapter, we have navigated the progression from binary to multi-class classification, beginning with the established foundations of MLPs, logistic regression, and SVMs. By first revisiting the binary classification framework, we highlighted the importance of performance measures such as precision, recall, specificity, and the F1 score. This understanding paved the way for the introduction of one-hot encoding and the softmax function, which are essential for addressing the unique challenges posed by multi-class problems.
+
+Furthermore, we discussed strategic approaches like One-vs-All and One-vs-Rest that adapt inherently binary models to multi-class scenarios. The generalization of the confusion matrix and performance metrics ensured that we maintain a rigorous evaluation framework even as the complexity of the classification task increases.
+
+Finally, advanced visual analytics tools—namely ROC and precision-recall curves—were introduced as effective methods for assessing model performance over varying thresholds. These tools encapsulate the trade-offs inherent in classification decisions and provide both visual and quantitative benchmarks against which any classifier, including a random-guess baseline, can be compared.
+
+Overall, this chapter provides a comprehensive framework for understanding and evaluating multi-class classification, rooted in the solid foundation of binary classification and expanded through modern techniques and visual analytics.
+
+\end{document}

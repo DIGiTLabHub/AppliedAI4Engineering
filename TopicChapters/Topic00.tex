@@ -1,0 +1,237 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage{ceai}
+\graphicspath{{../figs/}}
+
+\begin{document}
+\doublespacing	
+
+\title{Introduction to Applied AI for Engineers}
+\author{}
+\date{}
+\maketitle
+
+
+\section*{Signals from the Current Moment}
+
+Recent developments have pushed artificial intelligence from a specialized technical topic into a central force shaping science, engineering, industry, and public policy. Multiple independent assessments now document the speed, scale, and breadth of this shift, highlighting AI as a general-purpose technological capability rather than a niche analytical tool \cite{stanford_ai_index_2024,crfm_fmti_2024}.
+
+
+\paragraph{Rapid Acceleration of Foundation Models}
+
+All major technology companies are accelerating the release of large foundation models that integrate language, vision, audio, and increasingly multimodal and reasoning-oriented capabilities. Contemporary models operate across multiple input and output modalities, support long-context reasoning, and are designed to be adapted across diverse downstream tasks. Rather than functioning as isolated algorithms, these systems increasingly serve as general-purpose computational interfaces for analysis, generation, and decision support across domains \cite{openai_gpt4o_system_card_2024,gemini_1_5_report_2024,anthropic_claude3_model_card_2024}.
+
+\paragraph{Selected Signals of Capability Growth}
+
+Publicly reported milestones—regardless of how they are ultimately interpreted—illustrate the pace and breadth of recent progress:
+\begin{itemize}
+\item AI systems have surpassed human champions in a wide range of formal games and constrained strategy environments, effectively closing an era in which such tasks were viewed as reliable proxies for human reasoning ability.
+
+\item Advanced AI systems have demonstrated the ability to generate, verify, and formally reason about nontrivial mathematical proofs, including Olympiad-level problems, signaling rapid progress in symbolic reasoning and formal verification \cite{deepmind_alphaproof_blog_2024,hubert_etal_2025_alphaproof_nature}.
+
+\item In medicine, AI-assisted diagnostic systems are increasingly used alongside clinicians, with large-scale studies reporting performance improvements and task-dependent gains when human judgment is augmented—rather than replaced—by AI \cite{yu_etal_2024_natmed_radiologists_ai_assistance,fda_ai_enabled_medical_devices_list_2026}.
+
+\item In finance and other high-uncertainty decision environments, research prototypes of AI agents have demonstrated competitive performance in simulated trading and forecasting settings, prompting renewed interest in agent-based economic modeling \cite{ding_etal_2024_llm_financial_trading_agents_survey,lopez_lira_etal_2025_can_llms_trade}.
+
+\item At the national level, the U.S.\ government has moved beyond principle-setting to operational governance, issuing binding guidance on AI inventories, risk management, and accountability across federal agencies \cite{omb_m_24_10_2024,cio_council_ai_inventory_guidance_2024}.
+
+\item Within civil engineering, professional societies have begun operational adoption. ASCE has introduced AI-powered search and knowledge tools to improve access to codes, standards, and technical guidance, while simultaneously emphasizing professional responsibility in AI-assisted practice \cite{asce_ps573_2024,asce_ai_search_tools_2025}.
+\end{itemize}
+
+\paragraph{Rising Questions and Stakeholder Tensions}
+
+These developments have understandably raised concerns among students, professionals, institutions, and the public regarding employment, competency, responsibility, and governance \cite{wef_future_of_jobs_2025,ilo_generative_ai_jobs_2025,nasem_ai_future_of_work_2025,unesco_ai_competency_students_2024,nist_ai_rmf_genai_profile_2024}.
+
+\begin{itemize}
+\item Will AI replace engineering jobs, or will it reshape roles and create new ones?
+\item If AI becomes essential, how should engineers begin learning it—especially those who do not identify as programmers?
+\item How do we use AI productively without eroding professional responsibility or judgment?
+\end{itemize}
+
+This course is designed as a direct response to these questions. Rather than treating AI as either a threat or a magic solution, \emph{Applied AI for Engineering} positions AI as a foundational capability—one that must be understood, contextualized, and governed by engineers.
+
+
+\section*{What Do We Mean by AI?}
+
+\paragraph{An Intuitive Definition}
+
+Rather than beginning with a formal scholarly definition, this course adopts a pragmatic, layperson-oriented description of artificial intelligence (AI):
+
+\begin{def-box}
+A machine-based system that processes information, recognizes patterns or structure, forms internal representations of a problem or environment, and uses those representations to make predictions, plans, or decisions.
+\end{def-box}
+
+This definition deliberately avoids restricting AI to data-driven or learning-based approaches. Instead, it emphasizes observable actions, such as prediction, reasoning, and decision-making, over philosophical completeness. This reflects how AI appears in practice today, ranging from learned models to rule-based systems, search algorithms, and decision-support tools.
+
+Historically, the boundary of what counts as ``AI'' has shifted as computational power, mathematical methods, and societal expectations evolved. What was once considered intelligent often becomes routine once engineered successfully. Instead of anchoring AI to a fixed definition, we treat it as a moving target—defined operationally by what machines can do at a given time.
+
+
+
+\section*{A Brief History of AI: Cycles of Ambition, Hype, and Winter}
+
+
+
+\paragraph{Origins: Computation, Intelligence, and the 1950s Vision}
+The intellectual roots of AI lie at the intersection of early computing and theories of intelligence. In 1950, Turing proposed an operational test for machine intelligence based on conversational indistinguishability \cite{turing_1950}. The term \emph{artificial intelligence} was formalized at the 1956 Dartmouth Summer Research Project, which articulated the hypothesis that aspects of learning and intelligence could be described and simulated by machines \cite{mccarthy_etal_1955_dartmouth}.
+
+Early successes included symbolic problem solvers, game-playing programs, and the perceptron—an early neural-inspired learning model \cite{newell_simon_1956,rosenblatt_1958}. Optimism was high, driven by the belief that general intelligence might be achieved within decades.
+
+\paragraph{Symbolic AI and Expert Systems}
+From the 1960s through the early 1980s, AI research was dominated by symbolic and logic-based approaches. Intelligence was framed as rule manipulation: facts and rules explicitly encoded by human experts. This culminated in \emph{expert systems} such as MYCIN, which demonstrated strong performance in narrow decision tasks \cite{shortliffe_1976,feigenbaum_1982}.
+
+Despite successes, expert systems proved brittle. They were costly to maintain, difficult to generalize, and sensitive to unmodeled context. As expectations exceeded practical capability, research funding contracted—contributing to the first major \emph{AI winter} \cite{russell_norvig_2021}.
+
+\paragraph{Statistical Learning and the Rise of Machine Learning}
+From the late 1980s through the 2000s, AI shifted toward learning from data. Advances in statistics, optimization, and computation fueled machine learning (ML). Support vector machines exemplified this era, framing learning as a principled optimization problem with generalization guarantees \cite{vapnik_1995,scholkopf_smola_2002}.
+
+Probabilistic graphical models also emerged, offering structured representations of uncertainty and conditional dependence \cite{koller_friedman_2009}. As datasets and computing resources grew, the ``ML + big data'' paradigm gained prominence.
+
+\paragraph{Deep Learning and Representation Learning}
+The 2010s marked a major inflection point with the resurgence of neural networks under \emph{deep learning}. Enabled by large datasets, GPUs, and algorithmic advances, deep networks achieved breakthroughs in vision, speech, and language \cite{krizhevsky_etal_2012,lecun_bengio_hinton_2015}. The emphasis shifted from hand-crafted features to \emph{representation learning}, reigniting industrial and public interest in AI.
+
+\paragraph{Foundation Models, Generative AI, and Agentic Systems}
+Recent years have emphasized large-scale \emph{foundation models} trained on broad corpora and adapted to many tasks. Large language models (LLMs) demonstrate strong performance through prompting, fine-tuning, and tool integration \cite{brown_etal_2020,bommasani_etal_2021}. Diffusion-based models have similarly advanced image and multimodal generation \cite{ho_etal_2020}, achieving practically generative capabilities, leading to the notion of `Generative AI' (GenAI).
+
+These developments motivate renewed interest in \emph{agentic AI}: systems that plan, retrieve information, call tools, and act iteratively within environments. Contemporary agentic systems reconnect modern foundation models with classical ideas from sequential decision-making and reinforcement learning, while introducing new challenges in verification, alignment, and governance \cite{plaat_etal_2025_agentic_llms_survey}.
+
+
+\paragraph{Debates and Limits}
+Foundational debates persist: artificial general intelligence (AGI), embodiment, and the limits of pattern-based systems. Biological intelligence integrates sensing, energy constraints, and survival objectives in ways that remain difficult to engineer robustly. In this course, such debates serve as reminders that powerful models are not synonymous with accountable decision-makers.
+
+\paragraph{Hype Cycles and AI Winters}
+AI’s history is marked by cycles of enthusiasm and disillusionment. Each wave delivered real advances while exposing limitations. Understanding these cycles helps engineers adopt AI critically—neither dismissing it as hype nor treating it as inevitability \cite{russell_norvig_2021}.
+
+\section*{AI and Civil Engineering: Past Aspirations and Present Revival}
+\paragraph{1980s: Expert Systems for Engineering Design Automation}
+Civil engineering encountered AI concepts early, particularly in the 1980s through knowledge-based systems for design assistance, construction planning, and code compliance. The aspiration was design automation: to encode engineering judgment into rule systems. In practice, such systems struggled with knowledge acquisition, code evolution, exceptions, and the contextual nature of engineering decisions—limitations consistent with the broader expert-system experience \cite{feigenbaum_1982,russell_norvig_2021}.
+
+\paragraph{1990s--2010s: Data-Driven Methods for Sensing, Diagnostics, and Prediction}
+
+From the 1990s through the 2010s, civil engineering research increasingly adopted machine learning for data-intensive problems:
+\begin{itemize}
+\item \textbf{Structural health monitoring (SHM):} statistical pattern recognition and, more recently, deep learning approaches for damage detection, feature extraction, and anomaly detection \cite{cha_etal_2024_dl_shm_review}.
+
+\item \textbf{System identification and model updating:} integrating sensor data with models for inference under uncertainty (often paired with optimization) \cite{farrar_worden_2007}.
+\item \textbf{Computer vision for NDE and construction monitoring:} image-based defect detection and progress tracking (from specialized pipelines to learned representations) \cite{lecun_bengio_hinton_2015}.
+\item \textbf{Remote sensing for hazards and disasters:} leveraging satellite/airborne imagery for damage mapping and situational awareness, often constrained by labeling, domain shift, and deployment logistics.
+\item \textbf{Transportation and operations:} traffic prediction and forecasting framed through statistical learning and later deep learning.
+\end{itemize}
+
+Despite promising results, many efforts remained primarily academic or pilot-scale. Barriers included limited curated data, interpretability and validation requirements, integration into established workflows, liability concerns, and the high cost of errors in public-safety systems.
+
+\paragraph{The Generative AI Moment: Reopening Automation at Scale}
+Generative and agentic AI has reopened long-standing ambitions for automation across design, construction, and operation. Conversational interfaces, retrieval-augmented systems, and code-generating models reduce the barrier between human intent and computational execution, enabling rapid prototyping, documentation support, compliance search, and workflow orchestration at unprecedented scale \cite{stanford_ai_index_2024}.
+
+
+Professional societies and public institutions have begun responding explicitly. ASCE has adopted a policy statement on AI and engineering responsibility and has launched AI-related tasking and tools to help members access technical resources and navigate responsible use \cite{asce_ps573_2024,asce_ai_tools_2025}. In parallel, broader governance frameworks—such as NIST’s AI Risk Management Framework—offer structured language for trustworthy design, evaluation, and deployment \cite{nist_airmf_2023}.
+
+\paragraph{AI as a Fourth Pillar of Modern Engineering}
+Traditionally, engineering education rests on three foundational pillars: mathematics, physics, and chemistry. In the 21st century, AI and computation form a fourth pillar—not merely as ``software skills,'' but as a new \emph{problem-solving epistemology}. It changes how we represent systems (data \& models), how we reason under uncertainty (statistical inference), and how we scale decisions (automation and optimization).
+
+This view aligns with \emph{computational thinking} as a fundamental literacy for modern technical practice \cite{wing_2006}. For civil engineers, the pillar is especially relevant because infrastructure systems are increasingly instrumented, connected, and socio-technical: decisions must integrate physics-based constraints with data-driven evidence and operational realities.
+
+
+
+\section*{How Should Engineers Learn AI? A Top--Down Perspective}
+\paragraph{The Challenge of Overwhelming Complexity}
+AI draws on calculus, linear algebra, optimization, numerical methods, probability, statistics, graph theory, and information theory. A bottom-up approach can become a wall of prerequisites.
+
+\paragraph{A Top--Down Learning Strategy}
+This course adopts a top--down approach: learn core principles and conceptual models first, emphasizing geometric and graphical intuition. Mathematical details are introduced selectively as explanatory tools, not gatekeepers.
+
+\paragraph{Learning AI with Modern AI}
+A defining feature of this course is that we explicitly embrace modern AI tools—particularly generative and agentic AI—not only as subjects of study, but as instruments for learning AI itself. This is a deliberate pedagogical choice. Large language models and generative systems dramatically reduce the friction between conceptual questions and concrete experimentation: students can interrogate algorithms, generate illustrative code, visualize model behavior, and explore variations interactively.
+
+This accelerates learning in two fundamental ways. First, it shortens the feedback loop between theory and practice. Instead of spending weeks implementing boilerplate code before seeing results, students can focus immediately on assumptions, inputs, outputs, and failure modes. Second, it mirrors how knowledge work is evolving across nearly all technical fields. Scientists, engineers, physicians, and policymakers increasingly use AI systems as cognitive amplifiers for exploration, drafting, simulation, and sense-making. Learning AI through AI therefore reflects not only efficiency, but authenticity: it prepares students for the environments in which they will actually practice.
+
+Importantly, this does not imply uncritical reliance. Using modern AI as a learning accelerator places greater—not lesser—emphasis on verification, interpretation, and judgment. Students are expected to question outputs, compare alternatives, and understand why a method succeeds or fails.
+
+\paragraph{Why Still Learn Classical AI and Machine Learning?}
+Embracing modern generative AI does not replace the need to learn classical AI and machine learning methods. On the contrary, understanding statistical learning, optimization-based models, graphical models, and small-to-medium-scale neural networks remains essential.
+
+From an engineering perspective, many classical ML models are becoming tools analogous to first-principles numerical methods. Just as finite element methods, finite difference schemes, and optimization solvers are routinely invoked as modular components within larger workflows, trained ML models can function as reusable, well-characterized operators: classifiers, regressors, anomaly detectors, or reduced-order models. Their value lies in controlled behavior, interpretability, and predictable failure modes.
+
+In modern agentic AI systems, these classical models often appear as callable components embedded within a higher-level generative or planning framework. An AI agent may invoke a surrogate model trained to approximate a physics-based simulation, or a damage-detection classifier operating alongside sensor data and mechanistic constraints. In this sense, classical ML complements—rather than competes with—the traditional pillars of mathematics, physics, and chemistry.
+
+Emerging areas such as surrogate modeling and physics-informed learning explicitly formalize this integration, combining data-driven approximation with physical structure and domain knowledge.
+
+\paragraph{From Programming to Natural Language as Computation}
+Computing began with machine code and assembly, evolving into high-level programming languages—precise but cognitively distant from natural communication. Over decades, languages moved closer to human intent through abstraction, libraries, and interactive tooling.
+
+Large language models represent a qualitative shift: natural language has become a computational interface. Prompting, structured dialogue, and tool invocation now function as mechanisms for specification, orchestration, and iterative reasoning, rather than merely as input text \cite{openai_gpt4o_system_card_2024,gemini_1_5_report_2024}.
+
+
+\textbf{We embrace \emph{vibe coding}}: using natural language interaction to generate, adapt, and reason about code. This does not remove the need for engineering competence; it reallocates effort. Students must still define requirements, verify outputs, test edge cases, and defend assumptions—especially in safety-critical contexts.
+
+\section*{Ethics, Responsibility, and the Limits of Delegating Judgment}
+\paragraph{Beyond ``Don’t Submit ChatGPT Text''}
+As chatbots become widespread, many students quickly learn a surface lesson: do not submit AI-generated text as formal work without attribution or verification. That is a real academic-integrity concern. But for civil engineering, the deeper issue is not authorship—it is \emph{responsibility}.
+
+\paragraph{Scenario 1: ``I Trained a Model on My Field Data''}
+
+Consider a common and increasingly accessible workflow: an engineer collects field data—manually or through sensor networks—and uses these data to train a machine learning model. Because the data originate from real structures, real materials, and real operating conditions, they are often viewed as ``gold.'' A model can be readily developed, tuned for performance, and even verified using standard practices such as splitting the dataset into training and testing subsets.
+
+At first glance, this appears rigorous. The model fits the observed data well, and its predictive accuracy on held-out samples is high. However, a deeper question immediately arises: are we justified in assuming that such a model will remain valid beyond the specific conditions under which the data were collected? Will it generalize to a different site, a different structure, a modified configuration of the same structure, or even the same structure observed in a different season or environmental regime?
+
+This concern exposes a fundamental limitation of purely data-driven modeling. Statistical validation alone - no matter how carefully performed - cannot guarantee transferability across contexts. Field data encode not only system behavior, but also site-specific conditions, operational regimes, environmental effects, sensor characteristics, and unobserved confounders. When these implicit conditions change, a model that lacks mechanistic grounding may fail silently.
+
+The proper engineering response is therefore not to reject machine learning, but to situate it within a broader modeling framework. Physics-based principles, mechanistic understanding, and domain knowledge provide invariances and constraints that data alone cannot supply. Hybrid approaches—such as physics-informed learning, surrogate modeling anchored to governing equations, and validation across physically distinct scenarios—help distinguish correlation from causation and improve robustness under distribution shift.
+
+In professional practice, this implies a shift in mindset: machine learning models trained on field data should be treated as context-dependent instruments, not universally valid predictors. Engineers remain responsible for articulating the domain of validity, identifying when retraining or recalibration is required, and combining data-driven insights with first-principles reasoning when making decisions that affect safety, performance, and reliability.
+
+
+\paragraph{Scenario 2: `I Asked a Strong AI Model'}
+Imagine a future workflow: you consult an AI assistant connected to codes and standards (e.g., an `ASCE code agent'). It recommends a provision or interpretation; you design accordingly, and the design later proves noncompliant or unsafe. Who is accountable?
+
+
+In another similar case of using a modern `general-purpose' foundational AI model, consider an AI agent that reads blueprints and generates a purchase list. If it misreads symbols (e.g., confusing windows with partition walls), procurement and construction decisions could cascade into cost overruns, schedule disruption, or safety risks. Again: the critical question is not whether the AI was ``smart,'' but whether the human-led process included appropriate checks, verification steps, and professional oversight.
+
+
+Professional ethics and licensure frameworks are clear in spirit: engineers hold paramount the safety, health, and welfare of the public, and must practice in areas of competence. These obligations remain unchanged in the presence of AI-assisted tools and are codified in current professional ethics standards \cite{asce_code_of_ethics_current_2020,nspe_code_of_ethics_web}.
+
+
+\paragraph{Why Engineering Decision-Making Is Hard to Delegate}
+Engineering decisions are rarely pure physics. They are socio-technical judgments shaped by:
+\begin{itemize}
+\item \textbf{Hard constraints:} physical laws, mechanics, load paths, stability, durability.
+\item \textbf{Formal constraints:} codes, standards, contracts, permitting, and regulatory interpretations.
+\item \textbf{Socioeconomic constraints:} budget, schedule, supply chain, labor conditions, and lifecycle costs.
+\item \textbf{Institutional and social pressures:} stakeholder preferences, organizational incentives, political constraints, and sometimes improper pressures.
+\end{itemize}
+
+Even when decisions deviate from ``first principles,'' they are still made within a responsibility structure: engineers must justify tradeoffs, document assumptions, and be accountable for consequences. Today’s AI systems—however powerful—do not possess licensure, duty of care, or moral agency. They optimize patterns and produce plausible outputs; they do not carry legal or ethical responsibility.
+
+\paragraph{Risk Governance: Trustworthy Use, Verification, and Documentation}
+Responsible AI use in civil engineering therefore requires governance, not just capability. NIST’s Generative AI Profile of the AI Risk Management Framework provides a contemporary structure for identifying, measuring, and managing risks specific to generative and agentic systems across the lifecycle \cite{nist_ai_rmf_genai_profile_2024}. ASCE’s policy guidance similarly emphasizes that the use of AI tools does not diminish professional responsibility \cite{asce_ps573_2024}.
+
+
+In this course, we treat AI as an amplifier of engineering capability \emph{only when} paired with verification habits:
+\begin{itemize}
+\item independent checks and redundancy for safety-critical outputs,
+\item traceability from requirements to results,
+\item explicit uncertainty and limitation statements,
+\item documentation of prompts, data sources, and assumptions,
+\item human-in-the-loop decision authority.
+\end{itemize}
+
+
+\section*{Course Outlook and Scope}
+
+This course serves as an introduction to artificial intelligence and data analytics with an application emphasis in natural and built environment engineering and sciences. Its primary goal is to equip students with conceptual literacy, practical awareness, and critical judgment for engaging with modern AI methods in engineering contexts—rather than to train AI specialists or software engineers.
+
+The course introduces foundational AI concepts alongside commonly used machine learning (ML) models for both supervised and unsupervised learning. Students will study core discriminative models (e.g., regression, classification, and anomaly detection methods) as well as generative approaches that support representation learning, simulation, and data synthesis. These methods are presented as engineering tools: instruments for inference, prediction, and decision support under uncertainty.
+
+Advanced deep and large-scale models—including convolutional neural networks (CNNs), Transformers, and large language and vision models—are introduced through non-technical lectures. The emphasis is on understanding what these models do, why they work, where they fail, and how they are used in practice, rather than on mathematical derivation or low-level implementation. This perspective allows students to situate modern foundation models within the broader history of AI and machine learning, and to evaluate their applicability to engineering problems.
+
+The course also introduces emerging AI-enabled workflows that are increasingly shaping professional practice, including agent-based systems, AI-assisted coding, tool calling, and integrated human–AI workflows. These topics highlight how AI is changing not only specific algorithms, but also how engineers explore designs, analyze data, document decisions, and interact with computational tools.
+
+Throughout the course, AI is treated not as a replacement for engineering judgment, but as a powerful extension of it. Emphasis is placed on verification, domain validity, uncertainty awareness, and professional responsibility. Students are encouraged to view AI systems as context-dependent instruments whose outputs must be interpreted, validated, and governed within established engineering ethics and standards.
+
+By the end of the course, students should be able to recognize appropriate opportunities for applying AI in engineering problems, understand the strengths and limitations of different classes of models, and engage productively and responsibly with modern AI tools as part of their future professional practice.
+
+
+%\usepackage{hyperref}
+\bibliographystyle{unsrturl}
+\bibliography{../BIBfiles/Preface}
+\end{document}

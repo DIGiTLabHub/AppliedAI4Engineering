@@ -1,0 +1,413 @@
+\documentclass[12pt]{article}
+\usepackage{../TopicChapters/ceai}
+
+% Make listings display code normally (do not render spaces/tabs as visible symbols)
+\lstset{showspaces=false,showstringspaces=false,showtabs=false}
+
+\begin{document}
+\title{Tutorial 03:  Understanding ML Learning Steps}
+\author{}
+\date{}
+
+
+\maketitle
+
+\section*{Exercise 1}
+
+The goal of this exercise is to explore a naïve discriminative classifier defined by the decision function:
+\[
+f(x_1, x_2) = w_1x_1 + w_2x_2 + w_0.
+\]
+The classifier model behaves as:
+\[
+m(\mathbf{x}) =
+\begin{cases}
+1, & \text{if } f(x_1, x_2) > 0, \\
+0, & \text{otherwise.}
+\end{cases}
+\]
+
+In this in-class exercise, we will learn:
+\begin{itemize}
+    \item Import a data generation function that synthesizes data using the above decision function.
+    \item Generate a small dataset (20 data points) with no noise.
+    \item Visualize the decision boundary and data points in the \(x_1\)-\(x_2\) plane.
+    \item Manually compute the confusion matrix components (TP, TN, FP, FN) using basic Python code.
+\end{itemize}
+
+Codes in the following conduct these steps: 
+\begin{itemize}
+    \item \textbf{Data Generation:} Use the provided module \texttt{data\_generator.py} that contains the functions \texttt{generate\_data} and \texttt{decision\_function}.
+    \item \textbf{Prediction:} Compute classifier predictions using the same decision function.
+    \item \textbf{Evaluation:} Manually calculate the confusion matrix counts:
+    \begin{itemize}
+        \item True Positives (TP): Predicted \(c_1\) when the true label is \(c_1\).
+        \item True Negatives (TN): Predicted \(c_2\) when the true label is \(c_2\).
+        \item False Positives (FP): Predicted \(c_1\) when the true label is \(c_2\).
+        \item False Negatives (FN): Predicted \(c_2\) when the true label is \(c_1\).
+    \end{itemize}
+    \item \textbf{Visualization:} Plot the decision boundary defined by \(f(x_1,x_2)=0\) along with the data points.
+\end{itemize}
+
+
+
+
+\noindent \pmb{1. Data Generator Module (\texttt{topic3\_data\_generator.py})}
+
+Please place this python file in your Google Drive folder. We will NOT study and skip this part in class. 
+
+\begin{lstlisting}[numbers=none, language=Python]
+import numpy as np
+
+def decision_function(x, weights):
+    """
+    Compute f(x1, x2) = w1*x1 + w2*x2 + w0 for a single data point x.
+    """
+    w1, w2, w0 = weights
+    return w1 * x[0] + w2 * x[1] + w0
+
+def generate_data(n_points=20, weights=(1.0, 1.0, -0.5), noise_ratio=0.0, seed=42):
+    """
+    Generate synthetic data for a naive classifier.
+    
+    Parameters:
+      - n_points: number of data points.
+      - weights: tuple of (w1, w2, w0) for the decision function.
+      - noise_ratio: fraction of labels to flip randomly.
+      - seed: random seed for reproducibility.
+    
+    Returns:
+      - X: (n_points x 2) numpy array of features.
+      - y: numpy array of labels (1 for class c1, 0 for class c2).
+    """
+    np.random.seed(seed)
+    X = np.random.uniform(-5, 5, (n_points, 2))
+    y = np.array([1 if decision_function(x, weights) > 0 else 0 for x in X])
+    n_noisy = int(noise_ratio * n_points)
+    if n_noisy > 0:
+        indices = np.random.choice(n_points, size=n_noisy, replace=False)
+        y[indices] = 1 - y[indices]
+    return X, y
+\end{lstlisting}
+
+\noindent \pmb{In-Class Exercise Code}
+Assuming that you have place the $topic3\_data\_generator.py$ in your GoogleDrive folder. When you open a notebook, first, we need to mount the folder
+
+\begin{lstlisting}[numbers=none, language=Python]
+# mount your google drive and find your working folder
+from google.colab import drive
+drive.mount('/content/drive')
+import os
+folder_path = '/content/drive/My Drive/Classroom/UMKC CE401 5501 Applied AI/Topic03' #update with the name of your working folder
+itmes = os.listdir(folder_path)
+# Get a list of files and directories in the folder
+items = os.listdir(folder_path)
+# Print the list
+for item in items:
+  print(item)
+os.chdir(folder_path) #changing the working directory to the specified folder.
+\end{lstlisting}
+
+
+The following codes show how we use the `trained' classifier to conduct testing / inference and evaluate its accuracy
+
+\begin{lstlisting}[numbers=none, language=Python]
+# load the library/modules
+import numpy as np
+import matplotlib.pyplot as plt
+from topic3_data_generator import generate_data, decision_function
+
+# Set classifier weights - yes, we just directly set it without a learning process ...
+weights = (1.0, 1.0, -0.5)  # (w1, w2, w0)
+
+# Generate a small synthetic dataset (20 points) with no noise
+X, y_true = generate_data(n_points=20, weights=weights, noise_ratio=0.2,
+seed=42)
+
+# Compute classifier predictions using the decision function
+# More importantly, try to understand the syntax of this line of code - does it direclty translate the classifier model shown previously
+idx = [1 if decision_function(x, weights) > 0 else 0 for x in X]
+y_pred = np.array([1 if decision_function(x, weights) > 0 else 0 for x in X])
+print(idx)
+print(y_pred)
+
+
+# Manually compute the confusion matrix counts
+TP = np.sum((y_true == 1) & (y_pred == 1))
+TN = np.sum((y_true == 0) & (y_pred == 0))
+FP = np.sum((y_true == 0) & (y_pred == 1))
+FN = np.sum((y_true == 1) & (y_pred == 0))
+
+print("Manual Confusion Matrix Counts:")
+print("TP:", TP)
+print("TN:", TN)
+print("FP:", FP)
+print("FN:", FN)
+print(f"The overall accuracy is {(TP + TN) / (TP + TN + FP + FN)}")
+# At this moment, pls go up and change the noisy ratio from 0 to 0.2 or 0.5 up to you.
+
+# Plot the decision boundary and the data points
+x1_vals = np.linspace(-5, 5, 100)
+# Decision boundary: f(x1, x2) = 0 => x2 = (-w1*x1 - w0) / w2
+x2_vals = (-weights[0] * x1_vals - weights[2]) / weights[1]
+
+plt.figure(figsize=(8,6))
+plt.plot(x1_vals, x2_vals, "r--", label="Decision Boundary")
+
+# Plot the decision boundary and the data points
+x1_vals = np.linspace(-5, 5, 100)
+# Decision boundary: f(x1, x2) = 0 => x2 = (-w1*x1 - w0) / w2
+x2_vals = (-weights[0] * x1_vals - weights[2]) / weights[1]
+plt.figure(figsize=(8,6))
+plt.plot(x1_vals, x2_vals, "r--", label="Decision Boundary")
+
+
+# Plot data points: different markers/colors for each class; and ask
+for label, marker, color in zip([0, 1], ['o', 's'], ['blue', 'green']):
+  idx = (y_true == label)
+  plt.scatter(X[idx, 0], X[idx, 1], marker=marker, color=color, label=f"Class {label}")
+
+plt.xlabel("$x_1$")
+plt.ylabel("$x_2$")
+plt.title("Naive Classifier Decision Boundary (20 Data Points)")
+plt.legend()
+plt.grid(True)
+plt.show()
+\end{lstlisting}
+
+The resulting figure (with noisy generation of the synthetic data) should look like Fig.~\ref{fig:topic0301}:
+\begin{figure}[hb]
+    \centering
+    \includegraphics[width=0.5\linewidth]{../figs/cs-topic03-fig01.png}
+    \caption{A naive classifier with a linear decision-function to classify binary labels.}
+    \label{fig:topic0301}
+\end{figure}
+
+\newpage
+
+\section*{Exercise 2: Flipping-a-Coin Experiment}
+We consider a simple generative classifier for predicting the outcome of a coin flip based on a single observed feature. In this setting, a coin flip results in either \textbf{Heads (H)} or \textbf{Tails (T)}, and a measurement is recorded as a real number \(f \in [0,1]\). 
+
+The model assumes that:
+\begin{itemize}
+    \item If the coin outcome is \(H\), then \(f\) is drawn from a uniform distribution on the interval \([a_H, b_H]\).
+    \item If the coin outcome is \(T\), then \(f\) is drawn from a uniform distribution on the interval \([a_T, b_T]\).
+\end{itemize}
+The prior probabilities \(P(H)\) and \(P(T)\) are also given. The goal is to learn these parameters from data and use them to classify new observations via Bayes' rule.
+
+\subsection*{Mathematical Formulation}
+For the two classes, the likelihood functions are modeled as:
+\[
+p(f\mid H) = 
+\begin{cases}
+\frac{1}{b_H - a_H}, & \text{if } a_H \le f \le b_H, \\
+0, & \text{otherwise,}
+\end{cases}
+\]
+\[
+p(f\mid T) = 
+\begin{cases}
+\frac{1}{b_T - a_T}, & \text{if } a_T \le f \le b_T, \\
+0, & \text{otherwise.}
+\end{cases}
+\]
+The overall density of \(f\) is given by the mixture:
+\[
+p(f) = p(f\mid H)P(H) + p(f\mid T)P(T).
+\]
+The classifier applies Bayes' rule:
+\[
+m(f) =
+\begin{cases}
+H, & \text{if } p(f\mid H)P(H) > p(f\mid T)P(T), \\
+T, & \text{otherwise.}
+\end{cases}
+\]
+
+
+\subsection*{Learning the Model}
+As we would not actually conduct the experiment, a data synthesis process will be used in this exercise. A function \texttt{flip\_a\_coin\_generator} in the python module \texttt{coinflipping\_experiment} is used to generates synthetic data, where each sample consists of a coin outcome (\(H\) or \(T\)) and a feature \(f\) drawn from the corresponding uniform distribution.
+    
+Then, the model is learned through the following steps:
+\begin{itemize}
+    \item \textbf{Parameter Estimation:} From the training data, the priors \(P(H)\) and \(P(T)\) are estimated. For each class, the interval \([a, b]\) is estimated using the minimum and maximum feature values.
+    \item \textbf{Classification:} Using the estimated parameters, a classifier function is defined that, for any new feature \(f\), computes the likelihoods and applies Bayes' rule to decide the outcome.
+\end{itemize}
+
+\subsection*{Code Implementation}
+
+\pmb{Data Generator from the \texttt{coinflipping\_experiment.py} Module}
+\begin{lstlisting}[numbers=none, language=Python]
+import numpy as np
+
+def flip_a_coin_generator(n_samples=1000, 
+                          p_H=0.6, p_T=0.4, 
+                          interval_H=(0.6, 1), 
+                          interval_T=(0, 0.4),
+                          noise_ratio=0.0, 
+                          seed=42):
+    """
+    Generate synthetic data for a coin flip experiment.
+    
+    For each sample:
+      - Outcome is 'H' with probability p_H and 'T' with probability p_T.
+      - If outcome is 'H', feature f is drawn uniformly from interval_H.
+      - If outcome is 'T', feature f is drawn uniformly from interval_T.
+      - Optionally, a fraction of outcomes is flipped to simulate noise.
+    
+    Returns:
+      outcomes: numpy array of outcomes ('H' or 'T').
+      features: numpy array of feature values (real numbers in [0,1]).
+    """
+    np.random.seed(seed)
+    outcomes = np.random.choice(['H', 'T'], size=n_samples, p=[p_H, p_T])
+    features = np.empty(n_samples)
+    
+    for i, outcome in itemize(outcomes):
+        if outcome == 'H':
+            features[i] = np.random.uniform(*interval_H)
+        else:
+            features[i] = np.random.uniform(*interval_T)
+    
+    # Introduce noise by flipping a fraction of outcomes if needed
+    if noise_ratio > 0:
+        n_noisy = int(noise_ratio * n_samples)
+        noise_indices = np.random.choice(n_samples, size=n_noisy, replace=False)
+        outcomes[noise_indices] = np.where(outcomes[noise_indices]=='H', 'T', 'H')
+    
+    return outcomes, features
+\end{lstlisting}
+
+\pmb{Training and Classifier Function} in the same module
+
+\begin{lstlisting}[numbers=none, language=Python]
+def train_and_get_classifier_uniform(outcomes, features):
+    """
+    Train a naive generative classifier by estimating the priors and 
+    the uniform density intervals for each class from training data.
+    
+    The density for a uniform distribution is 1/(b - a) if f lies in [a,b], else 0.
+    
+    Returns a classifier function that classifies a new feature f using Bayes' rule.
+    
+    Parameters:
+      outcomes (np.ndarray): Array of outcomes ('H' or 'T') from training data.
+      features (np.ndarray): Array of feature values.
+    
+    Returns:
+      classifier (function): Function that takes a feature f and returns a predicted outcome.
+      params (dict): Dictionary of estimated parameters.
+    """
+    # Estimate priors
+    p_H = np.mean(outcomes == 'H')
+    p_T = np.mean(outcomes == 'T')
+    
+    # Extract features for each class
+    H_features = features[outcomes == 'H']
+    T_features = features[outcomes == 'T']
+    
+    # Estimate the uniform intervals (a, b) for each class using sample min and max
+    a_H, b_H = H_features.min(), H_features.max()
+    a_T, b_T = T_features.min(), T_features.max()
+    
+    params = {
+        'p_H': p_H,
+        'p_T': p_T,
+        'a_H': a_H,
+        'b_H': b_H,
+        'a_T': a_T,
+        'b_T': b_T
+    }
+    
+    def classifier(f):
+        # Likelihood for 'H'
+        if a_H <= f <= b_H:
+            likelihood_H = 1.0 / (b_H - a_H)
+        else:
+            likelihood_H = 0.0
+        # Likelihood for 'T'
+        if a_T <= f <= b_T:
+            likelihood_T = 1.0 / (b_T - a_T)
+        else:
+            likelihood_T = 0.0
+        
+        # Compute posteriors using Bayes' rule
+        posterior_H = likelihood_H * p_H
+        posterior_T = likelihood_T * p_T
+        
+        return 'H' if posterior_H > posterior_T else 'T'
+    
+    return classifier, params
+\end{lstlisting}
+
+\pmb{Training, Testing, and Evaluation}
+\begin{lstlisting}[numbers=none, language=Python]
+# Generate testing data (e.g., 200 samples) using a different seed
+test_outcomes, test_features = flip_a_coin_generator(n_samples=200, seed=24)
+
+# Classify each test sample using the classifier obtained from training
+predictions = np.array([classifier(f) for f in test_features])
+
+# Manually compute the confusion matrix counts
+TP = np.sum((test_outcomes == 'H') & (predictions == 'H'))
+TN = np.sum((test_outcomes == 'T') & (predictions == 'T'))
+FP = np.sum((test_outcomes == 'T') & (predictions == 'H'))
+FN = np.sum((test_outcomes == 'H') & (predictions == 'T'))
+
+print("Confusion Matrix Counts:")
+print("TP:", TP)
+print("TN:", TN)
+print("FP:", FP)
+print("FN:", FN)
+\end{lstlisting}
+
+\pmb{Visualization of Likelihoods and Mixture Density}
+\begin{lstlisting}[numbers=none, language=Python]
+import matplotlib.pyplot as plt
+
+# Define a function for the uniform likelihood given an interval [a, b]
+def uniform_likelihood(f, a, b):
+    return np.where((f >= a) & (f <= b), 1.0 / (b - a), 0.0)
+
+# Generate a set of f values over the interval [0, 1]
+f_vals = np.linspace(0, 1, 1000)
+
+# Calculate likelihoods for each class using the estimated parameters
+p_f_given_H = uniform_likelihood(f_vals, trained_params['a_H'], trained_params['b_H'])
+p_f_given_T = uniform_likelihood(f_vals, trained_params['a_T'], trained_params['b_T'])
+
+# Calculate the overall mixture density: 
+# p(f) = p(f|H)*P(H) + p(f|T)*P(T)
+p_f = p_f_given_H * trained_params['p_H'] + p_f_given_T * trained_params['p_T']
+
+# Plot the likelihood functions and the mixture density
+plt.figure(figsize=(10, 6))
+
+plt.plot(f_vals, p_f_given_H, label=r'$p(f|H)$', color='green', linewidth=2)
+
+plt.plot(f_vals, p_f_given_T, label=r'$p(f|T)$', color='blue', linewidth=2)
+
+plt.plot(f_vals, p_f, label=r'$p(f) = p(f|H)P(H)+p(f|T)P(T)$', color='red', linestyle='--', linewidth=2)
+plt.fill_between(f_vals, p_f, color='red', alpha=0.3)
+
+plt.xlabel('Feature f')
+plt.ylabel('Density')
+plt.title('Estimated Likelihoods and Mixture Density')
+plt.legend()
+plt.grid(True)
+plt.show()
+\end{lstlisting}
+
+If all successful the resulting visualization should like this in Fig.~\ref{cs-topic03-fig02}.
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figs/cs-topic03-fig02.png}
+    \caption{Learned likelihood distributions and the total distribution of the flipping-coin feature.}
+    \label{fig:cs-topic03-fig02}
+\end{figure}
+
+\subsection*{Summary}
+In this module, we defined a simple generative classifier that uses uniform distributions to model the likelihoods \(p(f\mid H)\) and \(p(f\mid T)\) for a coin flip experiment. We provided the mathematical formulation, described the learning process (estimating priors and uniform intervals), and presented all the necessary code snippets for data generation, training, testing, and visualization.
+
+
+\end{document}

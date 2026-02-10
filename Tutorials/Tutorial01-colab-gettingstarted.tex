@@ -1,0 +1,220 @@
+\documentclass[12pt]{article}
+\usepackage{../TopicChapters/ceai}
+
+
+\begin{document}
+\doublespacing
+
+\title{Tutorial 01: Getting Started with Machine Learning on Google Colab}
+\author{}
+\date{}
+
+\maketitle
+
+\section*{Introduction}
+Google's Gemini, Google Drive, and Google Colab form a tightly integrated ecosystem that we will use throughout Applied AI. Google Gemini is Google’s large-scale, multimodal AI system, capable of reasoning over text, code, images, and data—well-suited for exploratory analysis, explanation, and rapid prototyping of AI concepts. Google Drive provides cloud-based storage and collaboration, allowing you to organize datasets, notebooks, reports, and shared project artifacts in one place. Google Colab is a browser-based Jupyter environment that runs Python notebooks with zero local setup, offering easy access to common ML libraries and optional accelerators. Together, these tools lower the barrier to hands-on AI practice while supporting reproducible, collaborative workflows.
+
+\subsection*{Key features: Google Colab + native Gemini for a `vibe programming' experience}
+
+\begin{itemize}
+  \item \textbf{Zero-setup environment (Colab):} Browser-based notebooks with no local installation, allowing students to focus on ideas and experimentation rather than tooling.
+  \item \textbf{Native Gemini integration:} Gemini is available inside Colab to explain code, suggest implementations, and assist with debugging.
+  \item \textbf{Natural-language–driven coding:} Describe objectives in plain language and iteratively translate intent into executable Python, enabling a ``vibe programming'' workflow.
+  \item \textbf{Rapid ask--run--refine loop:} Interactive cells combined with AI assistance support fast prototyping and exploratory analysis.
+  \item \textbf{Concept-first learning:} AI explanations connect algorithms, mathematics, and code, reinforcing understanding rather than rote syntax.
+  \item \textbf{Seamless collaboration and storage:} Notebooks and data are automatically managed through Colab, simplifying sharing and submission.
+  \item \textbf{From intuition to rigor:} Students can start with high-level guidance and progressively transition to explicit, disciplined programming practices.
+\end{itemize}
+
+
+\subsection*{UM System Access via Single Sign-On (SSO)}
+As students of the University of Missouri System, you receive free access to Google Gemini, Google Drive, and Google Colab through your umsystem.edu account using single sign-on (SSO). This means you can log in with your university credentials—no separate accounts or subscriptions required—while benefiting from institution-managed security, storage, and collaboration features. We will rely on this UM-provided access to ensure everyone has a consistent, supported computing environment for assignments, labs, and team projects in Applied AI.
+
+\section*{Using Gemini as a General Tool}
+
+\href{https://gemini.google.com/app}{Gemini} can be understood as both an \emph{AI inference tool} and a \emph{knowledge engine}. At a basic level, students can interact with Gemini by asking fundamental, casual, or highly technical questions—ranging from conceptual explanations (e.g., ``What is overfitting?'') to applied guidance (e.g., ``Explain this Python error'' or ``Outline an ML workflow for this dataset''). Within a single session, Gemini maintains a large context window, allowing it to remember prior questions, assumptions, data descriptions, and intermediate reasoning. This enables sustained, coherent dialogue rather than isolated, one-off queries.
+
+Beyond simple question answering, more advanced use involves \emph{prompting strategies} in which users explicitly define rules, constraints, roles, or skills for Gemini to follow. For example, students may instruct Gemini to behave as a ``teaching assistant,'' a ``code reviewer,'' or a ``data analyst,'' and then repeatedly apply these rules to automate parts of an analytical or programming process. This practice, often referred to as \emph{prompt engineering}, is not about finding a single perfect prompt, but about iteratively shaping how an AI system reasons, responds, and assists over time.
+
+You are encouraged to actively experiment, reflect, and accumulate experience with these interactions. Such hands-on use will build intuition about the strengths, limitations, and appropriate roles of AI assistance. 
+
+Later in the course, we will revisit and formalize these ideas by introducing \emph{AI agentic frameworks}, where these prompting principles are systematized into structured agents, workflows, and orchestration mechanisms suitable for rigorous engineering applications.
+
+
+
+\section*{Accessing Google Colab}
+\begin{enumerate}
+    \item Open \href{https://colab.research.google.com}{Google Colab}.
+    \item Sign in with your UM SSO.
+    \item Click \textbf{File} $\to$ \textbf{New Notebook} to create a new notebook; notice that the file has a file name extension of \textit{ipynb}.
+    \item Toggle Gemini (at the bottom center of the notebook) - with a default text ``\textit{What can I help you build?}"
+\end{enumerate}
+
+\section*{Vibe and Learn in Your Dev Environment}
+
+In this section, you are encouraged to learn by \emph{interacting} with your development environment and with Gemini simultaneously. Rather than treating code as static instructions, think of it as a conversation: you write code, observe behavior, and use natural language prompts to ask for explanations, intuition, and variations.
+
+
+
+\subsection*{Prompt and Learn How Importing Popular Libraries}
+
+When starting a classic machine learning task, you can use natural-language prompts to guide Gemini in explaining which libraries are needed and why.  
+A representative prompt is:
+
+\begin{quote}
+\emph{``How can I get started by importing popular Python libraries for a classic machine learning task? Please explain the role of each library and how they fit into a typical ML workflow.''}
+\end{quote}
+
+\subsection*{Examples}
+
+\subsection*{Prompt and Learn NumPy Basics}
+
+To understand numerical computation and array-based operations, you can prompt Gemini to explain both the mathematical meaning and practical use of the code.  
+A representative prompt is:
+
+\begin{quote}
+\emph{``Provide a basic NumPy example and help me understand. What does a NumPy array represent, how do these operations work, and why are they important for data analysis or engineering computations?''}
+\end{quote}
+
+\begin{lstlisting}[language=Python]
+# Create an array
+arr = np.array([1, 2, 3, 4, 5])
+print("Array:", arr)
+
+# Perform operations
+print("Sum:", np.sum(arr))
+print("Mean:", np.mean(arr))
+print("Standard Deviation:", np.std(arr))
+
+# Reshape array
+reshaped_arr = arr.reshape((1, 5))
+print("Reshaped Array:\n", reshaped_arr)
+\end{lstlisting}
+
+\subsection*{Prompt and Learn Matplotlib Basics}
+
+Visualization plays a key role in interpreting data and model behavior. Prompt Gemini to explain how data is translated into visual form and what insights can be gained.  
+A representative prompt is:
+
+\begin{quote}
+\emph{``Explain how this Matplotlib code generates a plot from data. What does each step do, and how would changes in the data or parameters affect the visualization?''}
+\end{quote}
+
+\begin{lstlisting}[language=Python]
+# Generate data
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+# Create a plot
+plt.figure(figsize=(8, 4))
+plt.plot(x, y, label="Sine Wave")
+plt.title("Example Plot")
+plt.xlabel("X-axis")
+plt.ylabel("Y-axis")
+plt.legend()
+plt.grid()
+plt.show()
+\end{lstlisting}
+
+\subsection*{Prompt and Learn Scikit-learn Basics}
+
+For machine learning examples, prompts should focus on data flow, modeling assumptions, and generalization.  
+A representative prompt is:
+
+\begin{quote}
+\emph{``Walk me through this scikit-learn example. What happens during data splitting, model training, and evaluation, and what assumptions does this classifier make?''}
+\end{quote}
+
+\begin{lstlisting}[language=Python]
+# Load dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train a Random Forest classifier
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
+
+# Make predictions
+y_pred = clf.predict(X_test)
+
+# Evaluate model
+accuracy = accuracy_score(y_test, y_pred)
+print("Model Accuracy:", accuracy)
+\end{lstlisting}
+
+\section*{Working with Google Drive}
+
+In CoLab, every notebook runs in a temporary cloud-based runtime. Files created during a session initially live in a local virtual  workspace (e.g., \texttt{/content}), which is erased once the session ends. To persist data, notebooks, figures, or reports across sessions, and to organize course materials, you will frequently interact with Google Drive.
+
+It is recommended that you install Google Drive on your computer. 
+
+Throughout this section, you are encouraged to use Gemini to ask questions about \emph{where files live}, \emph{how data moves}, and \emph{why certain workflows are preferred}.
+
+\subsection*{Prompt and Learn: Uploading Files}
+
+Uploading files is useful when you want to bring local data (e.g., PDFs, CSVs, images) into the current Colab session.  
+A representative prompt is:
+
+\begin{quote}
+\emph{``Where are uploaded files stored in Colab, and how long do they persist during a session?''}
+\end{quote}
+
+\begin{lstlisting}[language=Python]
+from google.colab import files
+uploaded = files.upload()  # Prompts you to upload a file from your computer
+\end{lstlisting}
+
+Uploaded files are placed in the local runtime directory (typically \texttt{/content}), which is fast but temporary.
+
+\subsection*{Prompt and Learn: Mounting Google Drive and Managing Files}
+
+Mounting Google Drive allows your Colab notebook to read from and write to your persistent cloud storage. This is the preferred workflow for assignments, datasets, and generated outputs you want to keep.
+
+A representative prompt is:
+
+\begin{quote}
+\emph{``Explain the difference between Colab's local runtime storage and my Google Drive, and why mounting Drive is important for reproducible workflows.''}
+\end{quote}
+
+\begin{lstlisting}[language=Python]
+from google.colab import drive
+drive.mount('/content/drive')
+
+import os
+print(os.listdir('/content'))
+\end{lstlisting}
+
+Once mounted, your Drive appears as a directory tree under:
+\begin{center}
+\texttt{/content/drive/MyDrive/}
+\end{center}
+
+You can then copy files from the temporary runtime into Drive for long-term storage:
+
+\begin{lstlisting}[language=Python]
+# Copy a file from the temporary Colab environment to Google Drive
+!cp /content/AAI-Topic01-slides.pdf /content/drive/MyDrive/
+\end{lstlisting}
+
+\paragraph{Conceptual takeaway}
+Use prompts to reason about file workflows, such as:
+\begin{itemize}
+  \item ``Where should I store datasets versus intermediate results?''
+  \item ``What happens to my files if the Colab session disconnects?''
+  \item ``How does mounting Drive support collaboration and assignment submission?''
+\end{itemize}
+
+Understanding this separation between \emph{temporary compute space} and \emph{persistent cloud storage} is essential for effective, reproducible AI experimentation.
+
+\section*{Conclusion}
+
+This tutorial introduced Google Colab as an interactive development environment for applied AI, emphasizing a \emph{vibe-and-learn} workflow that combines hands-on coding with natural-language interaction. You explored how core Python libraries support numerical computation, visualization, and machine learning, and how Google Drive integrates with Colab to manage data and preserve results across sessions. More importantly, you practiced using prompts to ask conceptual, technical, and reflective questions—treating AI assistance as a learning companion rather than a black-box code generator. As you progress, continue to experiment, question assumptions, and refine your prompts; these habits will form the foundation for more structured AI-assisted and agentic workflows introduced later in the course.
+
+
+\end{document}

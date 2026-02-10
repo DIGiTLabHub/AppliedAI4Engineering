@@ -1,0 +1,208 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,graphics,setspace}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied AI\\ \large Topic 10: Generalization and Model Selection}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Generalization}
+\subsection{Under- or Over-fitting}
+In the practice of ML, say, to solve a classification problem, a simple training-testing process is implied: (1) we train a model based on a labeled training dataset, denoted by \(\mathcal{D}_{tr}\); (2) we test the trained classification model on a labeled testing dataset, denoted by \(\mathcal{D}_{te}\). For the testing phase, we have learned various model performance measures, including overall accuracy, precision, recall, and even a graphical ROC curve.
+
+This is a valid process; however, practical issues arise.
+
+First of all, training and testing datasets—due to their collection and labeling processes—are often expensive in terms of operational and labor costs. As a data engineer, it is often the case that the training and testing data are given in one batch—namely, a labeled dataset,
+\[
+\mathcal{D} = \{(\mathbf{x}_i, c_i) \mid i = 1, \cdots, N\},
+\]
+where \(N\) is limited.
+
+Given such a constraint, we need to split the data into two parts, namely \(\mathcal{D}_{tr}\) and \(\mathcal{D}_{te}\). With an arbitrary split that fulfills this ML process (training and testing), good—even nearly perfect—performance measurements may be obtained. But are these performance measurements trustworthy? What if the classification accuracy drops significantly when different testing data are chosen later? In such a scenario, we state that the obtained model has low generalization performance.
+
+In the following, we first introduce `Generalization' and then describe empirical techniques to achieve, or better put, get closer to, generalization.
+
+In machine learning, generalization refers to a model's ability to perform well on unseen data by accurately predicting or classifying outcomes based on its learned knowledge from the existing data. Qualitatively, a model that generalizes well can effectively capture the underlying true patterns and relationships without overfitting or underfitting.
+\begin{itemize}
+    \item \textbf{Overfitting} occurs when a model learns the noise or random fluctuations present in the training data, resulting in high performance on the training data but poor performance on new, unseen data.
+    \item \textbf{Underfitting} happens when a model is too simple to capture the underlying patterns in the data, leading to suboptimal performance on both training and unseen data.
+\end{itemize}
+
+The goal of a machine learning model is to find the right balance between fitting the training data well and maintaining good generalization performance on unseen data. The dilemma is that we will never have truly unseen data that in practice, we always work on a given dataset, which can be split into training and testing subsets. Then how do we improve an ML's generalization performance? We state that effective and empirical (yes, no theoretical ones) techniques include model regularization, data resampling, and model selection and ensembling.
+
+Previously, we have learned that a Support Vector Machine has a native and analytical regularization mechanism; for other models, we may explicitly introduce a regularization term during training (by modifying its objective loss function). In the following, we focus on two resampling methods: cross-validation and bootstrapping, which operate on the given training and testing data. Then, we discuss model selection and ensemble machine learning, which focus on operations over ML models.
+
+\subsection{Generalization as a Tradeoff}
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\linewidth]{figs/bias-variance-01.pdf}
+    \caption{}
+    \label{fig:bias-variance-01}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.55\textwidth}
+    \includegraphics[width=\linewidth]{figs/bias-variance-02.pdf}
+    \caption{}
+    \label{fig:bias-variance-02}
+    \end{subfigure}
+    \caption{}
+    \label{fig:bias-variance}
+\end{figure}
+
+A deeper understanding of generalization requires examining the \textbf{bias-variance trade-off}. This trade-off is central to understanding overfitting and underfitting:
+\begin{itemize}
+    \item \textbf{Bias} refers to the error introduced by approximating a complex real-world problem with a simpler model. High bias may force a model to miss important relationships between features and the target, leading to \emph{underfitting}.
+    \item \textbf{Variance} refers to the error that arises from a model's sensitivity to small fluctuations in the training data. High variance can cause a model to learn noise as if it were a true signal, resulting in \emph{overfitting}.
+\end{itemize}
+
+Striking the right balance is crucial. A model with high bias and low variance tends to underfit the data, while a model with low bias and high variance tends to overfit. Typical figures of bias versus variance trade-offs (see Figures~\ref{fig:bias-variance-01} and~\ref{fig:bias-variance-02}) illustrate two versions but the same context that how training and test errors vary with model complexity. These figures emphasize that:
+\begin{itemize}
+    \item As model complexity increases, bias typically decreases.
+    \item As model complexity increases beyond a certain point, variance increases sharply, which causes overfitting.
+\end{itemize}
+
+
+\section{Re-sampling Methods}
+Cross-validation is an essential machine-learning technique used to evaluate a \textit{selected} model's performance by repetitive training and testing. More specifically, cross-validation is useful in three aspects:
+
+\begin{itemize}
+    \item \textbf{Achieving more robust performance measurements:} Cross-validation helps estimate how well a model will perform on new, unseen data. Dividing the dataset into training and testing sets in multiple folds provides a more robust measure of accuracy based on the available data, better reflecting performance on unseen data.
+    
+    \item \textbf{Preventing overfitting/underfitting:} Overfitting occurs when a model learns the noise in the training data rather than the underlying pattern. This results in dubiously high performance on the training data but poor performance on new data. Cross-validation helps mitigate this issue by evaluating the model on different subsets of data, providing a more accurate estimate of its generalization performance.
+    
+    \item \textbf{Model selection:} Cross-validation provides a way to compare different models or hyperparameter settings by assessing their performance on various data subsets, allowing for informed decisions on model selection and hyperparameter tuning. On the other hand, the concept of model selection has a broader meaning, and there are other methods that can be used for model selection.
+\end{itemize}
+
+\subsection{K-Fold Cross-Validation}
+K-fold cross-validation is a widely used method for implementing cross-validation. It involves the following steps:
+\begin{enumerate}
+    \item[\textbf{1)}] \textit{Partition}: The dataset is partitioned into \(K\) subsets, each containing an equal number of data points (or as close to equal as possible).
+    \item[\textbf{2)}] \textit{Iterative training and testing}: Given the \(K\) subsets, iteratively pick one subset as the testing set, and use the remaining \(K-1\) subsets for training.
+    \item[\textbf{3)}] \textit{Compute model accuracy}: The performance metric (e.g., overall accuracy, F1 score, etc.) is calculated at each iteration, and the average performance is computed over all iterations.
+\end{enumerate}
+
+\subsection{Bootstrapping}
+We have covered resampling methods, and K-fold cross-validation is one of the widely used methods. The other common approach is called bootstrapping.
+
+Bootstrapping is a resampling technique used to assess the performance of an ML model. It involves randomly sampling a dataset \emph{with replacement} to create multiple `bootstrap samples,' each of which is used to train and evaluate a separate model.
+
+The idea behind bootstrapping is that by repeatedly sampling from the original dataset, we can create multiple independent datasets similar to the original dataset in terms of their statistical properties. We can then use each of these datasets to train and evaluate separate models and average the results to estimate the model's performance on the original dataset.
+
+Bootstrapping differs from cross-validation in how it creates datasets. Bootstrapping randomly samples the original dataset with replacement to create multiple independent datasets, whereas cross-validation involves splitting the original dataset into multiple non-overlapping subsets or "folds."
+
+Another operational difference is how they handle the size of the dataset. Bootstrapping can be helpful when we have a limited dataset, but it can be computationally expensive for large datasets. Cross-validation, on the other hand, is more efficient for large datasets and can provide a more accurate estimate of a model's performance.
+
+\section{Model Selection}
+There are three scenarios where we encounter a model selection problem:
+\begin{enumerate}
+    \item \textbf{Predicting Probabilities and Classification Threshold Selection.} A model is trained with a selected architecture and all model-level parameters are user-defined (e.g., the number of hidden layers and type of activation functions in an MLP). In this case (i.e., binary classification), a predicted label is determined by the threshold used in the model. The threshold is often associated with a prediction probability given a predictive label. How should such a threshold be chosen?
+    
+    \item \textbf{Hyper-parameter Tuning.} A model is trained with a selected architecture (e.g., an MLP or an SVM); however, there exist one or two parameters that are up to the modeler (user). These parameters are called hyperparameters.
+    
+    \item \textbf{Use of Multiple Different Models.} A number of different models are trained with different architectures (e.g., an MLP, an SVM, a decision tree, etc.). The user faces a situation where one must decide which model should be used, or whether multiple models should be combined to improve the accuracy and generalization performance.
+\end{enumerate}
+
+These cases are further elaborated below.
+
+\subsection{Classification Threshold Selection}
+In a classification problem, by selecting the model function \(f(u)\) (where \(u(\mathbf{x})\) defines the decision boundary), the classification label can be directly predicted (e.g., in a perceptron or MLP, where the last activation function is a hard-threshold function) or predicted with a score measurement. In the Logistic Regression model, the function is the sigmoid function, which always varies from 0 to 1.
+
+In practice, even if it is a discriminative classification model (i.e., probability distributions are not explicitly modeled), one can treat the sigmoid function output as a probability measure. In this case, \(P(c|\mathbf{x})\) is set equal to \(f(u)\); often \(P(c|\mathbf{x})\) is called the membership probability or score for the label \(c\).
+
+In the case of using a hard-threshold function (e.g., in a linear SVM or the last activation function in an MLP) or if the function outputs a measurement that is not between 0 and 1, there exist methods to estimate the membership probability. We generally assert that any classification model can output a probability score when predicting a label.
+
+If there is no preference over the type of false prediction, one may simply use the threshold 0.5 to decide the class label:
+\[
+c = \begin{cases} 
+      1 & P(c|\mathbf{x}) \geq \frac{1}{2} \\
+      0 & P(c|\mathbf{x}) < \frac{1}{2} 
+      \end{cases}
+\]
+
+However, there are situations in reality where we need to avoid a false prediction (either false positive or false negative). In this case, the threshold can be adjusted to reduce one type of error. For example, in medical practice (e.g., diagnosing cancer for a patient), a "miss" (false negative, which can have life-threatening consequences) is considered more severe than a "false alarm" (false positive, which may cause temporary physiological anxiety). In such a case, the threshold for a "positive" label should be lower.
+
+To compare model performance under such variable thresholds, common methods include two graphical tools: the Receiver Operating Characteristic (ROC) curve and the Precision-Recall (PR) curve.
+
+\subsection{Hyper-parameter Tuning}
+In practice, an ML classification model always has one or more high-level or hyperparameters. Recall that in a Logistic Regression model or in a kernel SVM model, we can change the \(C\) value to regularize the model. Moreover, we can choose different kernels, and such selections (decision variables) are considered hyperparameters. Even when a kernel is chosen, there are kernel parameters (e.g., the kernel width in an RBF kernel or the degree in a polynomial kernel).
+
+In this case, we have a model selection problem, or equivalently, we must determine which hyperparameter combination yields a more capable model.
+
+The aforementioned ROC and PR curves can be used in this situation as well.
+
+\subsection{Models with Different Architectures}
+It is straightforward to understand this situation — namely, when a user tries different models. The underlying, and more important, rationale is that ML models come with different complexities — how do we choose between models that come with different levels of complexity?
+
+There are some philosophical perspectives on this problem. In philosophy, there exists the so-called Occam's razor principle, or more formally, the law of parsimony. In layman's words, this law states that if there are multiple explanations for a phenomenon, the simplest explanation is usually the correct one. In modern probability and statistics (the foundation of ML), the Occam's razor principle is considered a direct consequence of basic probability. Basically, all assumptions (via modeling) introduce possibilities for error; if an assumption does not improve the accuracy of a theory, its only effect is to increase the probability that the overall model is wrong. In other words, excessive complexity, which means more assumptions, is not necessary.
+
+To achieve a balance between modeling complexity and accuracy, two categories of techniques are often used:
+\begin{itemize} 
+    \item Resampling methods, using the aforementioned cross-validation or bootstrapping methods.
+    \item Probability measures, as shown below.
+\end{itemize}
+
+Probability measures are defined to score candidate models using both their performance on the training dataset and the complexity of the model. Four commonly used probabilistic model selection measures include:
+\begin{itemize}
+    \item Akaike Information Criterion (AIC)
+    \item Bayesian Information Criterion (BIC)
+    \item Minimum Description Length (MDL)
+    \item Structural Risk Minimization (SRM)
+\end{itemize}
+We will not cover these topics in this class; they are mentioned here for awareness.
+
+On the other hand, when ML models with different architectures are adopted, instead of choosing a better model, it is close to the use of Ensemble Machine Learning, which is to aggregate the performance of many models to achieve much-improved performance. 
+
+\section{Ensemble Models}
+If a set of models is selected, having different degrees of complexity, do we pick one model or possibly use all of them? The rationale is that the simplest model and the most complex model each have their own advantages; after all, we cannot fully foresee what ``unseen'' data will be like.
+
+Ensemble modeling in machine learning is a technique that involves combining multiple individual models to improve the overall predictive power of the system. The idea behind ensemble modeling is that by combining the predictions of several weak models, the final result will be more accurate and robust than any individual model could achieve on its own.
+
+There are different types of ensemble models, including:
+\begin{itemize}
+    \item \textbf{Bagging:} This technique involves creating multiple models using the same algorithm on different subsets of the training data, and then aggregating their predictions.
+    \item \textbf{Boosting:} This technique involves creating multiple models sequentially, with each new model focusing on the examples that were misclassified by the previous model.
+    \item \textbf{Stacking:} This technique involves training several different models on the same data and using their predictions as input to a higher-level model that learns how to combine them best.
+\end{itemize}
+
+Lastly, ensemble modeling is beneficial when dealing with complex datasets, where individual models may struggle to capture all the underlying patterns and relationships in unseen data. By combining multiple models, ensemble modeling can help reduce overfitting and increase the system's overall accuracy.
+
+\section{Conclusion Remarks}
+In this topic, we explored the challenges of generalization in machine learning and presented various empirical techniques to enhance model performance on unseen data. The discussion included resampling methods, such as K-fold cross-validation and bootstrapping, which provide robust performance estimates, as well as model selection strategies—including threshold selection, hyperparameter tuning, and comparing models with different complexities. We also reviewed ensemble methods as a means to combine multiple models, thereby reducing overfitting and improving overall predictive accuracy. Together, these techniques form a comprehensive framework for developing machine learning models that generalize well to real-world scenarios.
+
+
+\end{document}

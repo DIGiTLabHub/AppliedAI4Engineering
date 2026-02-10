@@ -1,0 +1,291 @@
+\documentclass[12pt]{article}
+\usepackage{../TopicChapters/ceai}
+
+
+
+\begin{document}
+
+\title{CE 488/5588 Homework 02\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+\newpage
+
+% \doublespacing
+
+
+\section*{Multiple Choice / Fill-in-the-blank Questions}
+\subsection*{Question 1}
+A construction engineer responsible for quality control inspects the concrete curing results for a three-story concrete building. In her notebook, she writes down that:
+
+\begin{itemize}
+    \item \textbf{Data A - Quality of curing:}
+    \begin{itemize}
+        \item Story-1: Excellent
+        \item Story-2: Good
+        \item Story-3: Fair
+    \end{itemize}
+    \item \textbf{Data B - Decision:}
+    \begin{itemize}
+        \item Story-1: accepted
+        \item Story-2: accepted
+        \item Story-3: not accepted
+    \end{itemize}
+\end{itemize}
+
+So Data A is \underline{\hspace{4cm}} data; and Data B is \underline{\hspace{4cm}} data (choose ordinal vs. nominal).
+
+\subsection*{Question 2}
+A vibration specialist measures the vertical acceleration of a rotary machine. By integration, he obtains the following velocity values: \{10 m/sec, -12 m/sec, 5 m/sec, -15 m/sec\} at four timestamps. For analysis, define the time variable as the elapsed time (in minutes) since the first measurement, i.e., \(t=\{0,1,2,3\}\) min. He also estimates the kinetic energy approximately using the formula: \(E = \frac{1}{2} m v^2\).
+
+\begin{enumerate}
+    \item The clock time data is \underline{\hspace{4cm}} data (choose interval or ratio).
+    \item The velocity data is \underline{\hspace{4cm}} data (choose interval or ratio).
+    \item The energy data is \underline{\hspace{4cm}} data (choose interval or ratio).
+\end{enumerate}
+
+\subsection*{Question 3}
+Engineer A did a concrete mixing trial. He did five tests on the 28th day using five cylinders. The compressive strengths he estimated from the tests were 4.9 ksi, 5.0 ksi, 3.9 ksi, 5.1 ksi, and 4.8 ksi. Engineer B tested only one cylinder, but she tested it on five consecutive, different days (Day 1 to Day 5) with the following compressive strength values: 1.0 ksi, 2.0 ksi, 3.1 ksi, 4.8 ksi, and 5.0 ksi. \textbf{What statement below is incorrect?}
+
+\begin{enumerate}
+    \item Engineer B can plot a curve to describe how the strength goes up over time.
+    \item One can estimate an average concrete strength using either the data set from Engineer A or B.
+    \item Engineer A obtains five data points for the mixture, whereas Engineer B obtains only one data point (with five different feature values).
+    \item Engineer A can calculate an average strength for this mixture.
+\end{enumerate}
+
+\subsection*{Question 4}
+Based on the information from Question 3:
+
+\begin{enumerate}
+    \item Write down the data from Engineer A as a vector.\\
+    
+    \vspace{20pt}
+    \fullunderline \\
+    \item Write down the data from Engineer B with two vectors: one vector for the strength values and the other for the time (day, starting from 1).\\ \\
+    \vspace{20pt}
+    
+    \fullunderline \\
+
+    \vspace{30pt}
+
+
+     \fullunderline 
+\end{enumerate}
+
+\newpage
+
+\subsection*{Question 5}
+
+A high-dimensional data set is measured from a structural health monitoring experiment for a bridge over a long period (e.g., 10 years), which is denoted as
+\[
+\mathcal{D} = \{(\bm{x}_i, c_i) \mid i = 1, 2, \ldots, N\},
+\]
+where \(\bm{x}_i \in \mathbb{R}^D\) is a feature vector implying the degree of damage and \(c_i\) is the damage level (with \(c_i=0\) for no damage and \(c_i=1\) for damaged) collected at the \(i\)th incident event.
+
+An ML/structural engineer constructs a model with a set of parameters as in a vector \(\bm{w}\) that computes a score value based on an input feature vector \(\bm{x}\), which is expressed as \(m(\bm{x}\mid \bm{w})\).
+
+The engineer is conducting (choose the best answer):
+\begin{itemize}
+    \item [A.] Discriminative Machine Learning
+    \item [B.]Generative Learning
+    \item [C.]Unsupervised Learning
+    \item [D.] Machine Learning
+\end{itemize}
+Your answers and explain: \rule{1in}{0.15mm}\\
+
+\fullunderline \\
+
+
+\fullunderline \\
+
+\newpage
+\subsection*{Question 6} 
+
+Following the statement in Question 5 above, the ML model \(m(\bm{x}\mid \bm{w})\) is learned from the data. In this model, the decision function is formulated, $f(\bm{x}\mid \bm{w})$. The function defines a nonlinear decision boundary in the space of $\mathbb{R}^D$, which (by chance) forms a contour (i.e., a level set / hypersurface) with $f(\bm{x}\mid \bm{w}) = 1$. It turns out that 
+
+\[
+\text{if } f(\bm{x}\mid \bm{w}) \geq 1 \text{ then } c = 1,
+\]
+\[
+\text{otherwise, } c = 0.
+\]
+Or geometrically, if a data point $\bm{x}$ lies inside the contour (i.e., $f(\bm{x}\mid \bm{w})\ge 1$), it indicates the structure is damaged; if outside, it is intact (no damage). 
+
+A set of newly measured data points is provided for testing the model; the computed decision-function values $f(\bm{x}\mid \bm{w})$ are \((0.1, 1.5, 0.2, 2)\). The predicted states based on this model are then:\\
+\rule{1in}{0.15mm}\\
+\rule{1in}{0.15mm}\\
+\rule{1in}{0.15mm}\\
+\rule{1in}{0.15mm}
+
+\bigskip
+
+\subsection*{Question 7} 
+Read Chapter 3 and Section 4, then answer the two conceptual questions below. 
+\begin{itemize}
+
+    \item Following Question 5, if the decision function developed by the structural engineer has 10 parameters (namely, $\bm{w}$ is a $10\times 1$ vector), the resulting function is called a {\rule{1in}{0.15mm}} model. 
+
+
+    \item With the testing underway, the engineer believes that the model is deficient because it cannot capture the complex decision boundary in the \(D\)-dimensional space (where \(D\) is the dimension of a feature vector \(\bm{x}\)). The engineer hence develops a model where the dimension of the model parameter vector $\bm{w}$ scales with the size of the training data $\mathcal{D}$ (namely, if there are 100 data points for training the model, the engineer uses 100 model parameters to construct the model). Such an ML model is called a {\rule{1in}{0.15mm}} model.
+    \end{itemize}
+\bigskip
+
+\subsection*{Question 8} 
+
+Similar to the setting in Question 5, a high-dimensional data set is measured from a structural health monitoring experiment for a bridge over a long period (e.g., 10 years), which is denoted as
+\[
+\mathcal{D} = \{(x_i, c_i) \mid i = 1, 2, \ldots, N\}.
+\]
+The engineer splits the data into
+\[
+D_0 = \{(x_i, c_i = 0) \mid i = 1, 2, \ldots, N_0\} \quad \text{and} \quad D_1 = \{(x_i, c_i = 1) \mid i = 1, 2, \ldots, N_1\}.
+\]
+A probabilistic approach is then adopted in this classification problem; first, a Gaussian mixture model is used to model \(p(x\mid c=0)\) and \(p(x\mid c=1)\) separately. Then the prior probabilities \(P(c=0)\) and \(P(c=1)\) are learned from the data.
+
+This engineer is conducting a pattern classification that is an instance of (choose the best description):
+\begin{itemize}
+    \item [A.] Generative machine learning
+    \item [B.] Discriminative learning
+    \item [C.] Supervised learning
+    \item [D.] Deep learning
+\end{itemize}
+Your answers and explain: \rule{1in}{0.15mm}\\
+
+\fullunderline \\
+
+\fullunderline 
+
+\bigskip
+
+\subsection*{Question 9 (Graduate Student Only)} 
+
+Given the learning problem and the ML formalism, suppose that
+\[
+P(c=0)=0.99, \quad P(c=1)=0.01.
+\]
+Given two new feature vectors \(\bm{x}_1\) and \(\bm{x}_2\), the likelihoods are modeled and computed as:
+\[
+P(x_1\mid c=0)=0.5, \quad P(x_2\mid c=0)=0.001,
+\]
+\[
+P(x_1\mid c=1)=0.99, \quad P(x_2\mid c=1)=0.99.
+\]
+Using Bayes' theorem, answer (Fill in "damaged" or "no damage")
+\begin{itemize}
+
+    \item \(\bm{x}_1\) belongs to the \rule{1in}{0.15mm} class; 
+    \item \(\bm{x}_2\) belongs to the \rule{1in}{0.15mm} class. 
+ \end{itemize}
+
+
+
+% \section{Programming Practice and Data Operation}
+
+
+\newpage
+
+\section*{Programming Practice and Data Operation}
+In this problem, we will use data from the Missouri DOT that documents the \href{https://www.modot.org/Bridges}{poor bridges in Missouri}. First, download the data from Canvas: \href{https://umsystem.instructure.com/courses/407601/files/40569943?module_item_id=11752628}{Missouri Poor Bridge Data}.
+
+The goal is to use Python and the Pandas Library to manipulate and visualize data.
+
+Note that by default, Colab works in the `Colab Notebooks' folder under your Google Drive. It can be different. If you conduct the experiment in a specific folder, you would need to mount the Google Drive.
+
+\subsection{Task 1: County-Wise Poor Bridges Distribution}
+
+Using the dataset, extract the list of unique counties and compute the number of poor bridges in each county. Then, generate a bar chart displaying the number of poor bridges per county. Part of the code is shown below.
+
+Then answer the following questions:
+\begin{itemize}
+    \item Which county has the maximum number of poor bridges?
+    \item Which county has the fewest number of poor bridges?
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={Extracting unique counties and plotting histogram}, breaklines=true, breakatwhitespace=true, columns=flexible]
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_excel("MOpoorbridges.xlsx", sheet_name='Sheet1')  # The working folder must contain the file. 
+
+# Optional: use df.head() or list(df) to show the names of columns in this DataFrame object
+
+# Count poor bridges per county
+county_counts = df['County'].value_counts()  # Please check the meaning of this function call, e.g., ask what df['County'].value_counts() does.
+
+print(type(county_counts))  # Ask: what is the type of county_counts? How does it differ from a DataFrame object?
+
+# Plot bar chart
+plt.figure(figsize=(24, 6))
+county_counts.plot(kind='bar')  # Here we use the plot function of the pandas Series object, county_counts, to do a bar plot.
+
+# Some plot decorations
+plt.xlabel('County') 
+plt.ylabel('Number of Poor Bridges')
+plt.title('Distribution of Poor Bridges by County')
+plt.xticks(rotation=90)
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
+\end{lstlisting}
+
+\subsection{Task 2: Age, Structural Characteristics, and Relations to Poor-Condition Levels}
+Create a new dataset with features from `YearBuilt', `Length', and `Width' and the condition level of `Minimum' rating (two levels exist, 3 or 4).\footnote{The bridges in the table are all rated as `Poor'; nonetheless, two levels exist, 3 or 4, where Level 3 means a worse condition; see more details \href{https://www.modot.org/Bridges}{here}.}
+
+Compute the age of each bridge as 
+\[
+\text{Age} = 2026 - \text{YearBuilt}
+\]
+
+Then show the plots (print them in your submission) and answer the questions below.
+\begin{itemize}
+    \item Generate a scatter plot between bridge age and length. Is there any local or global pattern in the scatter plot between the bridge age and length?
+    \item Generate a scatter plot between bridge age and width. Is there any local or global pattern in the scatter plot between the bridge age and width?
+    \item Generate a scatter plot between bridge length and width. Is there any local or global pattern in the scatter plot between the bridge length and width?
+    \item Generate an overlaid histogram showing age distributions for bridges rated as Level 3 and Level 4.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={Bridge Features and Conditions}, breaklines=true, breakatwhitespace=true, columns=flexible]
+# Prepare dataset
+filtered_df = df[['YearBuilt', 'Length', 'Width', 'Minimum']].copy()
+
+filtered_df['Age'] = 2026 - filtered_df['YearBuilt']
+
+filtered_df.head()  # Did you get a new DataFrame object?
+
+# Scatter plot: Age vs Length
+plt.figure(figsize=(8, 5))
+plt.scatter(filtered_df['Age'], filtered_df['Length'], alpha=0.7, marker='o', edgecolors='k', s=20)
+plt.xlabel('Bridge Age (Years)')
+plt.ylabel('Bridge Length (ft)')
+plt.title('Scatter Plot of Bridge Age vs Length')
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+
+# Do it similarly and show the scatter plot between 'Age' and 'Width'
+
+# Do it similarly and show the scatter plot between 'Length' and 'Width'
+
+# Overlaid histogram for bridges with ratings equal to 3 and 4
+Level_3_Age = filtered_df[filtered_df['Minimum'] == 3]['Age']  # Could you parse the meaning of this operation? Hint: '==' is a logical operator
+
+Level_4_Age = filtered_df[filtered_df['Minimum'] == 4]['Age']
+
+plt.figure(figsize=(8, 5))
+
+# Histogram for the ages of Level 3 bridges 
+plt.hist(Level_3_Age, bins=20, color='blue', edgecolor='red', alpha=1.0, label='Level 3') 
+
+# Histogram for the ages of Level 4 bridges
+plt.hist(Level_4_Age, bins=20, color='gray', edgecolor='black', alpha=0.5, label='Level 4') 
+
+plt.xlabel('Bridge Age (Years)')
+plt.ylabel('Count')
+plt.title('Age Distribution for Bridges with Levels of Rating Equal to 3 and 4')
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+\end{lstlisting}
+
+\end{document}

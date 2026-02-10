@@ -1,0 +1,363 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,graphics,setspace}
+\usepackage{graphicx} 
+\usepackage{bm}
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{}
+\newcommand{\unicode}[1]{}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\bm#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied AI \\ \large Topic 8: Generative Learning for Supervised Classification}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Generative Classification}
+
+Probabilistic generative classification is a machine learning approach that models the joint probability distribution \(p(\bm{x}, c_i)\) of the input features \(\bm{x}\) and the class labels \(c_i\). In this lecture, we first discuss Bayes' rule, which serves as the foundation for probabilistic classification. Next, we explore the case where the class-conditional probability densities \(p(\bm{x} \mid c_i)\) are Gaussian distributions. Finally, we discuss the concept of Bayes error in the Gaussian context.
+
+To proceed, we assume that we have a supervised learning dataset \(\mathcal{D}\) for learning the probabilistic models:
+\[
+\mathcal{D} = \{(\bm{x}_n, y_n) \mid n = 1, 2, \cdots, N \}
+\]
+where \(\bm{x}_n \in \mathbb{R}^d\) and 
+\[
+y_n \in \{c_1, c_2, \cdots, c_K\}.
+\]
+That is, the input features are \(d\)-dimensional vectors, there are \(K\) distinct class labels, and the total number of data points is \(N\).
+
+Using the one-hot encoding scheme to represent \(y_n\), we can construct a matrix \(C(n,i)\) so that the number of instances belonging to class \(c_i\) is obtained by
+\[
+N_c(i) = \sum_{n} C(n,i).
+\]
+
+With this setup, we establish the underlying principles of generative classification.
+
+\subsection{Bayes' Rule}
+A general form of Bayes' rule is derived from the joint probability rule. Using the variables \(A\) and \(B\), we first write:
+\begin{equation}
+P(A, B) = P(A \mid B)P(B) = P(B \mid A)P(A).
+\end{equation}
+Rearranging the terms yields Bayes' rule:
+\begin{equation}
+P(A \mid B) = \frac{P(B \mid A)P(A)}{P(B)}.
+\end{equation}
+Here, \(P(A \mid B)\) is the posterior probability of \(A\) given \(B\), \(P(B \mid A)\) is the likelihood of \(B\) given \(A\), \(P(A)\) is the prior probability of \(A\), and \(P(B)\) is the marginal probability of \(B\).
+
+Bayes' rule forms the basis for probabilistic classification because it allows us to compute the posterior probabilities \(p(c_i \mid \bm{x})\) of the class labels given the input features. Moreover, the same rule is used for probabilistic model parameter estimation.
+
+We now reformat Bayes' rule for modeling a classification problem:
+\begin{equation}
+p(c_i \mid \bm{x}) = \frac{p(\bm{x} \mid c_i) \, p(c_i)}{p(\bm{x})},
+\end{equation}
+where 
+\begin{itemize}
+    \item \(p(\bm{x} \mid c_i)\) is the class-conditional probability density (the likelihood), which quantifies how probable the observed data \(\bm{x}\) is given class \(c_i\).
+    \item \(p(c_i)\) is the prior probability of class \(c_i\).
+    \item \(p(\bm{x})\) is the marginal (unconditional) probability density of the input features.
+    \item \(p(c_i \mid \bm{x})\) is the posterior probability of class \(c_i\) given the observed data \(\bm{x}\).
+\end{itemize}
+
+If the posterior probability \(p(c_i \mid \bm{x})\) is computed for each \(c_i\) (with \(i = 1, 2, \cdots, K\)), then the predicted class label is that corresponding to the maximum posterior probability. To achieve this, there are two critical steps in generative classification:
+\begin{enumerate}
+    \item \textbf{Inference:} How to perform prediction given a new input feature.
+    \item \textbf{Learning:} How to learn the models from the data. Similar to discriminative ML models, a model parameter estimation process is required, although here the model is generative (probabilistic).
+\end{enumerate}
+
+Bayes' rule and the mechanism of Bayesian updating are among the fundamental techniques used in classical monitoring, control, robotics, and automation theories. In modern ML/AI, particularly in the era of generative AI, Bayes' rule plays a crucial role in developing generative models.
+
+Below, we explore two methods for Bayesian learning and inference: Maximum A Posteriori (MAP) and Maximum Likelihood (ML).
+
+\section{Probabilistic Inference}
+In the context of Bayesian classification, MAP and ML provide different approaches to infer the class label \(c_i\) for a given data point \(\bm{x}\).
+
+\subsection*{Maximum A Posteriori (MAP) Inference}
+
+In MAP estimation, we aim to find the class label that maximizes the posterior probability \(p(c_i \mid \bm{x})\). That is,
+\begin{equation}
+\hat{c} = \arg\max_{c_i} \, p(c_i \mid \bm{x}) = \arg\max_{c_i} \frac{p(\bm{x} \mid c_i) \, p(c_i)}{p(\bm{x})}.
+\end{equation}
+Since the denominator \(p(\bm{x})\) does not depend on the class label, it can be ignored during optimization:
+\begin{equation}
+\hat{c} = \arg\max_{c_i} \, p(\bm{x} \mid c_i) \, p(c_i).
+\end{equation}
+MAP estimation incorporates the prior probability \(p(c_i)\) of each class, which helps account for any prior knowledge or imbalance in the class distribution.
+
+\subsection*{Maximum Likelihood Inference}
+
+In Maximum Likelihood inference, we focus on finding the class label that maximizes the likelihood \(p(\bm{x} \mid c_i)\) without considering the prior probabilities:
+\begin{equation}
+\hat{c} = \arg\max_{c_i} \, p(\bm{x} \mid c_i).
+\end{equation}
+ML inference ignores the prior probabilities, which can lead to suboptimal decisions in cases where prior information is important or the class distribution is imbalanced.
+
+\section{Probabilistic Learning}
+In most cases, the prior probabilities can be easily estimated from the frequencies of the individual class labels:
+\begin{equation}
+    p(c_i) \approx \frac{N_c(i)}{N}.
+\end{equation}
+
+In some situations, however, it is necessary to adjust the priors based on our subjective confidence. For example, in a small dataset the frequency for a particular class label might be zero (i.e., no observation of that class). This, however, is undesirable since we do not believe that the true probability of observing a class should be zero. In such cases, manually adjusting the prior to be nonzero is essential.
+
+Given the MAP or MLE learning principles, the major component is to learn and estimate the conditional probability \(p(\bm{x} \mid c_i)\). However, significant challenges arise both analytically and numerically. Since \(\bm{x}\) is a \(d\)-dimensional vector, it is a multivariate random variable. Questions include: What is the distribution for each component \(x_j\) (for \(1 \leq j \leq d\))? Do dependencies exist between the components? More crucially, the probabilistic structure of \(\bm{x}\) conditioned on \(c_i\) can be highly complex when \(d\) is large.
+
+In modern ML theory, there are two main parametric modeling approaches to address these challenges:
+\begin{itemize}
+    \item \textbf{Introducing strong assumptions on \(p(\bm{x} \mid c_i)\):}
+    \begin{itemize}
+        \item Assuming a common distribution structure for \(p(\bm{x} \mid c_i)\), for example, a multivariate Gaussian distribution.
+        \item Assuming a complex yet tractable distribution for \(p(\bm{x} \mid c_i)\), for example, a multivariate Gaussian mixture distribution.
+        \item Assuming conditional independence, which leads to the Naive Bayes classification model (discussed in the next lecture).
+    \end{itemize}
+    \item \textbf{Introducing causal relations into \(p(\bm{x} \mid c_i)\):} In this approach, a graphical structure—formally, a Bayesian network—is constructed to encode the causal relationships between the components of \(\bm{x}\); a Bayesian tree or a hidden Markov model\footnote{Bayesian networks are beyond the scope of this course; topics such as ``Probabilistic Learning'', ``Graphical Models'', or ``Bayesian Networks'' cover this subject.}.
+\end{itemize}
+
+These different approaches lead to dramatically different procedures for parameter estimation of the model \(p(\bm{x} \mid c_i)\). In each case, the problem reduces to estimating a parameter vector \(\pmb{\theta}_i\) for \(p(\bm{x} \mid c_i)\) using the dataset \(\mathcal{D}\). For characterizing the dataset, we introduce a crucial assumption, which, in most practical cases, holds true, the indispensable \textit{i.i.d.} assumption.
+
+\subsection{Identically and Independently Distributed Data}
+Given a dataset 
+\[
+\mathcal{D} = \{(\bm{x}_n, y_n) \mid n = 1, 2, \cdots, N \},
+\]
+the question is how we can express and model \(p(\mathcal{D} \mid \pmb{\theta})\). If we ignore the label observations \(y_n\), then
+\[
+\mathcal{D} = \{\bm{x}_1, \bm{x}_2, \cdots, \bm{x}_N \}.
+\]
+Previously, we stated that we may introduce different types of theoretical assumptions about the scalar components of \(\bm{x}\) (across its \(d\) dimensions), for example, assuming a Gaussian, a Gaussian mixture, or a Bayesian network. However, these assumptions do not directly apply to each individual observation \(\bm{x}_n\). In this case, we simply assume there is an underlying probabilistic structure for modeling \(\bm{x}\), denoted \(p(\bm{x}\mid\pmb{\theta})\). 
+
+Then the i.i.d.\ assumption states that all observed \(\bm{x}_n\) are identically and independently distributed, so that the collective probability density for the whole dataset \(\mathcal{D}\) is
+\begin{equation}
+p(\mathcal{D} \mid \pmb{\theta}) = \prod_{n=1}^{N} p(\bm{x}_n \mid \pmb{\theta}).
+\end{equation}
+
+This assumption, and the approach to modeling \(\mathcal{D}\), form the basis for two model parameter estimation methods. In line with the inference framework introduced earlier, we derive either a Maximum A Posteriori (MAP) or Maximum Likelihood Estimation (MLE) method. 
+
+\subsection*{Maximum A Posteriori (MAP) Parameter Estimation}
+In MAP estimation, we aim to find the parameter values \(\pmb{\theta}\) that maximize the posterior probability \(p(\pmb{\theta} \mid \mathcal{D})\). By Bayes' rule,
+\begin{equation}
+p(\pmb{\theta} \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \pmb{\theta}) \, p(\pmb{\theta})}{p(\mathcal{D})}.
+\end{equation}
+Thus, the MAP estimate is given by
+\begin{equation}
+\hat{\pmb{\theta}}_{\text{MAP}} = \arg\max_{\pmb{\theta}} \, p(\pmb{\theta} \mid \mathcal{D}) = \arg\max_{\pmb{\theta}} \frac{p(\mathcal{D} \mid \pmb{\theta}) \, p(\pmb{\theta})}{p(\mathcal{D})}.
+\end{equation}
+Since \(p(\mathcal{D})\) does not depend on \(\pmb{\theta}\), we can simplify this to
+\begin{equation}
+\hat{\pmb{\theta}}_{\text{MAP}} = \arg\max_{\pmb{\theta}} \, p(\mathcal{D} \mid \pmb{\theta}) \, p(\pmb{\theta}).
+\end{equation}
+MAP estimation incorporates the prior probability \(p(\pmb{\theta})\) of the parameter values, which helps regularize the estimation process and incorporate prior knowledge.
+
+A secondary issue is the prior \(p(\pmb{\theta})\). Its dimensionality depends on the analytical assumptions made about \(\bm{x}\). Note that \(p(\pmb{\theta})\) is distinct from the prior probability \(p(c_i)\) of class memberships, which can be readily estimated from sample frequencies (see Eq. (7) above). Modeling \(p(\pmb{\theta})\) is challenging, and in modern Bayesian learning, a hyperprior is often introduced on \(\pmb{\theta}\), resulting in a hierarchical Bayesian model. This hyperprior helps regularize the estimation process by encoding higher-level beliefs about the parameter distribution.
+
+A simplified approach is to ignore \(p(\pmb{\theta})\) and introduce further assumptions about the observed data, leading to the MLE method described next.
+
+\subsection*{Maximum Likelihood Estimation (MLE)}
+
+In MLE, we focus solely on the likelihood \(p(\mathcal{D} \mid \pmb{\theta})\) and ignore the prior \(p(\pmb{\theta})\). The MLE is then given by
+\begin{equation}
+\hat{\pmb{\theta}}_{\text{MLE}} = \arg\max_{\pmb{\theta}} \, p(\mathcal{D} \mid \pmb{\theta}) = \arg\max_{\pmb{\theta}} \prod_{n=1}^{N} p(\bm{x}_n \mid \pmb{\theta}).
+\end{equation}
+MLE ignores the parameter prior, which can sometimes lead to overfitting or less robust estimates.
+
+In summary, we have a nested modeling process:
+\begin{enumerate}
+    \item We choose either MAP or ML inference for probabilistic classification by making assumptions about the intrinsic probabilistic structure of the input feature vector \(\bm{x}\) conditioned on a class label \(c_i\).
+    \item To fit the probabilistic model to the dataset, we can decide between the MAP parameter estimation method (which incorporates a hyperprior on \(\pmb{\theta}\), beyond the scope of this class) or the MLE method (which assumes i.i.d.\ data and ignores the parameter prior \(p(\pmb{\theta})\)).
+\end{enumerate}
+
+\section{Bayes Error}
+One theoretical advantage of generative classification is that we can formulate the classification error analytically, providing insight into the theoretical ceiling of classification accuracy (i.e., the maximum achievable accuracy given a certain dataset).
+
+Within the Bayes classification framework, the Bayes error is the minimum possible error rate achievable by any classifier for a given problem. It represents the inherent uncertainty in the classification task due to overlapping class distributions. The Bayes error is calculated by integrating the joint probability distribution over the regions where the classifier makes incorrect decisions. Assuming that the support of all conditional distributions is \(\mathbb{R}\) (i.e., \((-\infty, \infty)\)), errors occur when the model predicts a class label that does not correspond to the maximum posterior probability. Graphically, this region is illustrated in Figure~\ref{topic10fig01}.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figs/bayes-error-plot.png}
+    \caption{Bayes error illustration with two conditional distributions for a binary classification problem.}
+    \label{topic10fig01}
+\end{figure}
+
+Mathematically, the Bayes error is given by:
+\begin{equation}
+\begin{split}
+P_{\text{error}} & = \int_{-\infty}^{\infty} \min \Big\{ p(c_1 \mid \bm{x}),\, p(c_2 \mid \bm{x}),\, \dots,\, p(c_K \mid \bm{x}) \Big\} \, p(\bm{x}) \, d\bm{x} \\
+& = \int_{-\infty}^{\infty} \min \Big\{ p(\bm{x}, c_1),\, p(\bm{x}, c_2),\, \dots,\, p(\bm{x}, c_K) \Big\} \, d\bm{x},
+\end{split}
+\end{equation}
+where \(K\) is the number of classes. Computing the Bayes error in practice can be challenging, especially for high-dimensional feature spaces or complex class distributions.
+
+\section{Practice Example}
+
+In this example, we monitor the direct vertical loads from passing vehicles on a bridge. Based on engineering judgment, we assume that the loads follow different uniform distributions for two vehicle types:
+
+\begin{itemize}
+    \item \textbf{Car (class 0):} The load follows a uniform distribution 
+    \[
+    X \sim U(a,\, 2a+1).
+    \]
+    \item \textbf{Pickup Truck (class 1):} The load follows a uniform distribution 
+    \[
+    X \sim U(2a,\, 3a+2).
+    \]
+\end{itemize}
+
+We observe the following data:
+\[
+\{(2, 0),\, (3, 0),\, (4, 0),\, (4, 1),\, (5, 1)\},
+\]
+where the first entry is the measured load and the second entry indicates the vehicle type (with 0 for a car and 1 for a pickup truck).
+
+\noindent \textbf{Step 1: Likelihood Functions}
+
+For a car, the density function is:
+\[
+f_{\text{car}}(x;a) = \frac{1}{(2a+1)-a} = \frac{1}{a+1}, \quad x \in [a,\, 2a+1].
+\]
+
+For a pickup truck, the density function is:
+\[
+f_{\text{pickup}}(x;a) = \frac{1}{(3a+2)-(2a)} = \frac{1}{a+2}, \quad x \in [2a,\, 3a+2].
+\]
+
+\noindent \textbf{Step 2: Data Constraints}
+
+Each observation must lie within its corresponding support:
+
+\begin{itemize}
+    \item \textbf{Car Observations (for \(x = 2,\, 3,\, 4\)):}
+    \begin{itemize}
+        \item For \(x=2\): \(a \leq 2\) and \(2 \leq 2a+1\) \(\Rightarrow\) \(a \geq 0.5\).
+        \item For \(x=3\): \(a \leq 3\) and \(3 \leq 2a+1\) \(\Rightarrow\) \(a \geq 1\).
+        \item For \(x=4\): \(a \leq 4\) and \(4 \leq 2a+1\) \(\Rightarrow\) \(a \geq 1.5\).
+    \end{itemize}
+    \item \textbf{Pickup Observations (for \(x = 4,\, 5\)):}
+    \begin{itemize}
+        \item For \(x=4\): \(2a \leq 4\) \(\Rightarrow\) \(a \leq 2\) and \(4 \leq 3a+2\) \(\Rightarrow\) \(a \geq \frac{2}{3}\).
+        \item For \(x=5\): \(2a \leq 5\) \(\Rightarrow\) \(a \leq 2.5\) and \(5 \leq 3a+2\) \(\Rightarrow\) \(a \geq 1\).
+    \end{itemize}
+\end{itemize}
+
+The most restrictive constraint arises from the car observations: \(a \geq 1.5\) and \(a \leq 2\). For pickups, the constraint is \(a \in [1,\,2]\). Thus, the overall constraint on \(a\) is:
+\[
+a \in [1.5,\,2].
+\]
+
+\noindent \textbf{Step 3: Overall Likelihood Function}
+
+Assuming the data are independent and identically distributed (i.i.d.), the likelihood function is the product of the individual densities.
+
+For the three car observations (\(x = 2,\, 3,\, 4\)):
+\[
+L_{\text{car}}(a) = \left(\frac{1}{a+1}\right)^3.
+\]
+
+For the two pickup observations (\(x = 4,\, 5\)):
+\[
+L_{\text{pickup}}(a) = \left(\frac{1}{a+2}\right)^2.
+\]
+
+Thus, the total likelihood function is:
+\[
+L(a) = \left(\frac{1}{a+1}\right)^3 \cdot \left(\frac{1}{a+2}\right)^2, \quad \text{for } a \in [1.5,\,2].
+\]
+
+\noindent \textbf{Step 4: Maximization of the Likelihood}
+
+Both \(a+1\) and \(a+2\) are increasing functions of \(a\); therefore, the likelihood \(L(a)\) is a decreasing function in \(a\). To maximize \(L(a)\), we choose the smallest possible \(a\) within the feasible interval. Thus, the maximum likelihood estimate (MLE) is:
+\[
+\hat{a} = 1.5.
+\]
+
+\noindent \textbf{Error Rate Calculation}
+
+Based on the observed data and the specified generative models,
+\[
+\boxed{\hat{a} = 1.5.}
+\]
+This example illustrates the process of parameter estimation using maximum likelihood, where the data constraints and likelihood functions guide the estimation of the model parameter \(a\) in an engineering context.
+
+Based on the estimated parameter \(\hat{a} = 1.5\), the generative models become:
+
+\begin{itemize}
+    \item \textbf{Car (class 0):} \(X \sim U(a,\, 2a+1)\) becomes 
+    \[
+    X \sim U(1.5,\, 2(1.5)+1) = U(1.5,\, 4).
+    \]
+    \item \textbf{Pickup Truck (class 1):} \(X \sim U(2a,\, 3a+2)\) becomes 
+    \[
+    X \sim U(2(1.5),\, 3(1.5)+2) = U(3,\, 6.5).
+    \]
+\end{itemize}
+
+Assuming equal priors, i.e., \(\pi_0 = \pi_1 = 0.5\), the probability density functions are:
+
+\[
+f_{\text{car}}(x) = \frac{1}{4-1.5} = \frac{1}{2.5} = 0.4, \quad x \in [1.5,\, 4],
+\]
+\[
+f_{\text{pickup}}(x) = \frac{1}{6.5-3} = \frac{1}{3.5} \approx 0.2857, \quad x \in [3,\, 6.5].
+\]
+
+The supports of the two classes only overlap in the interval \([3,\, 4]\). Outside this overlap, only one class has nonzero density and the decision is unambiguous. Within the overlap, the Bayes classifier assigns \(x\) to the class with the higher posterior probability. Since the priors are equal, it compares the likelihoods:
+\[
+\pi_0 f_{\text{car}}(x) = 0.5 \times 0.4 = 0.2, \quad \pi_1 f_{\text{pickup}}(x) = 0.5 \times 0.2857 \approx 0.1429.
+\]
+
+Thus, in the overlap region \([3,4]\) the classifier will choose class 0 (car) because \(0.2 > 0.1429\). However, when a pickup actually occurs in this interval, an error is made.
+
+The Bayes error can be computed as:
+\[
+P_{\text{error}} = \int_{-\infty}^{\infty} \min\{\pi_0 f_{\text{car}}(x),\, \pi_1 f_{\text{pickup}}(x)\} \, dx.
+\]
+Since the minimum is nonzero only in the overlapping region \([3,4]\), we have:
+\[
+P_{\text{error}} = \int_{3}^{4} \min\{0.2,\, 0.1429\} \, dx = \int_{3}^{4} 0.1429 \, dx.
+\]
+The length of the overlap is \(1\), so:
+\[
+P_{\text{error}} \approx 0.1429.
+\]
+Thus, the minimum (Bayes) error achievable by any classifier under these models is approximately \(14.3\%\).
+
+\section{Classic Generative Models vs. Modern GenAI Models}
+Traditional generative models, such as Naive Bayes, Gaussian mixture models, and hidden Markov models, were developed for relatively small-scale problems. These models rely on strong assumptions about the underlying data distribution, which allow for efficient parameter estimation and clear interpretability. Despite their simplicity, classic generative models have been successfully applied in domains such as text classification, speech recognition, and medical diagnosis.
+
+In contrast, modern generative AI models leverage deep learning architectures, including variational autoencoders, generative adversarial networks, and transformer-based models. These approaches can capture complex, high-dimensional data distributions and generate highly realistic outputs across various modalities. It is important to note that modern GenAI models are not necessarily probabilistic in the traditional sense; they are called generative because they produce outputs in a way analogous to sampling from a probability distribution. While modern GenAI models typically require large datasets and significant computational resources, they have revolutionized applications in natural language processing, computer vision, and creative arts, pushing the boundaries of what generative modeling can achieve.
+
+\section{Conclusion}
+In this topic, we explored the fundamental aspects of generative classification. We began with a detailed discussion of Bayes' rule and its pivotal role in computing posterior probabilities for classification. We then examined two primary inference methods---Maximum A Posteriori (MAP) and Maximum Likelihood (ML)---and demonstrated how each approach is used to infer class labels based on the input features. 
+
+Furthermore, we delved into the parameter estimation process for generative models, comparing MAP estimation, which incorporates prior information through a hyperprior, with MLE, which relies solely on the likelihood under the i.i.d.\ assumption. Finally, we discussed the concept of Bayes error, which quantifies the inherent classification uncertainty and establishes a theoretical lower bound on the error rate.
+
+These methods form a comprehensive framework that not only facilitates effective classification but also deepens our understanding of the underlying probabilistic structures in machine learning.
+
+\end{document}

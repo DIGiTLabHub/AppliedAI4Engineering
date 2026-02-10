@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\usepackage{../TopicChapters/ceai}
+
+
+\begin{document}
+
+
+\title{CE 488/5588 Homework 01\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+
+\doublespacing
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\section*{P1. Read and Reflection}
+Read this report \href{https://reports.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf}{Future of Jobs Report} from WEF, and comment the following questions:
+
+\begin{itemize}
+    \item How would the skill set shift or reskilling need happen by 2030? 
+    \item Would we have net engineering job creation by 2030, based on this report due to AI and automation
+\end{itemize}
+
+\section*{P2. Multiple Choice and Explain}
+
+\subsection*{Question 1}
+Which process below is \textbf{NOT} a deductive reasoning process?
+
+\begin{enumerate}
+    \item A climate scientist uses historical records of the last 100 years and infers a conclusion that warming is unavoidable in the 21st century.
+    \item A climate scientist models the atmosphere using physical laws based on partial differential equations.
+    \item A student uses Newton's laws and calculates how long it takes when dropping a ball from 10 ft above the ground.
+    \item A hydraulic engineer models river flooding based on fluid mechanics using physics-based simulation software.
+\end{enumerate}
+Explain your answer:\\
+\fullunderline\\ 
+\fullunderline \\ 
+\fullunderline \\
+\fullunderline
+
+
+
+
+\subsection*{Question 2}
+Which process below is \textbf{NOT} inductive?
+
+\begin{enumerate}
+    \item Tornado has not hit inner Kansas City. Therefore, it would never hit Kansas City.
+    \item A student does a data-fitting problem and uses a linear model.
+    \item A transportation engineer monitors the traffic for a crossing. Using AM and PM traffic data collected over many days, a model is built to predict AM and PM traffic levels.
+    \item An environmental engineer applies a classical pollution equation by plugging air monitoring data to estimate pollution levels.
+\end{enumerate}
+
+Explain your answer:\\
+\fullunderline\\ 
+\fullunderline \\ 
+\fullunderline \\
+\fullunderline
+
+\newpage
+\section*{P3. Programming Exercises}
+
+\paragraph{General Guide:} In this class, although we have a slogan - \textit{no coding but vibe programming}, we will accommodate different needs. In all programming practices, code snippets will be provided: you have the right to do the hardcore approach, coding without using Gemini, or the most modern free-style approach, totally completing the AI programming by prompting and interacting with Gemini. 
+
+\subsection*{Exercise 1: Creating a Time Series Plot}
+Write a Python program to create a time series using the $\sin$ function and plot the curve. The $x$-axis should be labeled \textbf{seconds}, and the $y$-axis should be labeled \textbf{acceleration}.
+
+\textbf{Report and print out your plot. }
+
+\textit{Hints:}
+\begin{itemize}
+    \item Use \texttt{numpy} for generating the time series data with \texttt{np.sin()}.
+    \item Use \texttt{matplotlib.pyplot} to plot the curve.
+\end{itemize}
+
+\textbf{Example Code Outline:}
+\begin{verbatim}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate time series data
+time = np.linspace(0, 10, 100)  # 0 to 10 seconds, 100 points
+acceleration = np.sin(time)
+
+# Plotting
+plt.plot(time, acceleration)
+plt.xlabel('Seconds')
+plt.ylabel('Acceleration')
+plt.title('Time Series of Acceleration')
+plt.show()
+\end{verbatim}
+
+\subsection*{Exercise 2: Generating and Plotting a Histogram}
+Write a Python program to generate a random Gaussian dataset with 100 data points using \texttt{numpy.random} and plot its histogram.
+
+\textbf{Report and print out your plot. }
+
+\textit{Hints:}
+\begin{itemize}
+    \item Use \texttt{np.random.randn()} to generate Gaussian-distributed data.
+    \item Use \texttt{plt.hist()} to plot the histogram.
+\end{itemize}
+
+\textbf{Example Code Outline:}
+\begin{verbatim}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate random data
+data = np.random.randn(100)  # Gaussian distribution
+
+# Plotting histogram
+plt.hist(data, bins=10, edgecolor='black')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.title('Histogram of Random Gaussian Data')
+plt.show()
+\end{verbatim}
+
+\end{document}

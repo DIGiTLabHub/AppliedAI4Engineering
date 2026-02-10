@@ -1,0 +1,312 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{bm}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\bm#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied Machine Learning\\ \large Topic 6: Support Vector Machines}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Introduction}
+In this topic, we will learn SVMs starting with their simplest form --- Linear SVM when dealing with separable and non-separable data. With a good understanding of Linear SVMs, we will then learn Kernel SVM (or Nonlinear SVM), where the seminal ``kernel trick'' is adopted. The geometric interpretation will be primarily pursued, and while some analytic formulations are provided, the focus is on intuitive understanding. Several excellent textbooks are dedicated to SVMs and their theoretical foundations (e.g., \textit{An Introduction to Support Vector Machines} by Cristianini and Shawe-Taylor). Many online tutorials also cover introductory formulations, advanced theories, coding, and toolboxes.
+
+The Support Vector Machine (SVM) algorithm was proposed in 1992 in a paper by Boser, Guyon, and Vapnik. Nonetheless, the theory behind it --- Statistical Learning Theory --- was developed earlier, primarily due to the work of Vapnik since the 1960s. Since then, Statistical Learning Theory has become one of the pillars of modern machine learning. With his distinguished contribution, Professor Vladimir Vapnik is often named the ``Father of Support Vector Machines'' or ``Father of Statistical Learning Theory''. As will be revealed in this topic, SVMs possess a native mechanism for achieving empirically superb and balanced performance in both trainability and predictability. In the ML application domain, an SVM model is often the first go-to model when selecting ML methods, with its prediction scores serving as benchmark results.
+
+\section{Notations and Preliminaries}
+SVMs can perform both classification and regression. We will first focus on classification. As in previous topics for Logistic Regression and Perceptron models, an SVM model attempts to learn from a labeled data set $\mathcal{D}$
+\[
+\mathcal{D} = \left\{ (\bm{x}_i, y_i) \mid i = 1, 2, \cdots, N; \ \bm{x}_i \in \mathbb{R}^D, \ y_i \in \{-1, 1\} \right\}.
+\]
+Here, we define binary labels as $-1$ and $1$, though $0$ and $1$ could also be used. $D$ indicates the dimensionality of the feature vector $\bm{x}$, and $N$ is the total number of training data points.
+
+By learning from the data, an SVM determines a model --- including both the model structure and its parameters. As previously used for Logistic Regression and Perceptron, the model can be expressed as $f[u(\bm{x})]$, where $f(\cdot)$ determines the class label and $u(\bm{x})$ describes a decision function with $u(\bm{x})=0$ representing the decision boundary. In Logistic Regression and Perceptron models, the decision function is linear because $u(\bm{x})=0$ describes a linear hyperplane in the space of $\bm{x}$. For an SVM, when $u(\bm{x})$ is parameterized linearly, the SVM is linear. Suppose $\bm{x} = (x_1, x_2, \cdots, x_D)^T$, then $u(\bm{x})$ is given by
+\begin{equation}
+\begin{split}
+u(\bm{x}) & = w_1 x_1 + w_2 x_2 + \cdots + w_D x_D + b\\
+          & = \langle \bm{w}, \bm{x} \rangle + b.
+\end{split}
+\label{t06eq01}
+\end{equation}
+A hard-threshold activation $f(\cdot)$ (using the sign function, i.e., $\mathrm{Sign}(u) = 1$ if $u \ge 0$ and $\mathrm{Sign}(u) = -1$ if $u < 0$) can be used for binary classification.
+
+Note that an intercept is included in the expression above. As in the Perceptron, by introducing an additional feature value of 1 into the original feature vector (i.e., $x_0 = 1$), the intercept parameter $b$ can be absorbed into the weight parameters (i.e., $w_0 = b$).
+
+For illustration purposes, we assume $D=2$ so that the decision boundary can be visualized in 2D. Fig.~\ref{t06fig01} shows a 2D space with two classes of data points and an intercept in the decision boundary. Given the decision boundary $u(\bm{x})=0$, it is straightforward to show that if the weight vector $\bm{w} = (w_1, w_2)^T$ is treated as a vector in the space, then $\bm{w}$ is normal (perpendicular) to the decision boundary\footnote{This can be proved by noting that the slope of the decision boundary is $-\frac{w_1}{w_2}$ and the slope of $\bm{w}$ is $\frac{w_2}{w_1}$; the product of these slopes is $-1$, confirming orthogonality.}.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figs/Topic06fig01.png}
+\caption{Linear decision boundary $u(\bm{x})=0$ is orthogonal to the weight vector $\bm{w}$.}
+\label{t06fig01}
+\end{figure}
+
+\section{Linear SVM}
+\subsection{Formulation}
+As with Logistic Regression and Perceptron models, learning can be viewed as an optimization process that minimizes the total loss, which is a sum of individual losses over the data points:
+\[
+L(\bm{w}) = \sum_{i=1}^N l_i,
+\]
+We note that while a model can achieve zero loss on the training data, its performance on unseen testing data may not be as good. Even for separable data, multiple decision functions may yield zero training loss, as seen with the Perceptron (see Fig.~3 in Topic~05), leading non-unique or non-deterministic solution. A linear SVM considers the potential for compromised performance on the training data but `balanced' performance on the testing data as well. In other words, besides minimizing the training loss, an additional criterion is needed to achieve (1) a unique solution (even in the case of separable data); and (2) more importantly, improve generalization.
+
+The key idea in a linear SVM is to introduce the concept of a decision margin. In the following the formulation is first conducted for a separable data set. In Fig.~\ref{t06fig02}, two decision margins are defined by the equations:
+\[
+\langle \bm{w}, \bm{x} \rangle  + b = 1
+\]
+and
+\[
+\langle \bm{w}, \bm{x} \rangle + b = -1.
+\]
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width = 0.5\textwidth]{figs/Topic06fig02.png}
+\caption{Decision margin in linear SVM with separable data, where the vector $\bm{w}$ is perpendicular to the decision margins and boundary.}
+\label{t06fig02}
+\end{figure}
+
+ The specialty of the margins is that they are drawn to be parallel to the decision boundary $u = 0$, such that they find a set of data points ($\bm{x}_a$ and $\bm{x}_b$) belong to the binary classes (-1 and +1), respectively, such that given the resulting decision margins, which go through the two select points and no other data points from the training data fall within the two margins, hence, the decision width is defined. 
+ 
+ With such configuration, the distance between these margins (the decision width) reflects the capacity of the model to deal with potentially unseen data. Obliviously, a wider (i.e., greater in value) decision width implies that more likely the unseen data are less likely fall within the decision margin. With this thought, we introduce a new modeling learning criterion, which is to maximize the decision width. 
+
+Given that the decision width in Fig.~\ref{t06fig02} is simply the projection of the vector $\bm{x}_b - \bm{x}_a$ onto the the vector of $\bm{w}$. From the basic linear algebra, we have
+\begin{equation}
+\begin{split}
+\text{decision width} &= \frac{\langle \bm{x}_b - \bm{x}_a, \bm{w} \rangle}{\|\bm{w}\|}\\[1mm]
+                      &= \frac{\langle \bm{x}_b, \bm{w} \rangle - \langle \bm{x}_a, \bm{w} \rangle}{\|\bm{w}\|}\\[1mm]
+                      &= \frac{(1 - b) - (-1 - b)}{\|\bm{w}\|}\\[1mm]
+                      &= \frac{2}{\|\bm{w}\|},
+\end{split}
+\label{t06eq02}
+\end{equation}
+where $\|\bm{w}\|$ is the norm of $\bm{w}$. 
+
+Getting back the new model learning criterion above, to achieve potentially higher capacity on the unseen data, it essentially we need to have higher decision width, which further means a minimal  $\|\bm{w}\|$, the norm of the model vector $\bm{w}$. Mathematically, it is equivalent to minimizing the squared norm, which is $\|\bm{w}\|^2$ \footnote{To use the squared norm, it is easy to see that this brings analytical benefit as the norm has a square root and the squared norm is simply a summed quadratic quantities.}. 
+
+Combining these two criterion: (1) minimizing the total loss and  (2) minimizing the squared norm of the model weights, the updated learning objective function is now
+\begin{equation}
+L(\bm{w}) = \frac{1}{N}\sum_{i=1}^N l_i + \|\bm{w}\|^2.
+\label{t06eq03}
+\end{equation}
+
+It is important to note that minimizing the training loss alone may lead to a more complex model, which can cause overfitting. A model with higher complexity may perform well on training data but generalize poorly to unseen data. From the above derivation, a wider decision margin (which aids generalization) corresponds to a smaller $\|\bm{w}\|^2$. Thus, $\|\bm{w}\|^2$ serves as a measure of model complexity - higher $\|\bm{w}\|^2$ indicates higher model complexity. The rationale is summarized as follows:
+\begin{itemize}
+    \item Minimizing the training loss may lead to a complex model (increasing $\|\bm{w}\|^2$).
+    \item To achieve better testing performance, the model should have lower complexity (smaller $\|\bm{w}\|^2$), which corresponds to a wider decision margin.
+\end{itemize}
+Fig.~\ref{t06fig03} illustrates the trade-off between model complexity and training loss.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.5\textwidth]{figs/Topic06fig03.png}
+\caption{Balancing model complexity and training loss to achieve minimal true (testing) loss.}
+\label{t06fig03}
+\end{figure}
+
+\subsection{Loss and Objective Function in Linear SVMs}
+Binary-class datasets are generally non-separable by a linear hyperplane or a linear decision function $u(\bm{x})$. Before introducing nonlinear SVMs, a linear SVM should handle non-separable cases; in this case, it means that even with the resulting linear SVM as a classifier trained with a loss-and-complexity balanced process, classification errors do occur when data are non-separable. The hinge loss function is adopted for linear SVMs  to allow for some misclassifications or margin violations. With a linear SVM model defined as $f[u(\bm{x})] = \mathrm{Sign}(\langle \bm{w}, \bm{x} \rangle)$, the hinge loss is defined as:
+
+\begin{equation}
+h_i = \max\big [ 0, 1 - u(\bm{x}_i)y_i\big ].
+\label{t06eq04}
+\end{equation}
+
+This definition implies that when data is non-separable, not all points can satisfy the condition \( u(\bm{x}_i)y_i \ge 1 \).  Points that fall inside the margin (even if correctly classified) or on the wrong side of the decision boundary incur a loss. This loss is linearly proportional to the amount by which the condition is not met. Specifically, 
+\begin{itemize}
+    \item If \( u(\bm{x}_i)y_i \ge 1 \), then \(h_i  = 0\). In this case, the example is not only correctly classified but also lies outside the margin.
+    \item If \(u(\bm{x}_i)y_i < 1\), then \(h_i > 0\), indicating that the example either falls within the margin or is misclassified.
+\end{itemize}
+
+
+Another treatment is to consider a soft margin. In the previous formulation, we are using $u = -1$ and $u = +1$ as the two margins. We can repeat the process by adopting a different margin value, say $u = -c$ and $u = +c$. This leads to the notion of `soft margin'. Effectively, it means that it is equivalent to minimizing a variable scaled squared norm of $\bm{w}$. Considering such adaption, the standard learning objective function in a linear SVM is shown in Eq.~\ref{t06eq05a}:
+\begin{equation}
+L(\bm{w}) = \frac{1}{2}\|\bm{w}\|^2 + C \sum_{i=1}^N h_i.
+\label{t06eq05a}
+\end{equation}
+Here, the term $\frac{1}{2}\|\bm{w}\|^2$ is used for mathematical convenience when computing gradients. The hyperparameter $C$ defines that a soft margin is considered. Together with the hinge loss, the objective function in a linear SVM offers the following advantages:
+\begin{enumerate}
+    \item It allows the SVM to handle cases where perfect separation is impossible by tolerating some misclassifications.
+    \item It maintains a \textit{convex optimization} problem, ensuring that a unique global minimum can be found.
+    \item It provides robustness against outliers or noisy data by not enforcing a strict separation.
+\end{enumerate}
+$C$ in a linear SVM hence becomes a hyperparameter, which can be determined from using a model selection process. 
+
+At this moment, we can mention that to balance between over-fitted training on training data and  generalization on unseen testing data when a multilayer perceptron is concerned, a similar optimization technique is often considered, in which a regularization term is considered: 
+
+\begin{equation}
+L(\bm{w}) = \sum_{i=1}^N l_i + \alpha \|\bm{w}\|^2,
+\label{t06eq05b}
+\end{equation}
+where $\alpha$ is the regularization coefficient. Comparing between Eq.~\ref{t06eq05b} and Eq.~\ref{t06eq05a}, we see that the parameter $\alpha$ means the inverse of $C$. 
+
+\subsection{Modern Form of SVM’s Objective Function}
+ The modern and standard form to express the SVM's objective function is to introduce a slack variable \(\xi_i\) for each data point during the training, where 
+\[
+\xi_i = \max\Bigl(0,\, 1 - y_i\bigl(\langle \bm{w}, \bm{x}_i \rangle + b\bigr)\Bigr).
+\]
+In this formulation, the objective is written as 
+\[
+L(\bm{w}) = \frac{1}{2}\|\bm{w}\|^2 + C \sum_{i=1}^{N} \xi_i \\
+\mathrm{\ \ subject\ to\ \ } u(\bm{x}) y_i \ge 1 - \xi_i \mathrm{and\ } \xi_i \ge 0\ \forall i
+\]
+% subject to \(u(\bm{x}) y_i \ge 1 - \xi_i\) and \(\xi_i \ge 0\) for all \(i\), 
+
+The introduction of using $\xi_i$ brings in a straightforward explanation: if we force $\xi_i = 0, \forall i$, then it does not allow any violation that data points should fall in the margins, which is only applicable to the case that data points are strictly separable. In general cases, $\xi_i$'s (numerically as 'losses' at data points) are learned from the data along with the model parameters (weights and bias) from the data, as part of the optimization process.
+
+
+\section{Nonlinear SVM and Kernel Tricks}
+\subsection{Linear Separability in a Higher Dimension}
+The balance between model complexity and data complexity is dynamic. In most cases, data in its original space are non-separable by a linear decision function. Consider, for example, handwritten digits (e.g., 4 and 6) as shown in Fig.~\ref{t06fig04}. If each image is $10\times10$ pixels, then each data point lies in $\mathbb{R}^{100}$, and the decision boundary in this space may be highly nonlinear.
+
+However, human perception readily distinguishes between the two digits, suggesting that a linear decision boundary exists in some transformed space. One mathematical perspective is that there exists a higher-dimensional space where the data becomes linearly separable. Fig.~\ref{t06fig05} illustrates such a transformation using a polynomial mapping:
+\[
+\Phi\left(\begin{bmatrix} x_1 \\ x_2 \end{bmatrix}\right) = \begin{bmatrix} x_1^2 \\ \sqrt{2}\, x_1x_2 \\ x_2^2 \end{bmatrix},
+\]
+which maps $\mathbb{R}^2$ to $\mathbb{R}^3$.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.5\textwidth]{figs/Topic06fig04.png}
+\caption{Handwritten digits (4 and 6) with significant intra-class and inter-class variations.}
+\label{t06fig04}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.5\textwidth]{figs/Topic06fig05.png}
+\caption{A polynomial transformation from 2D to 3D that enables linear separability (Courtesy of Professor Michael Jordan).}
+\label{t06fig05}
+\end{figure}
+
+The transformation $\Phi(\cdot)$ is nonlinear, yet in the transformed space a linear decision boundary can be learned. In terms of the original input space, the decision function $u(\bm{x})$ becomes highly nonlinear.
+
+\subsection{Kernel Trick}
+In the linear SVM, the decision function is given by
+\begin{equation}
+u(\Phi(\bm{x})) = \langle \bm{w}, \Phi(\bm{x}) \rangle.
+\label{t06eq06}
+\end{equation}
+Note that $\bm{w}$ and $\Phi(\bm{x})$ now reside in a higher-dimensional space, say $\mathbb{R}^{D_k}$ with $D_k > D$ (or even $D_k \gg D$). One might think this implies learning an enormous number of parameters in $\bm{w}$. However, the \textit{kernel trick} addresses this issue.
+
+According to the Representer Theorem, the weight vector $\bm{w}$ can be expressed as a linear combination of the transformed training data:
+\begin{equation}
+\bm{w} = \sum_{i=1}^N \alpha_i \Phi(\bm{x}_i).
+\label{t06eq07}
+\end{equation}
+Substituting Eq.~\ref{t06eq07} into Eq.~\ref{t06eq06} yields
+\begin{equation}
+\begin{split}
+u(\bm{x}) &= \langle \bm{w}, \Phi(\bm{x}) \rangle \\
+           &= \left\langle \sum_{i=1}^N \alpha_i \Phi(\bm{x}_i), \Phi(\bm{x}) \right\rangle \\
+           &= \sum_{i=1}^N \alpha_i \langle \Phi(\bm{x}_i), \Phi(\bm{x}) \rangle \\
+           &= \sum_{i=1}^N \alpha_i K(\bm{x}_i, \bm{x}),
+\end{split}
+\label{t06eq08}
+\end{equation}
+where the kernel function is defined as
+\[
+K(\bm{x}_i, \bm{x}) = \langle \Phi(\bm{x}_i), \Phi(\bm{x}) \rangle.
+\]
+Thus, the decision function can be expressed solely in terms of the kernel function and the coefficients $\alpha_i$, eliminating the need to explicitly compute $\Phi(\bm{x})$.
+
+Furthermore, the squared norm of the weight vector becomes
+\begin{equation}
+\begin{split}
+\|\bm{w}\|^2 &= \left\|\sum_{i=1}^N \alpha_i \Phi(\bm{x}_i)\right\|^2 \\
+              &= \left( \sum_{i=1}^N \alpha_i \Phi(\bm{x}_i) \right)^T \left( \sum_{j=1}^N \alpha_j \Phi(\bm{x}_j) \right) \\
+              &= \sum_{i=1}^N \sum_{j=1}^N \alpha_i \alpha_j \langle \Phi(\bm{x}_i), \Phi(\bm{x}_j) \rangle \\
+              &= \sum_{i=1}^N \sum_{j=1}^N \alpha_i \alpha_j K(\bm{x}_i, \bm{x}_j).
+\end{split}
+\label{t06eq09}
+\end{equation}
+
+Thus, the total loss function for the kernel SVM is given by:
+\begin{equation}
+L(\boldsymbol\alpha) = \frac{1}{2} \sum_{i=1}^N \sum_{j=1}^N \alpha_i \alpha_j K(\bm{x}_i, \bm{x}_j) + C \sum_{j=1}^N h_j,
+\label{t06eq10}
+\end{equation}
+where the hinge loss is defined as
+\[
+h_j = \max\big(0, 1 - u_j y_j\big)
+\]
+with 
+\[
+u_j = \sum_{i=1}^N \alpha_i K(\bm{x}_i, \bm{x}_j).
+\]
+In practice, most of the $\alpha_i$ coefficients will be zero; those with nonzero values correspond to the \textit{support vectors}.
+
+\subsection{Kernel Functions}
+Common kernel functions include:
+\begin{itemize}
+    \item \textbf{Polynomial kernel:}
+    \[
+    K(\bm{x}, \bm{x}_i) = (\langle \bm{x}, \bm{x}_i \rangle + 1)^d,
+    \]
+    where $d$ is the degree of the polynomial. 
+    
+    The transformation $\Phi(\cdot)$ associated with this kernel can be explicitly determined. The dimension number of $\Phi(\cdot)$ is
+    \[
+    \text{Dimension of transformed space} = \binom{D+d}{d}.
+    \]
+    where the notation $\binom{\cdot}{\cdot}$ is the binomial combination \footnote{Recall the binominal combination formula:  $\binom{n}{k} = \frac{n!}{k!(n-k)!}$.}.
+    \item \textbf{Radial basis function (RBF) kernel:}
+    \[
+    K(\bm{x}, \bm{x}_i) = \exp(-\gamma \|\bm{x} - \bm{x}_i\|^2),
+    \]
+    which implicitly maps the data into an infinite-dimensional space \footnote{To illustrate that using a RBF kernel, the transformed feature space of $\Phi(\bm{x}$ is infinite-dimensional, it needs the use of Taylor series expansion and some functional analysis, and the introduction to the Mercer’s Theorem.}.
+\end{itemize}
+The key property of these kernels is that they allow SVMs to learn nonlinear decision boundaries in the original input space while computing inner products in the higher-dimensional feature space.
+
+\section{SVM Learning}
+The popularity of SVMs stems not only from their rigorous foundation in Statistical Learning Theory but also from their guaranteed convergence when optimizing the loss function. Regardless of whether the loss function is that of the linear SVM (Eq.~\ref{t06eq03}) or the kernel SVM (Eq.~\ref{t06eq10}), the objective is convex (quadratic programming) and thus has a unique solution that can be computed efficiently. Although we stop here as further details involve optimization theory (e.g., the dual formulation), interested students are encouraged to explore these topics further.
+
+\section{STL-Theoretic Explanation}
+The theoretical underpinnings of SVMs come from Statistical Learning Theory (SLT), developed by Vapnik and colleagues. The total loss model for both linear and kernel SVMs is motivated by the Vapnik–Chervonenkis (VC) dimension, which provides an upper bound on the generalization error. Denoting the training loss as $L_{tr}$, the expected testing loss $L_{te}$ is given by
+\[
+L_{te} = \int l[u(\bm{x}), y] \, dP(\bm{x}, y),
+\]
+where $P(\bm{x}, y)$ is the underlying data distribution. Vapnik proved that, with high probability (i.e., $1-\eta$ for small $\eta$),
+\begin{equation}
+\begin{split}
+L_{te} &< L_{tr} + \epsilon(D_{VC}, N, \eta) \\
+       &= L_{tr} + \left[\frac{1}{N} \left(D_{VC}\log\left(\frac{2N}{D_{VC}} + 1\right) - \log\left(\frac{\eta}{4}\right)\right)\right]^{\frac{1}{2}}.
+\end{split}
+\label{t06eq11}
+\end{equation}
+The VC dimension $D_{VC}$ measures the capacity of a set of functions or a classifier. For linear functions, $D_{VC} = D + 1$ (accounting for the intercept). For instance, in 2D with a linear function $u = w_1 x_1 + w_2 x_2 + b$, the maximum number of points that can be shattered is three. More complex (e.g., kernel) functions have higher VC dimensions, which increases the upper bound on the testing loss. Thus, controlling model complexity (via regularization) is key to achieving good generalization.
+
+\section{Summary}
+In this topic we introduced Support Vector Machines (SVMs) beginning with the linear SVM for both separable and non-separable data, and then extended the discussion to nonlinear SVMs using kernel tricks. We examined how the decision margin, determined by the norm of the weight vector, plays a crucial role in balancing training accuracy and model complexity for better generalization. Finally, we provided a brief theoretical perspective from Statistical Learning Theory, highlighting the role of the VC dimension in bounding the testing loss. Together, these concepts form a robust framework for understanding and applying SVMs in practical machine learning tasks.
+
+\end{document}

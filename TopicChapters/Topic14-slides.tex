@@ -1,0 +1,333 @@
+\documentclass[german,10pt]{beamer}
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage{graphicx} \graphicspath{ {./figs/} }
+%% Integer set
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\Rset}{\field{R}}
+\newcommand{\Zset}{\field{Z}}
+\newcommand{\Qset}{\field{Q}}
+\newcommand{\Nset}{\field{N}}
+
+% Beamer specific settings
+
+% Other styles can be used instead of Boadilla, e.g., to add an index column.
+\mode<presentation>
+{
+  \usetheme{Boadilla} % Without index, with footer
+}
+
+\title{CE 401/5501: Machine Learning for Regression}
+\subtitle{Are they statistical regression?}
+\author[]{Professor ZhiQiang Chen}
+\date{}
+\institute[UMKC]
+{
+  School of Science and Engineering \\
+  University of Missouri Kansas City
+}
+
+% This command makes the logo appear at the right side which does not fit
+% the UGent style. A solution is found further below.
+% \logo{\includegraphics[scale=0.25]{logolabel.jpg}}
+
+
+
+
+% before \begin{document}
+\AtBeginSection[]{
+  \begin{frame}<beamer>\frametitle{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+  \begin{frame}[plain]
+    \centering
+    \vfill
+    {\usebeamerfont{section title}\insertsectionhead\par}
+    \vfill
+  \end{frame}
+}
+
+\setbeamersize{text margin left=1cm}
+\setbeamersize{text margin right=1cm}
+
+
+\begin{document}
+
+% Title page
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% Outline
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Review Regression}
+\begin{frame}{What is Regression?}
+  \begin{itemize}
+    \item Maps one or more input variables $\bm{x}$ to a continuous output $y$
+    \item Fundamental to engineering: prediction, modeling, system identification
+    \item Contrast with classification:  categorical output is vs. continuous output 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Regression in Engineering}
+  \begin{itemize}
+    \item Linear Regression via Least Squares: 
+    \begin{itemize}
+        \item Given a model: $y = f(\bm{x}; \bm{w})$, where $\bm{w}$ includes all model parameters. If linear: $y = \bm{x} \cdot \bm{w}$
+        \item When placing data in vectors, we have $\bm{y}$ contains all $y$ values and $\bm{X}$ all $\bm{x}$ vectors, the problem is to minimize $J( \bm{w}) = \|\bm{y} - X  \bm{w}\|^2$.
+         \item Simple and Generalized Linear Regression are convex - the surface of $J$ has a global minimum.
+    \end{itemize}
+   
+    \item Nonlinear regression: fitting nonlinear functions (that cannot be reduced to a linear form); basis expansions etc
+  \end{itemize}
+
+      \begin{block}{Examples}
+\begin{itemize}
+    \item Power law regression can be reduced to linear
+      
+        \[
+          y = a \prod_{j=1}^p x_j^{b_j}
+          \quad\Longrightarrow\quad
+          \ln y = \ln a + \sum_{j=1}^p b_j \ln x_j
+        \]
+
+  \item Rectangular hyperbola - Nonlinear
+        \[
+        y = \frac{\beta_1 x}{\beta_2 + x}
+        \]
+        
+\end{itemize}
+      \end{block}
+      
+
+\end{frame}
+
+\begin{frame}{Engineering Equations: Cost Prediction Example}
+  \begin{itemize}
+    \item Predict total cost $y$ of a construction project as a linear function of factors:
+    \[
+      y = \beta_0 + \beta_1 x_{\text{mat}} + \beta_2 x_{\text{lab}} + \beta_3 x_{\text{dur}} + \beta_4 x_{\text{size}}
+    \]
+    \item $x_{\text{mat}}$: material costs, \quad
+          $x_{\text{lab}}$: labor costs
+    \item $x_{\text{dur}}$: project duration (weeks), \quad
+          $x_{\text{size}}$: project size (sq. ft)
+    \item Objective: minimize
+    \[
+      J(\boldsymbol{\beta}) = \sum_{i=1}^N \bigl(y_i - \beta_0 - \sum_{j=1}^4 \beta_j x_{ij}\bigr)^2
+    \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Engineering Equations: Concrete Modulus Prediction}
+\begin{block}{ACI 318 empirical relationship for Young's modulus of concrete}
+    \[
+      E_c = 33 w_c^{1.5} \sqrt{f'_c} \quad (\mathrm{psi})
+    \]
+    where
+  \begin{itemize}
+    \item $f'_c$: compressive strength (MPa)
+    \item $w_c$: unit weight of concrete (lb/f$^3$)
+    \item $E_c$: Young's modulus (MPa)
+  \end{itemize}
+  \end{block}
+    \begin{itemize}
+    \item This equation was obtained by fitting experimental data; and it make no sense in terms of physical units. 
+    \item Taking logarithm as a model:
+    \[
+\log{E_c} = \alpha_0 + \alpha_1 \log(w_c) + \alpha_3 \log(f'_c)
+    \]
+\item This reduces to a linear regression problem. 
+
+  \end{itemize}
+
+\end{frame}
+
+% Section: Logistic Regression
+\section{Logistic Regression}
+
+\begin{frame}{Logistic Regression as Classification}
+  \begin{itemize}
+    \item Maps $\bm{x}$ to probability $P(y=1\mid\bm{x})$
+    \item Model: $\hat{p} = \sigma(\bm{w}^T\bm{x} + b)$, where $\sigma(u)=1/(1+e^{-u})$
+    \item Decision boundary at $\hat{p}=0.5$
+  \end{itemize}
+    \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/sigmoid.pdf}
+  \end{center}
+\end{frame}
+
+
+
+% Section: ML Methods for Regression
+\section{Machine Learning for Regression}
+
+\subsection{Multi-Layer Perceptron (MLP)}
+\begin{frame}{MLP for Regression}
+  \begin{itemize}
+    \item Feedforward network with hidden layers
+    \item Last layer (linear) outputs continuous response:
+    \[ \hat{y} = \bm{w}_L^T \bm{h}_{L-1} + b_L \]
+    \item Loss: mean squared error $\frac{1}{N}\sum (y_i - \hat{y}_i)^2$
+  \end{itemize}
+  
+\end{frame}
+
+\begin{frame}{Example: MLP Regression}
+  \begin{itemize}
+    \item Predicting a nonlinear function e.g. $y=\sin(x)$
+    \item Architecture: input-$\to$[Dense(10, ReLU)]$\to$Dense(1, linear)
+    \item Visualization of fit vs.
+  \end{itemize}
+
+    \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/sin-mlp.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{MLP as Universal Function Approximator}
+\begin{block}{Universal Approximation Theorem}
+A feedforward neural network (MLP) with a single hidden layer containing a finite number of neurons can approximate any continuous function on a compact domain, to any desired degree of accuracy.
+\end{block}
+
+\begin{itemize}
+  \item Formally: For any continuous $f: [0,1]^n \rightarrow \mathbb{R}$, and any $\varepsilon > 0$, there exists an MLP such that
+  \[
+    \left| f(x) - \sum_{i=1}^N \alpha_i \, \sigma(\bm{w}_i^T \bm{x} + \theta_i) \right| < \varepsilon
+  \]
+  for all $x \in [0,1]^n$.
+  \item $\sigma$: activation function (e.g., sigmoid, tanh, ReLU)
+\end{itemize}
+
+\pause
+
+\begin{alertblock}{Practical Challenges}
+\small{
+\begin{itemize}
+  \item Requires many neurons and large datasets
+  \item Difficult optimization landscape (local minima, saddle points)
+  \item Risk of overfitting without good regularization
+\end{itemize}
+}
+\end{alertblock}
+
+\end{frame}
+
+
+
+\subsection{Support Vector Regression (SVR)}
+\begin{frame}{Support Vector Regression}
+  \begin{itemize}
+    \item Uses kernel trick to map inputs into high-dimensional space
+    \item Epsilon-insensitive loss: only penalize errors outside $\epsilon$ tube
+    \item Resulting model is sparse: only support vectors have nonzero coefficients
+    \item The regression function takes the form:
+  \[
+    f(x) = \sum_{i \in \text{SV}} (\alpha_i - \alpha_i^*) K(x_i, x) + b
+  \]
+  where SV denotes support vectors.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Example: SVR Example}
+  \begin{itemize}
+    \item Dataset: noisy samples from $y=\cos(x)$
+  \end{itemize}
+      \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cos-svr.pdf}
+\end{center}
+\begin{alertblock}{Generalization Insight}
+Because SVR models are built using relatively few points, they can \textbf{generalize well} even with small datasets — provided the kernel and hyperparameters are properly chosen.
+\end{alertblock}
+\end{frame}
+
+
+
+
+
+
+
+\subsection{Decision Tree Regression}
+\begin{frame}{Decision Trees}
+\begin{block}{DT is primarily for Classification problems (Morgan and Sonquist, 1963).}
+    DTs are particularly well-suited for classification tasks when you need an interpretable model, can handle both numerical and categorical data, and when the data exhibits non-linear relationships. 
+\end{block}
+  
+  \begin{itemize}
+    \item Classification: split to maximize purity (Gini, entropy)
+    \item Regression: split to minimize variance within leaves
+    \item At each node, choose feature $j$ and threshold $t$ to minimize
+      \[
+        \sum_{i: x_i \in R_{\text{left}}(j,t)} (y_i - \bar y_{\text{left}})^2
+      + \sum_{i: x_i \in R_{\text{right}}(j,t)} (y_i - \bar y_{\text{right}})^2
+      \]
+    \item Output for region $R_m$: 
+      \[
+        \hat y_{R_m} = \frac{1}{|R_m|} \sum_{i: x_i \in R_m} y_i
+      \]
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Decision Tree Regression}
+\begin{block}{DT for Regression}
+      It works by recursively splitting data into subsets based on the values of input features, ultimately leading to leaf nodes where the target variable is predicted. The goal is to find the best splits that minimize the mean squared error (MSE) or another similar measure. 
+\end{block}
+  \begin{itemize}
+    \item Predicting a step-like function
+    \item Tree depth controls model complexity
+    \item Visualization of regression tree partitions
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{DT Regression Example}
+\begin{block}{Fitting by \textit{splitting}}
+    Fit sample data with noise from a ground-truth function
+    \[
+      y = x^2
+    \]
+\end{block}
+
+\begin{columns}[c]
+  \column{0.48\textwidth}
+    \begin{center}
+      \includegraphics[width=\textwidth]{figs/dt_visualization.png}
+      \\[1ex]
+      {\footnotesize (a) Tree Partitioning}
+    \end{center}
+
+  \column{0.48\textwidth}
+    \begin{center}
+      \includegraphics[width=\textwidth]{figs/dt-fitting.pdf}
+      \\[1ex]
+      {\footnotesize (b) Regression Fit}
+    \end{center}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Take-Away Summary}
+\begin{itemize}
+  \item \textbf{Regression} maps input variables to continuous outputs — a core tool in engineering modeling and prediction.
+  \item \textbf{Linear Regression} (least squares) is simple and powerful; some nonlinear models can be transformed into linear ones.
+
+  \item \textbf{Machine Learning Methods for Regression provide a powerful set of tools!}
+  \begin{itemize}
+  
+    \item \textbf{MLP (Neural Networks)}: Flexible nonlinear fitting via layered transformations.
+    \item \textbf{Support Vector Regression (SVR)}: Sparse solutions using kernels and margin-based loss leading to sparse representation.
+    \item \textbf{Decision Trees (DTs)}: Simple, interpretable splits to minimize variance — powerful for both classification and regression.
+  \end{itemize}
+  \item \textbf{Key Idea:} Different regression models balance bias, variance, complexity, and interpretability.
+\end{itemize}
+\end{frame}
+
+    
+
+
+
+
+% End of document
+\end{document}

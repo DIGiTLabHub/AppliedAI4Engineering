@@ -1,0 +1,186 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,graphics,setspace}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied AI\\ \large Topic 13: Unsupervised Learning - Dimensionality Reduction and Feature Extraction}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Introduction}
+
+Following the last lecture, we have introduced the notion and methods for unsupervised clustering. The base is that we have a collection of data points without labels: for a generic data point
+\[
+\bm{x} \in \Re^d
+\]
+we can build a clustering model that classifies or clusters all measurements of $\bm{x}$ into a limited number of groups.  After that, the learning and inference can be conducted within such groups.
+
+Nonetheless, what if $\bm{x}$ as a raw data point has a very high dimensionality, i.e., $d$ is very large? A simple example is that one treats a time series - say, a vibration record as a feature vector or an image as a feature vector - the dimension number $d$ can be up to thousands, ten thousand, or even higher. 
+
+Apparently, there is a need that before we conduct clustering or if labels exist, supervised learning, we can reduce the dimensionality of the feature vectors or extract `better' features from the data points. Two such techniques, which belong to unsupervised learning, are introduced. 
+\begin{itemize}
+     \item \textbf{Dimensionality Reduction:} These techniques reduce the number of features or dimensions in the dataset while preserving its essential structure. The transformation produces a new dataset \(\mathcal{Y} = \{ \bm{y}_n \mid n = 1, \cdots, N\}\), where each \(\bm{y}_n\) has lower dimensionality yet retains most of the original information.
+    \item \textbf{Feature Extraction:} This process transforms raw data into a set of more meaningful or representative features that can be used as inputs for machine learning algorithms, often improving subsequent supervised learning tasks.
+\end{itemize}
+
+\section{Dimension Reduction}
+
+Dimensionality reduction techniques help reduce the number of features or dimensions in the data while preserving its essential structure. This reduction can improve the performance of machine learning algorithms, facilitate data visualization, and reduce computational requirements. Popular techniques include Principal Component Analysis (PCA), t-distributed Stochastic Neighbor Embedding (t-SNE), and autoencoders (the last of which belongs to Neural Network methods). A brief introduction to these techniques is provided below.
+
+Using the dataset \(\mathcal{D} = \{ \bm{x}_n \mid n = 1, 2, \cdots, N\}\), where \(\bm{x}_n \in \mathbb{R}^d\), we define PCA, t-SNE, and autoencoders as follows:
+
+\subsection{Principal Component Analysis (PCA)}
+PCA is a linear dimensionality reduction technique that seeks to find orthogonal linear combinations of the original features that capture the most variance in the data. In geometric terms, PCA identifies the directions—called \emph{principal components}—along which the data exhibits the maximum spread. Imagine the data points scattered in a high-dimensional space; the first principal component is the line (or axis) that best fits the data by maximizing the variance when the data is projected onto it. Subsequent principal components, which are orthogonal to the previous ones, capture the next highest variances, thereby revealing the underlying linear structure of the data with reduced dimensions.
+
+Mathematically, given a centered data matrix \(\bm{X}\), we compute the covariance matrix:
+\[
+\bm{C} = \frac{1}{N} \bm{X}^T \bm{X}.
+\]
+We then perform an eigendecomposition of the covariance matrix:
+\[
+\bm{C} \bm{V} = \bm{V} \bm{\Lambda},
+\]
+where \(\bm{V}\) is a matrix whose columns are the eigenvectors (the principal components) and \(\bm{\Lambda}\) is a diagonal matrix with the corresponding eigenvalues. The eigenvalues indicate the amount of variance captured by each principal component.
+
+To reduce dimensionality, we select the first \(k\) eigenvectors corresponding to the largest eigenvalues and project the data onto these axes:
+\[
+\bm{Y} = \bm{X} \bm{V}_k.
+\]
+Geometrically, this projection is equivalent to "flattening" the data onto a lower-dimensional subspace (a hyperplane) that preserves as much of the original variance as possible. It is important to note, however, that if the intrinsic structure of the data lies on a non-linear manifold rather than a linear subspace, PCA may fail to capture this non-linear embedding. In such cases, nonlinear dimensionality reduction techniques may be more appropriate.
+
+
+\subsection{t-Distributed Stochastic Neighbor Embedding (t-SNE)}
+t-SNE is a nonlinear dimensionality reduction technique that aims to preserve the local structure of high-dimensional data in a lower-dimensional space. The algorithm works by converting the pairwise distances between data points into probability distributions that represent similarities in both the high-dimensional and low-dimensional spaces. 
+
+In the high-dimensional space, for each data point \(\bm{x}_i\), a conditional probability \(p_{j|i}\) is computed to reflect the likelihood that \(\bm{x}_i\) would choose \(\bm{x}_j\) as its neighbor given a Gaussian distribution centered at \(\bm{x}_i\):
+\[
+p_{j|i} = \frac{\exp\left(-\frac{\|\bm{x}_i - \bm{x}_j\|^2}{2\sigma_i^2}\right)}{\sum_{k \neq i} \exp\left(-\frac{\|\bm{x}_i - \bm{x}_k\|^2}{2\sigma_i^2}\right)}.
+\]
+The variance \(\sigma_i\) is adjusted for each point via a binary search to match a specified perplexity, which effectively controls the balance between local and global aspects of the data. These conditional probabilities are then symmetrized to form a joint probability distribution:
+\[
+p_{ij} = \frac{p_{j|i} + p_{i|j}}{2N}.
+\]
+
+In the low-dimensional space, the similarity between two points \(\bm{y}_i\) and \(\bm{y}_j\) is measured using a heavy-tailed Student t-distribution (with one degree of freedom):
+\[
+q_{ij} = \frac{\left(1 + \|\bm{y}_i - \bm{y}_j\|^2\right)^{-1}}{\sum_{k \neq l} \left(1 + \|\bm{y}_k - \bm{y}_l\|^2\right)^{-1}}.
+\]
+
+The algorithm minimizes the Kullback-Leibler (KL) divergence between the high-dimensional probability distribution \(P = \{p_{ij}\}\) and the low-dimensional distribution \(Q = \{q_{ij}\}\):
+\[
+C = \text{KL}(P \parallel Q) = \sum_{i \neq j} p_{ij} \log \frac{p_{ij}}{q_{ij}}.
+\]
+Gradient descent is used to update the low-dimensional points \(\{\bm{y}_i\}\) in order to minimize \(C\).
+
+In practical implementations such as the one in \texttt{scikit-learn}, the estimation of the high-dimensional probabilities is performed efficiently by employing a binary search for each data point to determine the appropriate \(\sigma_i\) that yields the desired perplexity. This allows the algorithm to adapt to varying local densities in the data, which is crucial for its performance on diverse datasets.
+
+
+\subsection{Autoencoders}
+Autoencoders are neural networks that learn to compress data into a lower-dimensional representation (encoding) and then reconstruct the original data from this encoding. An autoencoder consists of two parts: an encoder that maps the input data to a lower-dimensional space, and a decoder that reconstructs the data. The objective function for an autoencoder is the reconstruction error:
+\begin{equation}
+\mathcal{L}(\bm{x}, \bm{x}') = \|\bm{x} - \bm{x}'\|^2,
+\end{equation}
+where \(\bm{x}\) is the original data point and \(\bm{x}'\) is the reconstructed data point. Autoencoders can be linear or nonlinear, depending on the activation functions used in the network.
+
+\section{Feature Extraction}
+
+Feature extraction transforms raw data into a set of meaningful features or representations that can be used as inputs for machine learning algorithms. Often considered in the context of supervised learning, feature extraction can improve the performance of classifiers by providing more representative data.
+
+\subsection{Simple Statistics-based Methods}
+Various statistics-based methods can be employed for feature extraction:
+\begin{itemize}
+    \item \textbf{Moments and Histograms:}  
+    Moments (e.g., mean, variance, skewness, and kurtosis) and histograms summarize the distribution of the data and capture its essential characteristics. These methods are particularly useful for univariate data or when analyzing each feature independently.
+    \begin{itemize}
+        \item \textit{Mean:} The average value representing the central tendency.
+        \item \textit{Variance:} A measure of the data's spread, calculated as the average squared deviation from the mean.
+        \item \textit{Skewness:} The degree of asymmetry of the distribution.
+        \item \textit{Kurtosis:} The "tailedness" of the distribution, indicating the presence of outliers.
+    \end{itemize}
+    \item \textbf{Extreme Values:}  
+    Analyzing minimum, maximum, or other extreme values provides insights into the data’s range, scale, and potential outliers.
+\end{itemize}
+
+\subsection{Linear and Nonlinear Transformation Methods}
+Many transformation methods used for feature extraction overlap with dimensionality reduction techniques. For example, Principal Component Analysis (PCA) is one of the primary linear transformation methods used for feature extraction.
+
+\subsection{Filtering-based Methods for Signal Data}
+For data types that are associated with temporal or spatial stamps (such as time series and images), filtering-based methods are commonly used.
+
+\subsubsection{Time Series}
+Several methods are useful for extracting features from time series data:
+\begin{itemize}
+    \item \textit{Moving Averages:}  
+    A moving average smooths the data by computing the average over a fixed-size sliding window. For a time series \( \{x(n)\} \), the moving average with a window of size \(2K+1\) is given by:
+    \begin{equation}
+    z(n) = \frac{1}{2K+1} \sum_{k=-K}^{K} x(n+k).
+    \end{equation}
+    \item \textit{Autoregressive (AR) Filtering:}  
+    This method captures the linear relationship between the current value and previous values of the time series. The AR coefficients can serve as robust features.
+    \item \textit{Fourier Transform:}  
+    The Fourier Transform decomposes a time series into its constituent frequencies. The frequency-domain coefficients can be used as features.
+    \item \textit{Wavelet Transform:}  
+    The Wavelet Transform provides a multi-resolution representation of the data, capturing both temporal and frequency information useful for denoising and analyzing transient patterns.
+\end{itemize}
+
+\subsubsection{Images}
+For image data, robust feature extraction methods include:
+\begin{itemize}
+    \item \textit{Histogram of Oriented Gradients (HOG):}  
+    HOG counts occurrences of gradient directions in localized regions of an image, capturing shape and appearance.
+    \item \textit{Scale-Invariant Feature Transform (SIFT):}  
+    SIFT detects keypoints in an image and computes descriptors invariant to scale, rotation, and illumination.
+    \item \textit{Gabor Filters:}  
+    Gabor filters are bandpass filters that respond to edges, textures, and localized features, useful for edge detection and texture analysis.
+    \item \textit{Local Binary Patterns (LBP):}  
+    LBP encodes the local structure of an image by comparing each pixel with its neighbors, providing robustness to illumination changes.
+\end{itemize}
+
+\subsection{Other Advanced Methods}
+Other advanced methods for feature extraction include:
+\begin{itemize}
+    \item \textbf{Autoencoders:}  
+    As discussed in the dimensionality reduction section, autoencoders can learn compressed representations that serve as new features.
+    \item \textbf{Sparse Coding:}  
+    Sparse coding learns a set of basis vectors so that each data point is represented by a sparse linear combination of these bases. This method encourages compact and interpretable representations.
+\end{itemize}
+
+\section{Conclusion}
+
+In this lecture, we explored key unsupervised learning techniques that help uncover hidden structures in data without relying on labeled examples. We discussed dimensionality reduction methods such as PCA, t-SNE, and autoencoders, which reduce data complexity while preserving essential information. Additionally, we reviewed various feature extraction techniques: from simple statistical methods to advanced signal processing and deep learning approaches, which transform raw data into meaningful representations.
+
+\end{document}

@@ -1,0 +1,668 @@
+\documentclass[german,10pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e} % For text justification
+
+% Metadata
+\title{CE 488/5588: Applied AI for Engineering Applications}
+\subtitle{Topic 0: Why AI Now? History, Definitions, and Engineering Responsibility}
+\author{Professor ZhiQiang Chen}
+\institute{School of Science and Engineering\\University of Missouri--Kansas City}
+\date{}
+
+\begin{document}
+
+% Slide 1: Title
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% Slide 2: Agenda
+\begin{frame}{Agenda}
+    \tableofcontents
+\end{frame}
+
+\section{Why AI Now? Signals from the Current Moment}
+
+% Slide 3: Introduction
+\begin{frame}{Why AI Now?}
+    \justifying
+    Recent developments have pushed artificial intelligence from a specialized technical topic into a central force shaping science, engineering, industry, and public policy.
+    
+    \vspace{1em}
+    Several widely reported trends help explain why this course exists now:
+    \begin{itemize}
+        \item \textbf{From Specialist to Central Force:} AI is no longer just for computer scientists; it is a critical competency for modern engineering.
+        \item \textbf{Convergence of Capabilities:} We are witnessing a rapid acceleration of "Foundation Models" that integrate language, vision, and reasoning.
+        \item \textbf{Broad Utility:} These models are not narrow tools; they act as general-purpose interfaces for analysis, generation, and decision support.
+    \end{itemize}
+\end{frame}
+
+% Slide 4: Rapid Acceleration
+\begin{frame}{Rapid Acceleration of Foundation Models}
+    \justifying
+    All major technology companies are accelerating the release of large foundation models.
+    
+    \vspace{1em}
+    \begin{conceptbox}{Key Characteristics}
+    \begin{itemize}
+        \item \textbf{Multimodal Integration:} Modern models seamlessly handle text, images, and code simultaneously.
+        \item \textbf{Reasoning Capabilities:} Newer iterations are moving beyond pattern matching toward complex reasoning and problem-solving steps.
+        \item \textbf{General Purpose Interfaces:} They function as a universal layer for interacting with digital information, analyzing data, and generating new content.
+    \end{itemize}
+    \end{conceptbox}
+\end{frame}
+
+% Slide 5: Signals of Capability Growth (Games)
+\begin{frame}{Signals of Capability Growth: Strategy \& Logic}
+    \justifying
+    Publicly reported milestones illustrate the pace and breadth of recent progress.
+    
+    \begin{examplebox}{Milestones in Reasoning}
+    \begin{itemize}
+        \item \textbf{Strategy Games:} AI systems have surpassed human champions in a wide range of rule-based \bhref{https://en.wikipedia.org/wiki/AlphaZero}{board and strategy games}. This marks the effective closure of an era where such games were viewed as the ultimate benchmarks of human reasoning.
+        \item \textbf{Mathematics:} Advanced language models have been reported to assist in proving or verifying nontrivial mathematical results. This includes tackling problems connected to \bhref{https://www.reddit.com/r/singularity/comments/1q7u78b/terence_taos_writeup_of_gpt52_solving_erdos/}{long-standing open questions}, highlighting emerging symbolic reasoning capabilities.
+    \end{itemize}
+    \end{examplebox}
+\end{frame}
+
+% Slide 6: Signals of Capability Growth (Professions)
+\begin{frame}{Signals of Capability Growth: Professional Domains}
+    \justifying
+    \begin{itemize}
+        \item \textbf{Medicine:} Clinicians increasingly use AI systems to assist with \bhref{https://medium.com/@chopra.kanta.73/we-tested-ai-on-1-000-chest-x-rays-results-shocked-radiologists-b27080ac732f}{medical image interpretation}. Multiple studies report performance comparable to, or exceeding, human-level accuracy in specific diagnostic tasks.
+        \item \textbf{Finance:} In decision environments, AI agents have reportedly achieved leading performance in competitive forecasting and trading simulations, such as \bhref{https://www.linkedin.com/posts/shaad-merchant-760231a7_artificialintelligence-ai-technologytrends-activity-7415810499327795201-WAP2/}{stock-price prediction arenas}.
+    \end{itemize}
+\end{frame}
+
+% Slide 7: Signals of Capability Growth (Gov & CE)
+\begin{frame}{Signals of Capability Growth: Institutional Adoption}
+    \justifying
+    \begin{itemize}
+        \item \textbf{Government Initiatives:} The U.S. government has announced coordinated initiatives and strategic plans to accelerate AI development, deployment, and governance, signaling a long-term institutional commitment (US \bhref{https://www.whitehouse.gov/presidential-actions/2025/11/launching-the-genesis-mission/}{THE GENESIS MISSION}).
+        \item \textbf{Civil Engineering:} Professional societies have begun operational adoption. For example, ASCE has introduced AI-powered search and knowledge tools to improve access to codes, standards, and technical guidance (ASCE \bhref{https://amplify.asce.org/eaves}{Eaves}).
+    \end{itemize}
+\end{frame}
+
+% Slide 8: Rising Questions
+\begin{frame}{Rising Questions and Stakeholder Tensions}
+    \justifying
+    These developments have understandably raised concerns and questions among students, professionals, and the public:
+    \begin{enumerate}
+        \item \textbf{Employment:} Will AI replace engineering jobs, or will it create new roles and opportunities?
+        \item \textbf{Skills Gap:} If AI becomes essential, how should engineers begin learning it—especially those who do not identify as programmers?
+        \item \textbf{Responsibility:} How do we use AI productively without losing professional responsibility or judgment while considering AI \textit{risk}?
+    \end{enumerate}
+    \begin{warningbox}{ External Readings:}
+        \begin{itemize}
+            \item \bhref{https://www.nber.org/papers/w33509}{Artificial Intelligence and the Labor Market} 
+            \item \bhref{https://www.goldmansachs.com/insights/articles/how-will-ai-affect-the-global-workforce}{How Will AI Affect the Global Workforce?}
+            \item \bhref{https://professional.dce.harvard.edu/blog/ethics-in-ai-why-it-matters/}{Ethics in AI: Why It Matters}
+            \item \bhref{https://www.nist.gov/itl/ai-risk-management-framework}{AI Risk Management Framework}
+   
+        
+        \end{itemize}
+    \end{warningbox}
+    
+\end{frame}
+
+% Slide 9: Course Philosophy
+\begin{frame}{Course Philosophy}
+    \justifying
+    This course is designed as a direct response to these questions.
+    
+    \begin{conceptbox}{Core Philosophy}
+    Rather than treating AI as either a threat or a magic solution, \emph{Applied AI for Engineering} positions AI as a new foundational capability—one that must be understood, contextualized, and governed by engineers.
+    \end{conceptbox}
+\end{frame}
+
+\section{What Do We Mean by AI?}
+
+% Slide 10: Definition
+\begin{frame}{A Layperson’s Starting Point}
+    \justifying
+    Rather than beginning with a formal scholarly definition, we start with a pragmatic, layperson-oriented description of artificial intelligence (AI):
+    
+    \vspace{1em}
+    \begin{conceptbox}{Pragmatic Definition}
+    % A machine-based system that can process data or information, identify patterns, form internal models, and use those models to make predictions or decisions.
+
+    % [ML focused] A computer system that learns from data to build its own internal understanding of the world, allowing it to generate original content, predict outcomes, and take independent actions to solve problems in changing environments
+
+    A machine-based system that uses data, rules, or fundamental principles to construct an internal representation of reality, allowing it to reason through problems, predict outcomes, and make decisions in complex situations
+    \end{conceptbox}
+    
+    \vspace{1em}
+    \begin{itemize}
+    \item This definition emphasizes functionality rather than philosophical completeness.
+    \item  This compact definition encapsulates the modeling building (e.g., learning and testing
+    \end{itemize}
+\end{frame}
+
+
+
+
+% Slide 11: AI as a Moving Target
+\begin{frame}{AI as a Moving Target}
+    \justifying
+    \begin{itemize}
+        \item This loose framing is historically intentional. Over the past seven decades, the "boundary" of what counts as AI has shifted as computational capabilities have evolved.
+        \item \textbf{The "AI Effect":} What was once considered "intelligent" often becomes routine engineering once it is successfully solved.
+        \item Instead of anchoring AI to a fixed definition, we treat AI as a moving target—defined operationally by what machines can do at a given time.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Categorical Types: AI as (Meta) Agents}
+    \justifying
+\begin{table}
+        \centering
+        \footnotesize % Reduces font size to fit the slide
+        \renewcommand{\arraystretch}{1.4} % Adds breathing room between rows
+        
+        \begin{tabular}{p{2.2cm} p{1.2cm} p{3.5cm} p{2.8cm}}
+            \toprule
+            \textbf{Type} & \textbf{Input} & \textbf{Internal Logic} & \textbf{Application} \\
+            \midrule
+            
+            \textbf{Symbolic AI} \newline \textit{(The Logician)} 
+            & Rules 
+            & Follows explicit logic trees created by humans. 
+            & Banking, Tax, Compliance \\
+            \midrule
+            
+            \textbf{Machine Learning} \newline \textit{(The Observer)} 
+            & Data 
+            & Identifies statistical patterns in historical data. 
+            & Vision, GenAI, Recommendations \\
+            \midrule
+            
+            \textbf{Physics-Informed} \newline \textit{(The Scientist)} 
+            & Laws 
+            & Simulates fundamental principles (e.g., gravity). 
+            & Engineering, Weather, Material Science \\
+            \bottomrule
+        \end{tabular}
+        
+        \caption{From Rules to Laws: The Spectrum of AI}
+    \end{table}
+\end{frame}
+
+
+% Slide 12: Mental Model (Pipeline)
+\begin{frame}{A Practical Description for Engineers}
+    \justifying
+    For engineers, it is often helpful to view AI systems as a pipeline with four linked capabilities:
+    
+    \begin{conceptbox}{The AI Pipeline}
+    \begin{enumerate}
+        \item \textbf{Data:} Acquiring information from the physical world (via sensors or manual collection)
+        \item \textbf{Representation / Modeling:} Structuring that information internally.
+        \item \textbf{Inference / Decision:} Reasoning or predicting based on the model.
+        \item \textbf{Action / Feedback:} Acting on the physical world and observing results.
+    \end{enumerate}
+    \end{conceptbox}
+\end{frame}
+
+% Slide 13: Visualizing the Pipeline
+\begin{frame}{Visualizing the AI Pipeline}
+    \centering
+    % \LARGE \textbf{[Figure Placeholder]}
+     \includegraphics[width=4in]{figs/ch0-ai-pipeline.png}
+    \vspace{1em}
+    \normalsize
+    \textit{Diagram Flow: Sensing $\rightarrow$ Representation $\rightarrow$ Inference $\rightarrow$ Action}
+    
+    \vspace{1em}
+    \justifying
+    Different AI eras emphasized different links in this chain. Symbolic AI emphasized models; Deep Learning emphasized representation; Agentic AI emphasizes action.
+\end{frame}
+
+\section{A Brief History of AI}
+
+% Slide 14: Origins (1950s)
+\begin{frame}{Origins: The 1950s Vision}
+    \justifying
+    The intellectual roots of AI sit at the intersection of early computing and theories of intelligence.
+    \begin{itemize}
+        \item \bhref{https://en.wikipedia.org/wiki/Alan_Turing}{\textbf{Turing (1950):}} Proposed an operational test for machine intelligence based on conversational indistinguishability.
+        \begin{itemize}
+            \item External reading - has AI passed the Turing test? Some said yes \bhref{https://www.psychologytoday.com/us/blog/the-digital-self/202504/ai-beat-the-turing-test-by-being-a-better-human}{(even better than humans)}, but really? 
+        \end{itemize}
+        \item \bhref{https://home.dartmouth.edu/about/artificial-intelligence-ai-coined-dartmouth}{\textbf{Dartmouth Workshop (1956):}} 
+        \begin{itemize}
+        \item The term \emph{artificial intelligence} was formalized here. 
+        \item The workshop articulated the bold hypothesis that aspects of learning and intelligence could be precisely described and simulated by machines.
+         \end{itemize}
+        \item \textbf{Early Successes:} Included symbolic problem solvers and the perceptron—an early neural-inspired learning model 
+        \begin{itemize}
+            \item \bhref{https://en.wikipedia.org/wiki/Perceptron}{Almighty Perceptron} - the first data-based AI and neural network model.
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% Slide 15: Symbolic AI
+\begin{frame}{Symbolic AI and Expert Systems (1960s--1980s)}
+    \justifying
+    From the 1960s through the early 1980s, AI research was dominated by symbolic and logic-based approaches.
+    \begin{itemize}
+        \item Intelligence was framed as rule manipulation: facts and rules encoded explicitly by human experts.
+        \item This paradigm culminated in \textbf{Expert Systems} (e.g., \bhref{https://en.wikibooks.org/wiki/Expert_Systems/MYCIN}{MYCIN}), which demonstrated how rule-based knowledge could rival human-level performance in narrow decision tasks.
+    \end{itemize}
+\end{frame}
+
+% Slide 16: Failure of Expert Systems
+\begin{frame}{Limitations of Symbolic AI}
+    \justifying
+    Despite notable successes, expert systems proved brittle:
+    \begin{warningbox}{Limitations}
+    \begin{itemize}
+        \item They were expensive to build and maintain.
+        \item They were hard to generalize to new domains.
+        \item They were sensitive to unmodeled context (exceptions to the rules).
+    \end{itemize}
+    \end{warningbox}
+    \vspace{1em}
+    As expectations exceeded capabilities and computing resources were limited, research investment contracted. This was a primary driver of the first major \textbf{AI Winter}.
+\end{frame}
+
+% Slide 17: Statistical Learning
+\begin{frame}{Statistical Learning (1980s--2000s)}
+    \justifying
+    From the late 1980s through the 2000s, AI shifted toward learning from data, \textbf{Machine Learning (ML)}. Advances in statistics, optimization, and computation fueled this shift.
+         \begin{itemize}
+        \item \textbf{Support Vector Machines (SVMs):} Learning was framed as a mathematically principled optimization problem designed to generalize well beyond training data. \bhref{https://cml.rhul.ac.uk/svm.html}{Who invented SVM?}
+        \item \textbf{Probabilistic Models:} Provided a unifying language for uncertainty, causality hypotheses, and structured inference.
+          \end{itemize}
+
+\end{frame}
+
+% Slide 18: Deep Learning Rise
+\begin{frame}{Deep Learning and Representation Learning}
+    \justifying
+    The 2010s marked another inflection point with the resurgence of neural networks under the banner of \emph{deep learning}.
+    \begin{itemize}
+        \item Enabled by large datasets, improved algorithms, and GPUs.
+        \item Achieved breakthroughs in computer vision (e.g., ImageNet) and later in speech and language.
+        \item \textbf{Representation Learning:} Deep learning shifted attention from hand-crafted features to models that automatically discover hierarchical latent structures.
+    \end{itemize}
+\end{frame}
+
+% Slide 19: Deep Learning Visual
+\begin{frame}{Visualizing Deep Learning}
+    \centering
+    % \LARGE \textbf{[Figure Placeholder]}
+    \includegraphics[width=4in]{figs/ch0-deep-net.png}
+    \vspace{1em}
+    \normalsize
+    \textit{Diagram: Input Layer $\rightarrow$ Hidden Layers (Features) $\rightarrow$ Output Layer}
+\end{frame}
+
+% Slide 20: Foundation Models & Agentic AI
+\begin{frame}{Foundation Models and Agentic Systems}
+    \justifying
+    Recent years have emphasized large-scale \emph{foundation models}:
+    \begin{itemize}
+        \item \textbf{LLMs:} Large language models have demonstrated strong performance across tasks via prompting, fine-tuning, and tool-use extensions.
+        \item \textbf{Generative AI:} Diffusion-based models have advanced image and multimodal synthesis.
+        \item \textbf{Agentic AI:} Systems where models plan, call tools, retrieve information, and act iteratively within an environment. This connects modern AI back to sequential decision-making.
+    \end{itemize}
+\end{frame}
+
+% Slide 21: Hype Cycles
+\begin{frame}{Hype Cycles and AI Winters}
+    \justifying
+    Across its history, AI has experienced repeated cycles of inflated expectations followed by disillusionment.
+    \begin{itemize}
+        \item Each wave—symbolic AI, expert systems, statistical ML, deep learning, and now generative AI—delivered real progress but also revealed limitations.
+        \item Understanding these cycles helps engineers calibrate adoption: neither dismissing the field as "just hype" nor treating it as inevitable "machine gods".
+    \end{itemize}
+\end{frame}
+
+% Slide 22: Hype Cycle Visual
+\begin{frame}{Visualizing the Hype Cycle}
+    \centering
+    %\LARGE \textbf{[Figure Placeholder]}
+    \includegraphics[width=4in]{figs/ch0-ai-winters-hypes.png}
+    \vspace{1em}
+    \normalsize
+    \textit{AI Expectations vs. Time (adapted based on the Gartner curve)}
+\end{frame}
+
+\section{AI in Civil Engineering}
+
+% Slide 23: 1980s in CE
+\begin{frame}{1980s: Expert Systems in Civil Engineering}
+    \justifying
+    Civil engineering encountered AI concepts early, particularly in the 1980s.
+    \begin{itemize}
+        \item Focus areas: Knowledge-based systems for design assistance, construction planning, and code compliance.
+        \item \textbf{Aspiration:} Design automation—encoding engineering judgment into rule systems.
+        \item \textbf{Reality:} Such systems struggled with knowledge acquisition, code evolution, and the contextual nature of engineering decisions.
+    \end{itemize}
+\end{frame}
+
+% Slide 24: Data-Driven Era (SHM & System ID)
+\begin{frame}{1990s--2010s: Sensing and Diagnostics}
+    \justifying
+    From the 1990s through the 2010s, research adopted ML for data-intensive problems:
+    
+    \begin{itemize}
+        \item \textbf{Structural Health Monitoring (SHM):} Statistical pattern recognition for damage detection, feature learning, and anomaly detection.
+        \item \textbf{System Identification:} Integrating sensor data with models for inference under uncertainty, often paired with optimization.
+    \end{itemize}
+\end{frame}
+
+% Slide 25: Data-Driven Era (Vision & Remote Sensing)
+\begin{frame}{1990s--2010s: Vision and Remote Sensing}
+    \justifying
+    \begin{itemize}
+        \item \textbf{Computer Vision:} Used for NDE and construction monitoring. Techniques evolved from specialized image processing pipelines to learned representations.
+        \item \textbf{Remote Sensing:} Leveraging satellite and airborne imagery for hazard mapping and situational awareness.
+        \item \textbf{Challenges:} These applications were often constrained by labeling costs, domain shifts, and deployment logistics.
+    \end{itemize}
+\end{frame}
+
+% Slide 26: Barriers to Adoption
+\begin{frame}{Barriers to Adoption}
+    \justifying
+    Despite promising results, many efforts remained primarily academic or pilot-scale.
+    
+    \begin{warningbox}{Major Barriers}
+    \begin{itemize}
+        \item Limited availability of curated data.
+        \item High requirements for interpretability and validation.
+        \item Difficulties integrating tools into established workflows.
+        \item Liability concerns and the high cost of errors in public-safety systems.
+    \end{itemize}
+    \end{warningbox}
+\end{frame}
+
+% Slide 27: Generative AI Moment
+\begin{frame}{The Generative AI Moment: Reopening Automation}
+    \justifying
+    Generative and agentic AI have reopened long-standing ambitions for automation across design, construction, and operation.
+    \begin{itemize}
+        \item \textbf{New Interface:} Conversational interfaces and code-generating models lower the barrier between human intent and computational execution.
+        \item \textbf{Capabilities:} Rapid prototyping, documentation support, compliance search, and workflow orchestration.
+    \end{itemize}
+\end{frame}
+
+% Slide 28: Governance Response
+\begin{frame}{Institutional Response}
+    \justifying
+    Professional societies and public institutions have begun responding explicitly.
+    \begin{itemize}
+        \item \textbf{ASCE:} Adopted a policy statement on AI and engineering responsibility. Launched AI-related tasking to help members navigate responsible use.
+        \item \textbf{NIST:} Released the AI Risk Management Framework to offer structured language for trustworthy design, evaluation, and deployment.
+    \end{itemize}
+\end{frame}
+
+% Slide 29: The Fourth Pillar
+\begin{frame}{AI as a Fourth Pillar of Modern Engineering}
+    \justifying
+    Traditionally, engineering education rests on three foundational pillars: \textbf{Mathematics, Physics, and Chemistry}.
+    
+    \vspace{1em}
+    \begin{conceptbox}{The Fourth Pillar}
+    In the 21st century, AI and computation form a \textbf{fourth pillar}. This is not merely "software skills," but a new \emph{problem-solving epistemology}.
+    \end{conceptbox}
+\end{frame}
+
+% Slide 30: Fourth Pillar Explained
+\begin{frame}{The Fourth Pillar: Impact}
+    \justifying
+    This new pillar changes how we approach engineering problems:
+    \begin{itemize}
+        \item \textbf{Representation:} How we represent systems using data and models.
+        \item \textbf{Reasoning:} How we reason under uncertainty (statistical inference).
+        \item \textbf{Scaling:} How we scale decisions through automation and optimization.
+    \end{itemize}
+    \vspace{1em}
+    For civil engineers, this is especially relevant as infrastructure systems become increasingly instrumented, connected, and socio-technical.
+\end{frame}
+
+\section{Learning Strategy}
+
+% Slide 31: Complexity Challenge
+\begin{frame}{The Challenge of Complexity}
+    \justifying
+    AI draws on a vast array of disciplines:
+    \begin{itemize}
+        \item Calculus and Linear Algebra
+        \item Optimization and Numerical Methods
+        \item Probability and Statistics
+        \item Graph Theory and Information Theory
+    \end{itemize}
+    \vspace{1em}
+    A traditional bottom-up approach can feel like a "wall of prerequisites" that discourages engineers from engaging with the material.
+\end{frame}
+
+% Slide 32: Top-Down Strategy
+\begin{frame}{A Top-Down Learning Strategy}
+    \justifying
+    This course adopts a \textbf{Top-Down Approach}:
+    \begin{conceptbox}{Strategy}
+    \begin{itemize}
+        \item We learn core principles and conceptual models first, emphasizing geometric and graphical intuition.
+        \item Mathematical details are introduced selectively as explanatory tools, not gatekeepers.
+        \item This allows us to focus on the "why" and "how" before getting lost in the "what" of derivation.
+    \end{itemize}
+    \end{conceptbox}
+\end{frame}
+
+% Slide 33: Learning with AI
+\begin{frame}{Learning AI \emph{with} Modern AI}
+    \justifying
+    A defining feature of this course is that we explicitly embrace modern AI tools (like Generative AI) as instruments for learning.
+    \begin{itemize}
+        \item \textbf{Pedagogical Choice:} LLMs dramatically reduce the friction between conceptual questions and concrete experimentation.
+        \item \textbf{Interactive Learning:} Students can interrogate algorithms, generate illustrative code, visualize model behavior, and explore variations interactively.
+    \end{itemize}
+\end{frame}
+
+% Slide 34: Benefits of Learning with AI
+\begin{frame}{Benefits: Speed and Authenticity}
+    \justifying
+    This approach accelerates learning in two fundamental ways:
+    \begin{enumerate}
+        \item \textbf{Shortened Feedback Loop:} Instead of spending weeks implementing boilerplate code, students focus immediately on assumptions, inputs, outputs, and failure modes.
+        \item \textbf{Authentic Practice:} It mirrors how knowledge work is evolving. Engineers and scientists increasingly use AI as cognitive amplifiers for exploration and sense-making.
+    \end{enumerate}
+\end{frame}
+
+% Slide 35: Critical Engagement
+\begin{frame}{Requirement: Critical Engagement}
+    \justifying
+    Importantly, this method does not imply uncritical reliance.
+    
+    \begin{warningbox}{Critical Engagement}
+    Using modern AI as a learning accelerator places \textbf{greater}—not lesser—emphasis on verification, interpretation, and judgment.
+    \end{warningbox}
+    
+    Students are expected to question outputs, compare alternatives, and understand strictly why a method succeeds or fails.
+\end{frame}
+
+% Slide 36: Classical ML
+\begin{frame}{Why Still Learn Classical ML?}
+    \justifying
+    Embracing modern generative AI does not replace the need to learn classical AI and machine learning methods.
+    \begin{itemize}
+        \item Understanding statistical learning, optimization, and small-scale neural networks remains essential.
+        \item From an engineering perspective, classical ML models (SVMs, Regression) are becoming tools analogous to first-principles numerical methods (like FEM).
+    \end{itemize}
+\end{frame}
+
+% Slide 37: Classical ML in Hybrid Systems
+\begin{frame}{Classical ML in Hybrid Systems}
+    \justifying
+    \begin{itemize}
+        \item \textbf{Modular Components:} Trained ML models can function as reusable, well-characterized operators (classifiers, regressors, anomaly detectors).
+        \item \textbf{Value:} Their value lies in controlled behavior, interpretability, and predictable failure modes.
+        \item \textbf{Agent Integration:} Modern AI agents may invoke these classical models as callable components embedded within a higher-level planning framework.
+    \end{itemize}
+\end{frame}
+
+% Slide 38: Vibe Coding
+\begin{frame}{Natural Language as Computation}
+    \justifying
+    \begin{itemize}
+        \item \textbf{Shift in Interface:} Large language models represent a qualitative shift where natural language has become a computational interface.
+        \item \textbf{"Vibe Coding":} We embrace the concept of using natural language interaction to generate, adapt, and reason about code.
+        \item \textbf{Reallocation of Effort:} This does not remove engineering competence; it reallocates effort. We must still define requirements, verify outputs, and test edge cases.
+    \end{itemize}
+\end{frame}
+
+\section{Ethics and Responsibility}
+
+% Slide 39: Ethics Overview
+\begin{frame}{Ethics: Beyond Plagiarism}
+    \justifying
+    As chatbots become widespread, many students learn a surface lesson: "Don't submit AI text without attribution."
+    
+    \vspace{1em}
+    While academic integrity is vital, for civil engineering the deeper issue is \textbf{Responsibility}. We must explore the limits of delegating judgment to automated systems.
+\end{frame}
+
+% Slide 40: Scenario 1 (Field Data)
+\begin{frame}{Scenario 1: "I Trained a Model on My Field Data"}
+    \justifying
+    \textbf{The Workflow:}
+    An engineer collects field data (manually or via sensors) and trains a machine learning model. The model shows high accuracy on test sets.
+    
+    \vspace{1em}
+    \begin{warningbox}{The Trap}
+    Because the data originates from real structures, it is viewed as "gold." However, statistical validation does not guarantee transferability across contexts.
+    \end{warningbox}
+\end{frame}
+
+% Slide 41: Scenario 1 (The Danger)
+\begin{frame}{The Hidden Danger: Contextual Failure}
+    \justifying
+    \begin{itemize}
+        \item Will the model generalize to a different site, a different structure, or a different season?
+        \item \textbf{Implicit Conditions:} Field data encodes site-specific conditions and unobserved confounders (e.g., temperature, sensor bias).
+        \item \textbf{Silent Failure:} When these implicit conditions change, a model lacking mechanistic grounding may fail silently.
+    \end{itemize}
+\end{frame}
+
+
+
+% Slide 43: Engineering Response
+\begin{frame}{The Engineering Response: Hybrid Modeling}
+    \justifying
+    The proper response is not to reject ML, but to situate it within a broader modeling framework.
+    \begin{conceptbox}{Hybrid Approaches}
+    \begin{itemize}
+        \item \textbf{Physics-Based Constraints:} Use mechanics and domain knowledge to provide constraints that data alone cannot supply.
+        \item \textbf{Hybrid Modeling:} Physics-informed learning and surrogate modeling help distinguish correlation from causation.
+        \item \textbf{Mindset Shift:} Treat ML models as context-dependent instruments, not universally valid predictors.
+    \end{itemize}
+    \end{conceptbox}
+\end{frame}
+
+% Slide 44: Scenario 2 (AI Agents)
+\begin{frame}{Scenario 2: "I Asked a Strong AI Model"}
+    \justifying
+    Imagine a future workflow where you consult an AI assistant connected to codes and standards.
+    \begin{examplebox}{The Question of Accountability}
+    \begin{itemize}
+        \item \textbf{Case A:} It recommends a provision that proves unsafe.
+        \item \textbf{Case B:} An AI agent reads a blueprint and confuses windows with partition walls, causing cost overruns.
+        \item \textbf{Who is accountable?} The engineer.
+    \end{itemize}
+    \end{examplebox}
+\end{frame}
+
+% Slide 45: Accountability
+\begin{frame}{Accountability and Duty of Care}
+    \justifying
+    \begin{itemize}
+        \item \textbf{The Engineer is Responsible:} Professional ethics are clear. Engineers hold paramount the safety, health, and welfare of the public.
+        \item \textbf{No Outsourcing:} Consulting tools does not outsource the duty of care. An AI system can inform, but it cannot assume professional accountability.
+        \item The critical question is not if the AI was "smart," but whether the human-led process included appropriate checks and oversight.
+    \end{itemize}
+\end{frame}
+
+% Slide 46: Decision Constraints
+\begin{frame}{Why Decisions Cannot be Fully Delegated}
+    \justifying
+    Engineering judgments are socio-technical and are shaped by multiple layers of constraints:
+    \begin{itemize}
+        \item \textbf{Hard Constraints:} Physical laws, mechanics, stability.
+        \item \textbf{Formal Constraints:} Codes, standards, regulations.
+        \item \textbf{Socioeconomic Constraints:} Budget, schedule, labor.
+        \item \textbf{Institutional Pressures:} Stakeholder preferences.
+    \end{itemize}
+\end{frame}
+
+% Slide 47: Lack of Moral Agency
+\begin{frame}{AI Lacks Moral Agency}
+    \justifying
+    Even when decisions deviate from "first principles," they are made within a responsibility structure.
+    \begin{warningbox}{No Moral Agency}
+    \begin{itemize}
+        \item Engineers must justify tradeoffs and be accountable for consequences.
+        \item AI systems optimize patterns and produce plausible outputs.
+        \item They do not possess licensure, duty of care, or moral agency. They cannot carry legal or ethical responsibility.
+    \end{itemize}
+    \end{warningbox}
+\end{frame}
+
+% Slide 48: Risk Governance
+\begin{frame}{Risk Governance}
+    \justifying
+    Responsible AI use requires governance, not just capability.
+    \begin{itemize}
+        \item \textbf{NIST AI RMF:} Provides a vocabulary for trustworthy AI: Map, Measure, Manage, and Govern.
+        \item \textbf{ASCE Policy:} Emphasizes engineering responsibility when using AI-assisted tools.
+    \end{itemize}
+\end{frame}
+
+% Slide 49: Verification Habits
+\begin{frame}{Verification Habits for Engineers}
+    \justifying
+    We treat AI as an amplifier \emph{only when} paired with verification habits:
+    \begin{conceptbox}{Verification Habits}
+    \begin{itemize}
+        \item Independent checks and redundancy for safety-critical outputs.
+        \item Traceability from requirements to results.
+        \item Explicit uncertainty and limitation statements.
+        \item Documentation of prompts, data sources, and assumptions.
+        \item Human-in-the-loop decision authority.
+    \end{itemize}
+    \end{conceptbox}
+\end{frame}
+
+% Slide 42: Visualizing Overfitting
+\begin{frame}{Overall - My (Engineers-focused) Opinion}
+    \centering
+    % \LARGE \textbf{[Figure Placeholder]}
+    \includegraphics[width=4in]{figs/ch0-engineers-agency.png}
+    \vspace{1em}
+    \normalsize
+    \textit{CLAIM Agency and Orchestration}
+\end{frame}
+
+\section{Outlook}
+
+% Slide 50: Outlook
+\begin{frame}{Outlook}
+    \justifying
+    This introductory chapter sets the stage for a modern AI curriculum tailored to civil engineering.
+    
+    \vspace{1em}
+    By grounding AI in history, disciplinary relevance, governance, and pragmatic learning strategies, this course prepares students not merely to use AI tools, but to engage critically with capabilities, limitations, and responsibilities.
+\end{frame}
+
+% Slide 51: Final Slide
+\begin{frame}{Summary \& Next Steps}
+    \centering
+    \textbf{Our AI journey starts ... }
+    
+    \vspace{2em}
+    \textit{Questions?}
+    
+    \vspace{2em}
+    \footnotesize{Based on "Lecture Notes: Why AI Now? Signals from the Current Moment"}
+\end{frame}
+
+\end{document}

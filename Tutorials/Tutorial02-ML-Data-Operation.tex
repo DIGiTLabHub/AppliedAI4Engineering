@@ -1,0 +1,578 @@
+\documentclass[12pt]{article}
+\usepackage{../TopicChapters/ceai}
+
+
+
+\begin{document}
+\title{Tutorial 02:  Data Operation for AI and Machine Learning}
+\author{}
+\date{}
+
+\maketitle
+\doublespacing
+
+
+\section*{Introduction}
+This tutorial covers basics and commonly used operations for machine learning workflows in Google Colab environment:
+\begin{itemize}
+\item Numerical computing with NumPy
+\item Basic statistics and visualization (scatter plots and histograms)
+\item Heterogeneous Data Manipulation with Pandas
+\item Tensor and Image Data with PyTorch
+\item Basic image processing with TensorFlow
+\end{itemize}
+Note that in this class we will primarily use NumPy and Pandas.
+
+Tensor data processing is instrumental to modern deep learning and machine vision. PyTorch (developed by Meta) and TensorFlow (developed by Google) are two of the most popular libraries; however, PyTorch is often preferred in research and many production workflows due to its Python-first design and broad ecosystem support.
+
+\section{Using Colab and Common Operation for Accessing Files}
+
+We will save and access codes/data in Google Drive. Suppose that you have a folder CE488 and a subfolder for HW02 where you save all your files and data. It is recommended that you have uploaded the necessary data files (e.g., an excel file) into it using local or online Google Drive. Theh following codes are commonly used.
+
+\begin{lstlisting}[numbers=none, language=Python, caption=Common codes for Google Drive Access]
+# Mount Google Drive and set a working folder
+from google.colab import drive
+import os
+
+drive.mount('/content/drive')
+
+# Update this path to match your course folder
+# (In Colab, Google Drive is typically mounted under /content/drive/MyDrive/)
+folder_path = '/content/drive/MyDrive/Classroom/UMKC CE401 5501 Applied AI/Topic02'
+
+# List files and (optionally) change the working directory
+items = os.listdir(folder_path)
+for item in items:
+    print(item)
+
+os.chdir(folder_path)
+\end{lstlisting}
+
+
+
+\section{Numerical Computing with NumPy}
+\subsection{Introduction to NumPy}
+NumPy (\url{https://numpy.org}) is the fundamental package for scientific computing in Python. It provides:
+\begin{itemize}
+\item Efficient multi-dimensional array (ndarray) objects
+\item Mathematical functions for array operations
+\item Tools for linear algebra and random number generation
+\item Seamless integration with other scientific libraries
+\end{itemize}
+
+\subsection{Basic Data Structures}
+\begin{lstlisting}[numbers=none,language=Python, caption=Common codes for Google Drive Access]
+import numpy as np
+
+# Create vector (1D array)
+vector = np.array([1, 2, 3, 4])
+print(f"Vector shape: {vector.shape}")
+
+# Create matrix (2D array)
+matrix = np.array([[1, 2], [3, 4], [5, 6]])
+print(f"Matrix shape: {matrix.shape}")
+
+# Create 3D tensor
+tensor = np.random.rand(2, 3, 4)  # (batch, height, width)
+print(f"Tensor shape: {tensor.shape}")
+\end{lstlisting}
+
+\subsection{Linear Algebra Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Solving Linear Systems]
+# Solve Ax = b
+A = np.array([[3, 1], [1, 2]])
+b = np.array([9, 8])
+x = np.linalg.solve(A, b)
+print(f"Solution vector: {x}")
+
+# Verify solution
+# Verify solution; # also understand the so called f-string
+print ( " Residual : " , np . dot (A , x ) - b )
+print ( f"Residual = , {np . dot (A , x ) - b}" )
+
+\end{lstlisting}
+
+\subsection{Least Squares Regression}
+The normal-equation form is $\hat\theta = (X^\top X)^{-1}X^\top y$ (when $X^\top X$ is invertible), but in modern practice one typically uses a numerically stable solver (e.g., QR/SVD via \texttt{lstsq}) instead of explicitly forming an inverse.
+
+\begin{lstlisting}[numbers=none,language=Python, caption=Linear Regression]
+# Testing least-squares solutions and basic matrix operations
+X = np.array([[1, 1], [1, 2], [1, 3]])  # Add bias column
+y = np.array([3, 5, 7])
+
+# Prefer a stable least-squares solver (QR/SVD under the hood)
+theta_lstsq = np.linalg.lstsq(X, y, rcond=None)[0]
+print(f"Least-squares parameters (lstsq): {theta_lstsq}")
+
+# If you really want the normal-equation solution, avoid explicit inverse
+theta_ne = np.linalg.solve(X.T @ X, X.T @ y)
+print(f"Normal-equation parameters (solve): {theta_ne}")
+\end{lstlisting}
+
+\subsection{Statistics: Scatter Plots and Histograms}
+Scatter plots and histograms are two of the most commonly used tools for exploratory data analysis (EDA).
+\begin{itemize}
+\item A \textbf{scatter plot} visualizes the relationship between two variables and can reveal correlation, trends, clusters, and outliers.
+\item A \textbf{histogram} visualizes the distribution of a single variable (e.g., whether it is approximately Gaussian, skewed, or multi-modal).
+\end{itemize}
+
+In the example below, we generate two correlated Gaussian (normally distributed) variables, plot their scatter plot, and then plot the histograms of each variable separately.
+
+\begin{lstlisting}[numbers=none,language=Python, caption=Scatter plot and histograms for correlated Gaussian variables]
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Reproducibility
+np.random.seed(1)
+
+# Generate two correlated Gaussian variables (X and Y)
+N = 2000
+mu = np.array([0.0, 0.0])
+rho = 0.75  # correlation coefficient
+cov = np.array([[1.0, rho],
+                [rho, 1.0]])
+
+samples = np.random.multivariate_normal(mu, cov, size=N)
+X = samples[:, 0]
+Y = samples[:, 1]
+
+# Scatter plot
+plt.figure(figsize=(6, 5))
+plt.scatter(X, Y, s=10, alpha=0.35, edgecolors='none')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Scatter Plot of Two Correlated Gaussian Variables')
+plt.grid(True, linestyle='--', alpha=0.4)
+plt.show()
+
+# Histograms (plotted individually, side-by-side)
+fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+
+ax[0].hist(X, bins=30, color='tab:blue', edgecolor='black', alpha=0.8)
+ax[0].set_title('Histogram of X')
+ax[0].set_xlabel('X')
+ax[0].set_ylabel('Count')
+ax[0].grid(True, linestyle='--', alpha=0.4)
+
+ax[1].hist(Y, bins=30, color='tab:orange', edgecolor='black', alpha=0.8)
+ax[1].set_title('Histogram of Y')
+ax[1].set_xlabel('Y')
+ax[1].set_ylabel('Count')
+ax[1].grid(True, linestyle='--', alpha=0.4)
+
+plt.tight_layout()
+plt.show()
+\end{lstlisting}
+
+\section{Heterogeneous Data Manipulation with Pandas}
+\subsection{Introduction to Pandas}
+Pandas (\url{https://pandas.pydata.org}) is the primary data manipulation library offering:
+\begin{itemize}
+\item Handling heterogeneous data types
+\item Database-style operations
+\item Missing data management
+\item Automatic alignment by labels
+\end{itemize}
+
+\begin{lstlisting}[numbers=none,language=Python, caption=Creating Toy DataFrames]
+import pandas as pd
+import numpy as np
+
+# Create DataFrame from dictionary
+student_data = {
+    'Name': ['Alice', 'Bob', 'Charlie'],
+    'Age': [20, 21, 19],
+    'Score': [85.5, 92.3, 88.9]
+}
+students_df = pd.DataFrame(student_data)
+print("Student DataFrame:")
+display(students_df)
+
+# Create numerical DataFrame
+matrix_data = np.random.rand(4, 3)  # 4 rows, 3 columns
+matrix_df = pd.DataFrame(matrix_data, 
+                        columns=['Feature1', 'Feature2', 'Target'])
+print("\nNumerical DataFrame:")
+display(matrix_df)
+\end{lstlisting}
+
+\begin{lstlisting}[numbers=none,language=Python, caption=Saving DataFrames into an Excel file]
+# Assuming students_df and matrix_df are already defined
+# (Requires openpyxl for .xlsx writing in most Colab environments)
+
+with pd.ExcelWriter('data.xlsx', engine='openpyxl') as writer:
+    students_df.to_excel(writer, sheet_name='Students', index=False)
+    matrix_df.to_excel(writer, sheet_name='Matrix', index=False)
+\end{lstlisting}
+
+
+
+
+\subsubsection{DataFrame to NumPy Conversion}
+\begin{lstlisting}[numbers=none,language=Python, caption=Conversion for Numerical Operations]
+# Convert single column to NumPy array
+ages = students_df['Age'].values
+print("Age array:", ages)
+print("Type:", type(ages))
+
+# Convert entire numerical DataFrame to matrix
+numerical_matrix = matrix_df.to_numpy()
+print("\nFull numerical matrix:\n", numerical_matrix)
+print("Matrix shape:", numerical_matrix.shape)
+
+# Create design matrix and target vector
+X = matrix_df[['Feature1', 'Feature2']].values
+y = matrix_df['Target'].values
+print("\nDesign matrix shape:", X.shape)
+print("Target vector shape:", y.shape)
+\end{lstlisting}
+
+\subsubsection{Linear Algebra Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Matrix Computations]
+# Covariance matrix
+cov_matrix = np.cov(X.T)
+print("Covariance matrix:\n", cov_matrix)
+
+# Least squares solution
+theta = np.linalg.lstsq(X, y, rcond=None)[0]
+print("\nRegression coefficients:", theta)
+
+# Eigenvalue decomposition
+eigenvalues = np.linalg.eigvals(cov_matrix)
+print("\nEigenvalues:", eigenvalues)
+\end{lstlisting}
+
+\subsection{Handling Structured Data}
+Pandas excels at structured data manipulation, particularly for:
+\begin{itemize}
+\item Reading/writing Excel/CSV files
+\item Handling missing data
+\item Merging/joining tables
+\item Time-series operations
+\end{itemize}
+
+
+\begin{lstlisting}[numbers=none,language=Python, caption=Excel File Handling]
+import pandas as pd
+from google.colab import drive
+
+# Mount Google Drive in Colab
+drive.mount('/content/drive')
+
+# Load the Excel file created above (two sheets: Students and Matrix)
+students_df = pd.read_excel('/content/drive/MyDrive/data.xlsx', sheet_name='Students')
+matrix_df = pd.read_excel('/content/drive/MyDrive/data.xlsx', sheet_name='Matrix')
+
+print("Students overview:")
+display(students_df.head())
+print("\nMatrix overview:")
+display(matrix_df.head())
+\end{lstlisting}
+
+\subsection{Data Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Data Manipulation]
+import datetime as dt
+
+# Filter records (e.g., students with score >= 90)
+high_score = students_df[students_df['Score'] >= 90]
+display(high_score)
+
+# Add a computed column using the current year (avoids hard-coding)
+current_year = dt.date.today().year
+students_df['Birth_Year'] = current_year - students_df['Age']
+display(students_df)
+
+# Simple grouped statistics (mean score by age)
+score_by_age = students_df.groupby('Age')['Score'].agg(['mean', 'count'])
+display(score_by_age)
+\end{lstlisting}
+
+
+\section{Tensor and Image Data with PyTorch}
+\subsection{Introduction to PyTorch}
+PyTorch (\url{https://pytorch.org}) is an open-source machine learning framework featuring:
+\begin{itemize}
+\item Dynamic computation graphs
+\item Python-first approach
+\item GPU acceleration support
+\item Rich ecosystem for deep learning
+\end{itemize}
+
+\subsubsection{Tensor Fundamentals}
+\begin{lstlisting}[numbers=none,language=Python, caption=Creating Tensors]
+import torch
+
+# Create basic tensors
+scalar = torch.tensor(5)                     # Rank-0 tensor
+vector = torch.tensor([1.0, 2.0, 3.0])       # Rank-1 tensor
+matrix = torch.tensor([[1, 2], [3, 4]])      # Rank-2 tensor
+cube = torch.rand(2, 3, 4)                   # Rank-3 tensor
+
+print("Scalar:", scalar.item())
+print("Vector shape:", vector.shape)
+print("Matrix:\n", matrix)
+print("Cube shape:", cube.shape)
+\end{lstlisting}
+
+\subsubsection{Basic Tensor Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Tensor Computations]
+# Element-wise operations
+a = torch.tensor([[1, 2], [3, 4]])
+b = torch.tensor([[5, 6], [7, 8]])
+
+add = a + b          # Element-wise addition
+mul = a * b          # Element-wise multiplication
+matmul = a @ b.T     # Matrix multiplication
+
+print("Addition:\n", add)
+print("Element-wise multiplication:\n", mul)
+print("Matrix multiplication:\n", matmul)
+\end{lstlisting}
+
+\subsubsection{Linear Algebra Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Advanced Operations]
+# Matrix inversion
+matrix = torch.tensor([[4., 7.], [2., 6.]], dtype=torch.float32)
+inverse = torch.linalg.inv(matrix)
+print("Inverse:\n", inverse)
+
+# Solving linear systems
+A = torch.tensor([[3, 1], [1, 2]], dtype=torch.float32)
+b = torch.tensor([9, 8], dtype=torch.float32)
+x = torch.linalg.solve(A, b)
+print("\nSolution:", x)
+
+# Singular Value Decomposition
+U, S, V = torch.linalg.svd(matrix)
+print("\nSingular values:", S)
+\end{lstlisting}
+
+\subsubsection{Neural Network Preparation}
+\begin{lstlisting}[numbers=none,language=Python, caption=Network Fundamentals]
+import torch.nn as nn
+
+# Create simple neural network
+model = nn.Sequential(
+    nn.Linear(2, 3),  # Input to hidden
+    nn.ReLU(),
+    nn.Linear(3, 1)   # Hidden to output
+)
+
+# Example forward pass
+sample_input = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+prediction = model(sample_input)
+print("\nModel output shape:", prediction.shape)
+\end{lstlisting}
+
+\subsubsection{GPU Acceleration}
+\begin{lstlisting}[numbers=none,language=Python, caption=Hardware Utilization]
+# Check GPU availability
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Using device:", device)
+
+# Move tensors to GPU
+gpu_matrix = torch.randn(1000, 1000).to(device)
+gpu_result = gpu_matrix @ gpu_matrix.T
+print("GPU operation result shape:", gpu_result.shape)
+\end{lstlisting}
+
+\subsection{Image Handling}
+\begin{lstlisting}[numbers=none,language=Python, caption=Image Loading]
+from PIL import Image
+import requests
+import matplotlib.pyplot as plt
+import torchvision
+
+# Download sample image
+url = "https://storage.googleapis.com/download.tensorflow.org/example_images/320px-Felis_catus-cat_on_snow.jpg"
+response = requests.get(url, stream=True)
+response.raise_for_status()
+image = Image.open(response.raw).convert('RGB')
+
+# Convert to tensor
+transform = torchvision.transforms.ToTensor()
+tensor_image = transform(image)
+
+# Display image
+print("Image shape:", tensor_image.shape)
+plt.imshow(tensor_image.permute(1, 2, 0))  # PyTorch uses CxHxW format
+plt.axis('off')
+plt.show()
+\end{lstlisting}
+
+\subsection{Edge Detection}
+\begin{lstlisting}[numbers=none,language=Python, caption=Sobel Filter]
+import torch.nn.functional as F
+
+# Convert to grayscale
+gray_image = 0.2989 * tensor_image[0] + 0.5870 * tensor_image[1] + 0.1140 * tensor_image[2]
+
+# Create Sobel kernels
+sobel_x = torch.tensor([[[1, 0, -1], [2, 0, -2], [1, 0, -1]]], dtype=torch.float32)
+sobel_y = torch.tensor([[[1, 2, 1], [0, 0, 0], [-1, -2, -1]]], dtype=torch.float32)
+
+# Apply convolution
+vertical_edges = F.conv2d(gray_image.unsqueeze(0).unsqueeze(0), sobel_x.unsqueeze(0))
+horizontal_edges = F.conv2d(gray_image.unsqueeze(0).unsqueeze(0), sobel_y.unsqueeze(0))
+
+# Combine edges
+edge_magnitude = torch.sqrt(horizontal_edges**2 + vertical_edges**2)
+
+# Display results
+plt.figure(figsize=(12, 6))
+plt.subplot(131), plt.imshow(vertical_edges.squeeze(), cmap='gray')
+plt.title('Vertical Edges'), plt.axis('off')
+plt.subplot(132), plt.imshow(horizontal_edges.squeeze(), cmap='gray')
+plt.title('Horizontal Edges'), plt.axis('off')
+plt.subplot(133), plt.imshow(edge_magnitude.squeeze(), cmap='gray')
+plt.title('Combined Magnitude'), plt.axis('off')
+plt.show()
+\end{lstlisting}
+\section{Tensor and Image Data with TensorFlow}
+\subsection{Introduction to TensorFlow}
+TensorFlow (\url{https://www.tensorflow.org}) is Google's end-to-end ML platform featuring:
+\begin{itemize}
+\item Flexible architecture for numerical computation
+\item Neural network construction tools
+\item GPU/TPU acceleration
+\item Production-grade deployment capabilities
+\end{itemize}
+
+\subsubsection{Tensor Fundamentals}
+\begin{lstlisting}[numbers=none,language=Python, caption=Creating Tensors]
+import tensorflow as tf
+
+# Create basic tensors
+scalar = tf.constant(5)                     # Rank-0 tensor
+vector = tf.constant([1.0, 2.0, 3.0])       # Rank-1 tensor
+matrix = tf.constant([[1, 2], [3, 4]])      # Rank-2 tensor
+cube = tf.random.uniform((2, 3, 4))         # Rank-3 tensor
+
+print("Scalar:", scalar.numpy())
+print("Vector shape:", vector.shape)
+print("Matrix:\n", matrix.numpy())
+print("Cube shape:", cube.shape)
+\end{lstlisting}
+
+\subsubsection{Basic Tensor Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Tensor Computations]
+# Element-wise operations
+a = tf.constant([[1, 2], [3, 4]])
+b = tf.constant([[5, 6], [7, 8]])
+
+add = a + b          # Element-wise addition
+mul = a * b          # Element-wise multiplication
+matmul = a @ b.T     # Matrix multiplication: @ is the matrix multiplication operator and .T is the transpose operator
+
+print("Addition:\n", add.numpy()) # numpy() is a method that convert a tensor object to the numpy narray object, hence it can be 'printed'
+print("Element-wise multiplication:\n", mul.numpy())
+print("Matrix multiplication:\n", matmul.numpy())
+\end{lstlisting}
+
+\subsubsection{Linear Algebra Operations}
+\begin{lstlisting}[numbers=none,language=Python, caption=Advanced Operations]
+# Matrix inversion
+matrix = tf.constant([[4., 7.], [2., 6.]], dtype=tf.float32)
+inverse = tf.linalg.inv(matrix)
+print("Inverse:\n", inverse.numpy())
+
+# Solving linear systems
+A = tf.constant([[3, 1], [1, 2]], dtype=tf.float32)
+b = tf.constant([9, 8], dtype=tf.float32)
+x = tf.linalg.solve(A, b)
+print("\nSolution:", x.numpy())
+
+# Singular Value Decomposition
+svd = tf.linalg.svd(matrix)
+print("\nSingular values:", svd.S.numpy())
+\end{lstlisting}
+
+\subsubsection{Neural Network Preparation}
+\begin{lstlisting}[numbers=none,language=Python, caption=Network Fundamentals]
+# Create simple neural network layers
+input_layer = tf.keras.layers.Input(shape=(2,))
+hidden_layer = tf.keras.layers.Dense(3, activation='relu')(input_layer)
+output_layer = tf.keras.layers.Dense(1)(hidden_layer)
+
+# Build model
+model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+
+# Example forward pass
+sample_input = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+prediction = model(sample_input)
+print("\nModel output shape:", prediction.shape)
+\end{lstlisting}
+
+\subsubsection{GPU Acceleration}
+\begin{lstlisting}[numbers=none,language=Python, caption=Hardware Utilization]
+# Check available devices
+devices = tf.config.list_physical_devices()
+print("Available devices:", devices)
+
+# Explicit device placement
+with tf.device('/GPU:0'):
+    gpu_matrix = tf.random.normal((1000, 1000))
+    gpu_op = tf.linalg.matmul(gpu_matrix, gpu_matrix, transpose_b=True)
+    print("GPU operation result shape:", gpu_op.shape)
+\end{lstlisting}
+
+
+\subsection{Image Handling}
+\begin{lstlisting}[numbers=none,language=Python, caption=Image Loading]
+import tensorflow as tf
+import matplotlib.pyplot as plt
+
+# Download sample image
+image_url = "https://storage.googleapis.com/download.tensorflow.org/example_images/320px-Felis_catus-cat_on_snow.jpg"
+image_path = tf.keras.utils.get_file('cat.jpg', origin=image_url)
+
+# Load and decode image
+image = tf.io.read_file(image_path)
+image = tf.image.decode_jpeg(image, channels=3)
+
+# Display image
+print("Image shape:", image.shape)
+plt.imshow(image.numpy())
+plt.axis('off')
+plt.show()
+\end{lstlisting}
+
+\subsection{Edge Detection}
+\begin{lstlisting}[numbers=none,language=Python, caption=Sobel Filter]
+# Convert to grayscale
+gray_image = tf.image.rgb_to_grayscale(image)
+
+# Apply Sobel filters
+sobel_edges = tf.image.sobel_edges(gray_image)
+vertical_edges = sobel_edges[..., 0]
+horizontal_edges = sobel_edges[..., 1]
+
+# Combine edge magnitudes
+edge_magnitude = tf.sqrt(
+    tf.square(horizontal_edges) + tf.square(vertical_edges)
+)
+
+# Display results
+plt.figure(figsize=(12, 6))
+plt.subplot(131), plt.imshow(tf.squeeze(vertical_edges), cmap='gray')
+plt.title('Vertical Edges'), plt.axis('off')
+plt.subplot(132), plt.imshow(tf.squeeze(horizontal_edges), cmap='gray')
+plt.title('Horizontal Edges'), plt.axis('off')
+plt.subplot(133), plt.imshow(tf.squeeze(edge_magnitude), cmap='gray')
+plt.title('Combined Magnitude'), plt.axis('off')
+plt.show()
+\end{lstlisting}
+
+
+
+
+\section*{Conclusion}
+This tutorial covered essential workflows for:
+\begin{itemize}
+\item Numerical operations with NumPy arrays
+\item Data manipulation using Pandas DataFrames
+\item Basic image processing with PyTorch
+\item Basic image processing with TensorFlow
+\end{itemize}
+
+\end{document}

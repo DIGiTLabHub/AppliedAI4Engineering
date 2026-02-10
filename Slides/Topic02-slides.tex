@@ -1,0 +1,753 @@
+\documentclass[12pt]{beamer}
+\usepackage{../ceai-beamer}
+% \usepackage[handoutnotes,letterpaper]{../ceai-beamer}
+
+\title{CE 488/5588: Applied Machine Learning}
+\subtitle{Topic 2: Data Types and Revisiting Linear Algebra}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+% ==========================================================
+% Observations as Data
+% ==========================================================
+\section{Observations as Data}
+
+\begin{frame}{From observation to induction}
+  \begin{conceptbox}{Why data matters}
+    Inductive reasoning depends on observations. For humans, sensing and cognition are intertwined.
+    For machines, observation becomes explicit data that must be stored, interpreted, and acted on.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Learning systems extract patterns from observation to build general laws.
+    \item Data quality and representation set the ceiling for model capability.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Three subsystems of an intelligent machine}
+  \begin{itemize}
+    \item Perception: sensors capture the environment.
+    \item Computing: the system processes and interprets sensed data.
+    \item Actuation: decisions are translated into actions.
+  \end{itemize}
+  % \vspace{0.6em}
+  % \centering
+  % \LARGE \textbf{[Figure Placeholder]}
+  % \vspace{0.8em}
+  % \normalsize
+  % \textit{Perception--computation--actuation pipeline with feedback loop.}
+\end{frame}
+
+\begin{frame}{From sensing to data}
+  \begin{itemize}
+    \item Sensors produce raw data, typically numeric and high dimensional.
+    \item Data can be large-scale in size, complexity, and dimensionality.
+    \item Data representation determines what learning is feasible.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Data vs. information}
+  \begin{conceptbox}{Operational distinction}
+    Data are raw measurements; information is data with context or processing applied.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Many decisions are categorical: yes/no, class labels, or ranked levels.
+    \item The ML pipeline must preserve the semantics of the data type.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dimensionality preview}
+  \begin{itemize}
+    \item Data can be low-dimensional (scalar values) or high-dimensional (vectors, matrices, tensors).
+    \item Dimension affects storage, visualization, and model design.
+    \item We will revisit dimensionality using a concrete-strength monitoring example.
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Types of Data
+% ==========================================================
+\section{Types of Data}
+
+\begin{frame}{Two major data types}
+  \begin{itemize}
+    \item Categorical data: categories such as class labels, material types, or damage states.
+      \begin{itemize}
+        \item Can appear as outputs ($y$) or as inputs (features in $\bm{x}$).
+      \end{itemize}
+    \item Numeric data: values on numerical scales (interval or ratio).
+      \begin{itemize}
+        \item Often require scaling (standardization/normalization) before training.
+      \end{itemize}
+  \end{itemize}
+  \vspace{0.3em}
+  \textit{Measurement scales provide a formal framework for these categories.}
+  \bhref{https://en.wikipedia.org/wiki/Level_of_measurement}{Measurement scales}
+\end{frame}
+
+\begin{frame}{Categorical variables are not only labels}
+  \begin{itemize}
+    \item In supervised learning, we often write a data set as $\mathcal{D}=\{(\bm{x}_i,y_i)\}_{i=1}^n$.
+    \item A categorical variable can be:
+      \begin{itemize}
+        \item a \textbf{label} $y_i$ (e.g., damage state), or
+        \item an \textbf{input feature} (e.g., material type, sensor ID, site category).
+      \end{itemize}
+    \item Common encodings: one-hot for nominal categories; integer encoding for ordinal categories.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Categorical data: nominal}
+  \begin{conceptbox}{Nominal data}
+    Labels that classify objects into mutually exclusive categories, with no inherent order.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Fruit types: apple, pear, orange.
+    \item Materials: concrete, steel, timber.
+    \item Planets: Earth, Mars, Venus.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Categorical data: ordinal}
+  \begin{conceptbox}{Ordinal data}
+    Categories with an inherent order or ranking, but no meaningful distance between ranks.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Pollution: none, light, severe, lethal.
+    \item Damage: intact, minor, major, collapse.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Numeric data: interval}
+  \begin{conceptbox}{Interval data}
+    Differences are meaningful and equal, but the zero point is arbitrary.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Temperature in Celsius or Fahrenheit.
+    \item Velocity or acceleration expressed without physical zero reference.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Numeric data: ratio}
+  \begin{conceptbox}{Ratio data}
+    Values have a physical zero, making ratios meaningful.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Temperature in Kelvin (absolute zero as origin).
+    \item Mass, length, duration, energy, electric charge.
+  \end{itemize}
+  \bhref{https://www.nist.gov/si-redefinition/kelvin-introduction}{NIST Kelvin}
+\end{frame}
+
+\begin{frame}{Discrete vs. continuous}
+  \begin{itemize}
+    \item Discrete data are countable (integers in $\mathcal{N}$).
+    \item Continuous data vary over a real interval (values in $\mathcal{R}$).
+    \item Most continuous signals are digitized for processing.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Levels of measurement}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.78\textwidth]{Figure0102.jpg}
+    \caption{Levels of measurement.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Temperature as interval and ratio}
+  \begin{examplebox}{Interval vs. ratio temperature}
+    Celsius and Fahrenheit have arbitrary zero points, so ratios are meaningless.
+    Kelvin defines absolute zero, so ratios are physically meaningful.
+  \end{examplebox}
+  \begin{itemize}
+    \item $40\,^{\circ}F$ is not twice as hot as $20\,^{\circ}F$.
+    \item $40\,K$ is twice $20\,K$ due to absolute zero.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Transforming scales}
+  \begin{itemize}
+    \item Physical quantities can be mapped between interval and ratio scales.
+    \item Example: $y = \log(x)$ maps a positive ratio value $x>0$ to an interval-like scale.
+    \item Example: $x = \exp(y)$ maps an interval value back to a positive ratio scale.
+    \item These transforms are often used as \textit{feature engineering} (to reduce skew, stabilize variance).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A translation layer: narrative $\rightarrow$ ML notation}
+  \begin{itemize}
+    \item We model a data set as $n$ samples: $\mathcal{D}=\{(\bm{x}_i,y_i)\}_{i=1}^n$.
+    \item $\bm{x}_i \in \mathbb{R}^d$ is the feature vector (inputs); $y_i$ is the target (output).
+    \item Tabular inputs are often stored in a matrix $\bm{X}\in \mathbb{R}^{n\times d}$, where each row is one sample.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Data $\rightarrow$ features (preprocessing)}
+  \begin{itemize}
+    \item Raw measurements may need cleaning and scaling before they become features.
+    \item Standardization (z-score): $z=\dfrac{x-\mu}{\sigma}$ (approximately zero mean, unit variance).
+    \item Normalization (min--max): $x' = \dfrac{x-x_{\min}}{x_{\max}-x_{\min}}$ (rescale to $[0,1]$).
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Notations and Dimensionality
+% ==========================================================
+\section{Notations and Dimensionality}
+
+\begin{frame}{Digital vs. analog sensing}
+  \begin{itemize}
+    \item Analog sensors output continuous values.
+    \item Digital sensors output discrete samples.
+    \item Most signals are digitized before ML processing.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Thought experiment: concrete strength}
+  \begin{examplebox}{Monitoring a hydraulic dam}
+    Concrete strength is measured at day 28 and monitored across space and time.
+    The experiment explores how data dimensionality grows with locations and time.
+  \end{examplebox}
+  \begin{itemize}
+    \item Each measurement at a fixed location and time is a scalar.
+    \item Complexity arises when we aggregate many measurements into one sample.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Measurement vs. sample dimension vs. data set size}
+  \begin{itemize}
+    \item \textbf{Scalar measurement:} one number at one time and one location.
+    \item \textbf{Sample/feature dimension $d$:} how many numbers we stack into one input $\bm{x}_i \in \mathbb{R}^d$.
+      \begin{itemize}
+        \item Example: a $10\times 10$ grid can be flattened into $d=100$ features.
+      \end{itemize}
+    \item \textbf{Data set size $n$:} how many samples we have (times, locations, experiments).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Measurement schemes (S1--S3)}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.2}
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{|p{1.2cm}|p{2.2cm}|p{2.2cm}|p{3.cm}|}
+    \hline
+    Scheme & Description & Data size & Interpretation \\
+    \hline
+    S1 & Single measurement at one location, day 28 & $1$ & Single scalar value \\ \hline
+    S2 & Ten measurements at one location, day 28 & $1 \times 10$ & 1D sample set \\ \hline
+    S3 & One location over 25 months & $1 \times 25$ & Time series of scalars \\
+    \hline
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Measurement schemes (S4--S5)}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.2}
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{|p{1.2cm}|p{3.2cm}|p{2.0cm}|p{3.cm}|}
+    \hline
+    Scheme & Description & Data size & Interpretation \\
+    \hline
+    S4 & $10 \times 10$ grid at day 28 & $10 \times 10$ & Matrix (image-like) \\ \hline
+    S5 & $10 \times 10$ grid over 25 months & $10 \times 10 \times 25$ & Time series of matrices \\
+    \hline
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Vector notation for S2 and S3}
+  \begin{itemize}
+    \item S2 and S3 can be represented as vectors or time series.
+    \item Vector length equals the number of observations, but each data point is still 1D.
+    \item Time series visualization requires a time axis in 2D space.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Matrix notation for spatial grids}
+  \begin{itemize}
+    \item S4 measurements form a matrix $\bm{F}$ of size $10 \times 10$.
+    \item Each entry is a scalar value at a location.
+  \end{itemize}
+  \[
+  \bm{F} =
+  \begin{bmatrix}
+  4.2 & 4.1 & \cdots & 3.9 \\
+  \vdots & \vdots & \ddots & \vdots \\
+  4.3 & 3.0 & \cdots & 4.1
+  \end{bmatrix}
+  \]
+\end{frame}
+
+\begin{frame}{S4 visualization}
+  \begin{itemize}
+    \item A matrix can be visualized as a surface plot in 3D.
+    \item Axes: $x$ and $y$ locations, vertical axis is strength $f'_c$.
+  \end{itemize}
+  \vspace{0.5em}
+  % \centering
+  % \LARGE \textbf{[Figure Placeholder]}
+  % \vspace{0.8em}
+  % \normalsize
+  % \textit{Surface plot of a $10 \times 10$ grid of strength values.}
+\end{frame}
+
+\begin{frame}{Nested matrices for S5}
+  \begin{itemize}
+    \item S5 produces a time series of matrices.
+    \item A nested set of matrices represents measurement snapshots over time.
+  \end{itemize}
+  \[
+  \bm{F} = \left\{\begin{bmatrix}
+  4.2 & 4.1 & \cdots & 3.9 \\
+  \vdots & \vdots & \ddots & \vdots \\
+  4.3 & 3.0 & \cdots & 4.1
+  \end{bmatrix}, \ldots, \begin{bmatrix}
+  4.0 & 4.3 & \cdots & 4.4 \\
+  \vdots & \vdots & \ddots & \vdots \\
+  3.3 & 4.0 & \cdots & 3.9
+  \end{bmatrix}\right\}
+  \]
+\end{frame}
+
+\begin{frame}{Visualization challenge}
+  \begin{itemize}
+    \item Time-series matrices require a fourth axis for visualization.
+    \item Plotting stacked surfaces becomes difficult to interpret.
+    \item This motivates compact, high-dimensional representations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vector-valued measurements}
+  \begin{examplebox}{Multiple tests per location}
+    Concrete strength is measured using three techniques, yielding a 3D vector per location.
+  \end{examplebox}
+  \[
+  \bm{f} = \{ (4.1, 3.9, 4.0)^T, (2.0, 2.8, 3.0)^T, \ldots \}
+  \]
+\end{frame}
+
+\begin{frame}{Vector data as a matrix}
+  \begin{itemize}
+    \item Each column is a 3D vector (one location).
+    \item Matrix rows represent measurement modalities.
+  \end{itemize}
+  \[
+  \bm{F} =
+  \begin{bmatrix}
+  4.1 & 2.0 & \cdots & 4.1 \\
+  3.9 & 2.8 & \cdots & 5.0 \\
+  4.0 & 3.0 & \cdots & 4.2
+  \end{bmatrix}
+  \]
+\end{frame}
+
+\begin{frame}{Vector data over time}
+  \begin{itemize}
+    \item Monitoring over time yields a set of matrices.
+    \item The structure is similar to S5, but the semantics differ.
+    \item Each column is a data point with multiple attributes.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Toward tensors}
+  \begin{itemize}
+    \item High-dimensional data exceed matrices and vectors.
+    \item Tensors are the natural representation for multi-axis data (space $\times$ time $\times$ channels).
+    \item We revisit tensors (definition, notation, examples) in the \textbf{Tensors in Machine Learning} section.
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Imagery Data
+% ==========================================================
+\section{Special Data: Imagery Data}
+
+\begin{frame}{Why imagery matters}
+  \begin{itemize}
+    \item Visual assessment dominates structural inspection and damage evaluation.
+    \item Computer vision enables automated inspection with robotics.
+    \item Remote sensing delivers large-scale imagery from satellites.
+  \end{itemize}
+  \bhref{https://www.earthdata.nasa.gov/learn/backgrounders/remote-sensing}{NASA Remote Sensing}
+\end{frame}
+
+\begin{frame}{Image storage basics}
+  \begin{conceptbox}{Image as a matrix}
+    An image is stored as a matrix of pixel values. A $100 \times 200$ image has
+    100 rows and 200 columns of pixels.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Pixel = data point at a location in the imaging plane.
+    \item Matrix size determines spatial resolution.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Practical tensor shapes for images and videos}
+Define an image as $I$, and $H, W, C, T$ as its image height, width, thickness, and time-duration. 
+  \begin{itemize}
+    \item Grayscale image: $I_{(H,W)}$.
+    \item Color image (RGB): $I_{(H,W,C)}$ with $C=3$.
+    \item Video (time series of frames): $I_{(T,H,W,C)}$.
+    \item Mini-batch adds a leading batch dimension $N$: $I_{(N,H,W,C)}$ or $I_{(N,T,H,W,C)}$.
+    \item Terminology note: tensor \textit{order} (\# axes) is different from \textit{matrix rank} in linear algebra.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Binary image representation}
+  \begin{itemize}
+    \item Pixel values are binary: 0 (black) or 1 (white).
+    \item Stored as a 2D matrix of zeros and ones.
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.35\textwidth]{Figure0104a.png}
+    \caption{Binary image example.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Grayscale image representation}
+  \begin{itemize}
+    \item Pixel values range continuously (e.g., 0 to 1).
+    \item Often stored as integers 0--255 for 256 gray levels.
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.35\textwidth]{Figure0104b.png}
+    \caption{Grayscale image example.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Color image representation}
+  \begin{itemize}
+    \item Color images store three channels: red, green, blue.
+    \item Each channel is a 2D matrix; together they form a 3D tensor.
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.35\textwidth]{Figure0104c.png}
+    \caption{Color image example.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Imagery and structural sensing}
+  \begin{itemize}
+    \item A grid of scalar measurements resembles a grayscale image.
+    \item Multiple sensing modalities resemble RGB channels.
+    \item Imagery offers intuition for matrix and tensor data structures.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Video data}
+  \begin{itemize}
+    \item Video is a time series of image frames.
+    \item Adds a temporal dimension to image tensors.
+  \end{itemize}
+  \vspace{0.5em}
+  \centering
+  % \LARGE \textbf{[Figure Placeholder]}
+  % \vspace{0.8em}
+  % \normalsize
+  % \textit{Stacked image frames along a time axis to form a 4D tensor.}
+\end{frame}
+
+% ==========================================================
+% Linear Algebra Refresher
+% ==========================================================
+\section{Basic Linear Algebra Notations and Concepts}
+
+\begin{frame}{Vectors in $\mathbb{R}^n$}
+  \begin{itemize}
+    \item A vector is an ordered list of scalars.
+    \item Column vector notation is standard for ML.
+  \end{itemize}
+  \[
+  \bm{v} =
+  \begin{pmatrix}
+  v_1 \\
+  v_2 \\
+  \vdots \\
+  v_n
+  \end{pmatrix}
+  \]
+\end{frame}
+
+\begin{frame}{Matrices}
+  \begin{itemize}
+    \item A matrix is a 2D array of scalars.
+    \item Size is $m \times n$ (rows by columns).
+  \end{itemize}
+  \[
+  \bm{A} =
+  \begin{pmatrix}
+  a_{11} & a_{12} & \cdots & a_{1n} \\
+  a_{21} & a_{22} & \cdots & a_{2n} \\
+  \vdots & \vdots & \ddots & \vdots \\
+  a_{m1} & a_{m2} & \cdots & a_{mn}
+  \end{pmatrix}
+  \]
+\end{frame}
+
+\begin{frame}{Symmetric matrices}
+  \begin{conceptbox}{Definition}
+    A matrix $\bm{A}$ is symmetric if $\bm{A} = \bm{A}^\top$.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Symmetry implies $a_{ij} = a_{ji}$.
+    \item Common in covariance matrices and quadratic forms.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Identity matrices}
+  \begin{itemize}
+    \item The identity matrix $\bm{I}$ leaves vectors unchanged.
+    \item It is the multiplicative identity for matrices.
+  \end{itemize}
+  \[
+  \bm{I} =
+  \begin{pmatrix}
+  1 & 0 & \cdots & 0 \\
+  0 & 1 & \cdots & 0 \\
+  \vdots & \vdots & \ddots & \vdots \\
+  0 & 0 & \cdots & 1
+  \end{pmatrix}
+  \]
+\end{frame}
+
+\begin{frame}{Sparse matrices}
+  \begin{itemize}
+    \item Sparse matrices contain mostly zeros.
+    \item Storage and computation can be optimized using sparsity.
+  \end{itemize}
+  \[
+  \bm{S} =
+  \begin{pmatrix}
+  0 & 0 & 1 \\
+  0 & 0 & 0 \\
+  2 & 0 & 0
+  \end{pmatrix}
+  \]
+\end{frame}
+
+\begin{frame}{Rank of a matrix}
+  \begin{itemize}
+    \item Rank is the dimension of the column space (or row space).
+    \item Full rank implies maximum independent columns.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Determinant and invertibility}
+  \begin{itemize}
+    \item The determinant summarizes scaling and invertibility.
+    \item A matrix is invertible if $\det(\bm{A}) \ne 0$.
+  \end{itemize}
+  \[
+  \det(\bm{A}) \ne 0 \quad \Longleftrightarrow \quad \bm{A}^{-1} \text{ exists}
+  \]
+\end{frame}
+
+\begin{frame}{Matrix inverse}
+  \begin{itemize}
+    \item The inverse satisfies $\bm{A} \bm{A}^{-1} = \bm{I}$.
+    \item Used to solve linear systems when $\bm{A}$ is square and nonsingular.
+  \end{itemize}
+  \[
+  \bm{A} \bm{A}^{-1} = \bm{A}^{-1} \bm{A} = \bm{I}
+  \]
+\end{frame}
+
+\begin{frame}{Linear systems}
+  \begin{itemize}
+    \item Linear system: $\bm{A} \bm{x} = \bm{b}$.
+    \item Unique solution if $\det(\bm{A}) \ne 0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conditions for unique solutions}
+  \[
+  \det(\bm{A}) \ne 0 \Longleftrightarrow \mathrm{rank}(A) = n
+  \Longleftrightarrow \text{unique solution}
+  \]
+  \begin{itemize}
+    \item If $\det(\bm{A}) = 0$, the system may have no or infinite solutions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rectangular matrices}
+  \begin{itemize}
+    \item Many ML problems use $m \times n$ matrices with $m \ne n$.
+    \item Exact inverses do not exist; pseudo-inverses are used instead.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pseudo left inverse}
+  \begin{itemize}
+    \item If $m \ge n$ and $\mathrm{rank}(A) = n$:
+  \end{itemize}
+  \[
+  A_\ell^+ = (A^\top A)^{-1} A^\top, \quad A_\ell^+ A = I_n
+  \]
+\end{frame}
+
+\begin{frame}{Pseudo right inverse}
+  \begin{itemize}
+    \item If $m \le n$ and $\mathrm{rank}(A) = m$:
+  \end{itemize}
+  \[
+  A_r^+ = A^\top (A A^\top)^{-1}, \quad A A_r^+ = I_m
+  \]
+\end{frame}
+
+\begin{frame}{Moore-Penrose pseudo-inverse}
+  \begin{itemize}
+    \item Generalized inverse for arbitrary matrices.
+    \item Produces minimum-norm least-squares solutions.
+  \end{itemize}
+  \[
+  \bm{x} = A^+ \bm{b}
+  \]
+  \bhref{https://en.wikipedia.org/wiki/Moore\%E2\%80\%93Penrose_inverse}{Moore-Penrose inverse}
+\end{frame}
+
+\begin{frame}{Linear regression setup}
+  \begin{itemize}
+    \item Regression solves $X \boldsymbol{\beta} = \mathbf{y}$.
+    \item $X$ has predictors, $\boldsymbol{\beta}$ are coefficients.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Least-squares solution}
+  \begin{itemize}
+    \item If $m \ge n$ and $X$ has full column rank:
+  \end{itemize}
+  \[
+  \boldsymbol{\beta} = (X^\top X)^{-1} X^\top \mathbf{y}
+  \]
+\end{frame}
+
+\begin{frame}{Underdetermined systems}
+  \begin{itemize}
+    \item If $m \le n$ and $X$ has full row rank:
+  \end{itemize}
+  \[
+  \boldsymbol{\beta} = X^\top (X X^\top)^{-1} \mathbf{y}
+  \]
+\end{frame}
+
+\begin{frame}{Unified least squares}
+  \begin{itemize}
+    \item Moore-Penrose pseudo-inverse unifies all cases.
+  \end{itemize}
+  \[
+  \boldsymbol{\beta} = X^+ \mathbf{y}
+  \]
+\end{frame}
+
+% ==========================================================
+% Tensors
+% ==========================================================
+\section{Tensors in Machine Learning}
+
+\begin{frame}{Why tensors}
+  \begin{itemize}
+    \item Tensors generalize scalars, vectors, and matrices.
+    \item They represent images, videos, sensor grids, and model parameters.
+  \end{itemize}
+  \bhref{https://www.tensorflow.org/api_docs/python/tf/Tensor}{TensorFlow Tensor}
+\end{frame}
+
+\begin{frame}{Tensor definition}
+  \begin{conceptbox}{Definition}
+    A tensor is a multi-dimensional array of numerical values.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Rank (order) is the number of dimensions.
+    \item In ML, tensors serve as data containers.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tensor notation}
+  \begin{itemize}
+    \item Boldface for matrices ($\bm{T}$) and calligraphic for higher rank ($\mathcal{T}$).
+    \item Components written as $T_{ijk\dots}$.
+  \end{itemize}
+  \[
+  C_{ik} = A_{ij} B_{jk} \equiv \sum_j A_{ij} B_{jk}
+  \]
+\end{frame}
+
+\begin{frame}{Examples by rank}
+  \begin{itemize}
+    \item Rank 0: scalar $T = 5.2$.
+    \item Rank 1: vector $\bm{v} = [v_1, \ldots, v_n]$.
+    \item Rank 2: matrix $\bm{W} = [W_{ij}]$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Examples by rank (continued)}
+  \begin{itemize}
+    \item Rank 3: RGB image $\bm{I}_{ijk}$.
+    \item Rank 4: video batch $\mathcal{B}_{ijkl}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Sensor data as tensors}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.2}
+  \setlength{\tabcolsep}{4pt}
+  \centering
+  \begin{tabular}{|p{2.0cm}|p{3.0cm}|p{4.cm}|}
+    \hline
+    Dimension & Structure & Examples \\
+    \hline
+    1D & $\{u_i\}$ & Temperature, stock prices \\
+    2D & $\{u(x_i, y_j)\}$ & Grayscale images, grids \\
+    3D & $\{u(x_i, y_j, t_k)\}$ & Video, MRI scans \\
+    4D & $\{u(x_i, y_j, s_k, t_l)\}$ & Hyperspectral video \\
+    \hline
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Tensor applications in ML}
+  \begin{itemize}
+    \item Neural network weights and activations are tensors.
+    \item GPUs operate efficiently on tensor operations.
+    \item Autograd computes gradients like $\nabla_{\bm{W}} \mathcal{L}$.
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Closing
+% ==========================================================
+\section{Summary}
+
+\begin{frame}{Key takeaways}
+  \begin{itemize}
+    \item Data types encode the semantics of measurements.
+    \item Dimensionality shapes representation and visualization.
+    \item Linear algebra tools support ML models and optimization.
+    \item Tensors generalize data structures for modern ML.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Next steps}
+  \begin{itemize}
+    \item Apply data types to supervised and unsupervised learning tasks.
+    \item Use linear algebra and tensors for model formulation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Q\&A}
+  \centering
+  Questions?
+\end{frame}
+
+\end{document}
