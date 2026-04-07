@@ -1,26 +1,34 @@
 %% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
 
 \documentclass[12pt]{article}
-\usepackage{ceai} % Style file is in the project root.
+\usepackage{ceai} 
 \graphicspath{{../figs/}}
 
 \begin{document}
 \doublespacing	
-
 
 \title{CE 488/5588: Applied AI for Engineering \\ \large Topic 4: Logistic Regression}
 \author{}
 \date{}
 \maketitle
 
-\section{Introduction}
 In this lecture, we have two goals: (1) to learn and understand the simple, discriminative, and supervised classifier with significant practical meaning---Logistic Regression; and (2) to generalize its formulation to understand a classifier through any discriminative model. 
 
-
-
 Logistic regression originated as a statistical method for modeling binary outcomes. Initially developed to predict dichotomous events (e.g., survival vs.\ non-survival in clinical studies), its foundation was laid in the mid-20th century. Early researchers used the logistic function to relate a set of independent variables to the probability of an event occurring, thereby providing a clear, interpretable framework. Over time, as computational power increased, logistic regression evolved from a purely statistical tool to a widely adopted classification algorithm in machine learning.
-\\[1ex]
+ 
+ 
+\section*{Learning Objectives}
+After completing this chapter, you should be able to:
+\begin{itemize}
+    \item Explain the distinction between a discriminative (probabilistic) model and a classifier, and relate discriminative and generative approaches via Bayes' rule.
+    \item Define the sigmoid (logistic) function, interpret its output as a probability, and use odds and logit transformations.
+    \item Formulate logistic regression as $p(c=1\mid x)=f[u(x)]$ with a linear score function $u(x)=w_0+w_1x$ (and extensions to nonlinear feature mappings).
+    \item Construct a decision rule (thresholding) that converts predicted probabilities into hard class labels and identify the resulting decision boundary.
+    \item Derive and interpret the log-loss (cross-entropy) objective for binary classification and its gradient with respect to model parameters.
+    \item Apply gradient-based optimization to fit logistic regression parameters and compute a decision boundary for a simple toy dataset.
+\end{itemize}
 
+\section{Introduction}
 \paragraph{Significance as a Classifier} Logistic regression is celebrated for several key attributes:
 \begin{itemize}
     \item \textbf{Simplicity and Interpretability:} Its linear relationship between features and the log odds makes it easy to understand, which is especially valuable in fields like healthcare and finance.
@@ -28,10 +36,10 @@ Logistic regression originated as a statistical method for modeling binary outco
     \item \textbf{Probability Estimation:} By providing probability outputs, it offers clear insights into the certainty of predictions.
 \end{itemize}
 These qualities ensure that logistic regression continues to serve as a foundational tool in both academic research and practical applications.
-\\[1ex]
+ 
 
 \paragraph{Relevance in Modern AI}
-Despite the rise of deep learning and ensemble methods, logistic regression remains integral to modern AI:
+Despite the rise of deep learning and ensemble methods, logistic regression remains relevant to modern AI:
 \begin{itemize}
     \item It is often used as a baseline model for benchmarking more advanced algorithms.
     \item Its transparency and interpretability are critical in regulated industries where understanding decision rationale is essential.
@@ -39,17 +47,51 @@ Despite the rise of deep learning and ensemble methods, logistic regression rema
 \end{itemize}
 
 
-\section{A Primer to Sigmoid and Logistic Functions}
-The Sigmoid function is a special case of the general Logistic Function, which takes the form
-\begin{equation}
-    f(x) = L\, \frac{1}{1 + \exp[-u(x)]}
-    \label{t04eq00}
-\end{equation}
-where $L$ is a constant and $u(x)$ is generally a linear function. By taking $L = 1$ and $u(x) = x$, we obtain the Sigmoid function:
+\paragraph{Model vs. Classifier}
+In this chapter, we distinguish between
+\begin{itemize}
+    \item a \emph{discriminative (probabilistic) model} that outputs a class probability, e.g., $f[u(x)] \approx p(c=1 \mid x)$, i.e., we model $p(c \mid x)$ directly without explicitly modeling the input distribution $p(x)$; and
+    \item a \emph{classifier} (sometimes called a \emph{classification model}) that includes both steps: (i) the discriminative probability model and (ii) a decision rule that converts the probability into a hard label, e.g., $m(x \mid \bm{w}) \in \{0,1\}$ via thresholding.
+\end{itemize}
+Keeping this distinction clear is useful when generalizing to other discriminative learners (e.g., neural networks), where the probability model and the decision rule are conceptually separate.
+
+
+Formally, a \emph{discriminative} approach models the conditional distribution $p(c \mid x)$ directly, while a \emph{generative} approach models the data-generation process via $p(x \mid c)$ together with a prior $p(c)$.
+Once $p(x \mid c)$ and $p(c)$ are known, Bayes' rule yields a classifier:
+ \[
+p(c \mid x) =  \frac{p(x \mid c)\,p(c)}{ \sum_{c'} p(x \mid c')\,p(c')}.
+ \]
+Logistic regression is therefore a canonical example of discriminative learning: it directly parameterizes $p(c=1 \mid x)$ and learns parameters by optimizing a conditional likelihood (equivalently, cross-entropy) objective.
+
+
+\section{A Primer to Sigmoid (Logistic) Functions}
+In modern machine learning literature, the terms \emph{sigmoid} and \emph{logistic} are often used interchangeably to refer to the same squashing nonlinearity. The most common (standard) logistic/sigmoid function is
 \begin{equation}
     f(x) = \frac{1}{1 + \exp(-x)}
+    \label{t04eq00}
+\end{equation}
+More generally, one may define a scaled logistic function
+\begin{equation}
+    f(x) = L\, \frac{1}{1 + \exp[-u(x)]}
     \label{t04eq01}
 \end{equation}
+where $L$ is a constant and $u(x)$ is generally a linear function. Throughout this chapter, unless otherwise stated, we use the standard choice $L=1$ and refer to Eq.~\eqref{t04eq00} simply as the sigmoid (logistic) function.
+
+In logistic regression, we interpret the sigmoid output as a class probability. In particular, for a discriminant (or score) function $u(x)$, we write
+\[
+p = f[u(x)], \qquad p \in (0,1).
+\]
+Because $p$ lies strictly between $0$ and $1$, it can be treated as a probability measure.
+
+It is often useful to map this probability to the real line via the \emph{odds} and \emph{logit} (log-odds) transformations. The \emph{odds} are defined as
+\[
+\frac{p}{1-p},
+\]
+and the \emph{logit} is defined as
+\[
+\mathrm{logit}(p) = \log\left(\frac{p}{1-p}\right).
+\]
+Since $\frac{p}{1-p} \in (0,\infty)$ for $p \in (0,1)$, we have $\mathrm{logit}(p) \in \mathbb{R}$ (i.e., it ranges from $-\infty$ to $\infty$). In logistic regression, the key modeling insight is that this logit is linear in the features, i.e., $\mathrm{logit}(p)=u(x)$ --\textit{ the logit is the inverse of the sigmoid function} (in term of $u(x)$).
 
 \begin{figure}[ht]
     \centering
@@ -101,17 +143,19 @@ x
 \label{t04eq02b}
 \end{equation}
 
+
+
 \section{Learning from Data}
 We start with a general dataset $\mathbf{D}$ defined as:
 \[
 \mathbf{D} = \{(x_k, c_k) \mid k = 1, 2, \ldots, N \}.
 \]
-For illustration, we introduce a toy dataset based on a soil-health experiment:
+For illustration, we introduce a toy dataset based on a water-quality experiment:
 \[
-\mathbf{D}_s = \{(3.0, 0), (5.0, 0), (7.0, 1)\}.
+\mathbf{D}_s = \{(x_k,c_k)\}_{k=1}^{3} = \{(3.0, 0), (5.0, 0), (7.0, 1)\}.
 \]
 
-As in the soil-health example, we expect to find a decision boundary—a function of $x$ or $u(x)$. Figure~\ref{t04fig04} illustrates decision functions expressed in different spaces: (a) in the original $x$ space; (b) as a function $u(x) = 0$ in a transformed space; and (c) in terms of the sigmoid function $f[u(x)]$, which, being bounded in $[0,1]$, can be interpreted as a probability score.
+As in the water-quality example, we expect to find a decision boundary—a function of $x$ or $u(x)$. Figure~\ref{t04fig04} illustrates decision functions expressed in different spaces: (a) in the original $x$ space; (b) as a function $u(x) = 0$ in a transformed space; and (c) in terms of the sigmoid function $f[u(x)]$.
 
 \begin{figure}[ht]
     \centering
@@ -198,7 +242,7 @@ f[u(x)] = f(u,\bm{w})
 \]
 with $\bm{w} = [w_0, w_1]$. For an input $x_k$, the model outputs a predicted probability $f_k=f(u_k)$, and a predicted label $c_{p,k}$ is assigned using a threshold of $\frac{1}{2}$. Comparing with the true label $c_k$, the simplest loss is the zero-one loss defined as $l_k = |c_{p,k} - c_k|$. 
 
-However, for logistic regression a more refined loss is defined. Consider a false-negative case ($f_k < \frac{1}{2}$, so $c_{p,k}=0$, with $c_k=1$); a smaller $f_k \ll \frac{1}{2}$ indicates a greater error. Hence, we define the logarithm loss:
+However, for logistic regression a more refined loss is used. Consider a false-negative case ($f_k < \frac{1}{2}$, so $c_{p,k}=0$, with $c_k=1$); a smaller $f_k \ll \frac{1}{2}$ indicates a greater error. Hence, we define the logarithm loss:
 \[
 l_1(f_k) = -\ln(f_k).
 \]
@@ -211,6 +255,11 @@ Combining both cases for a general $c_k \in \{0,1\}$, the loss function is:
     l(f_k) = -c_k \ln(f_k) - (1-c_k) \ln(1-f_k).
     \label{t04eq09}
 \end{equation}
+This loss is also known as the \emph{binary cross-entropy} (or \emph{negative log-likelihood}) loss. It arises naturally from maximum likelihood estimation: if we model the label as $c_k\sim\mathrm{Bernoulli}(f_k)$, then the conditional likelihood is
+ \[
+p(c_k \mid x_k, \bm{w}) = f_k^{c_k}(1-f_k)^{1-c_k},
+ \]
+and minimizing $-\ln p(c_k \mid x_k, \bm{w})$ yields Eq.~\eqref{t04eq09}.
 Thus, the total loss over the dataset is:
 \begin{equation}
     L = \sum_k l(f_k) = -\sum_k \left[ c_k \ln(f_k) + (1-c_k) \ln(1-f_k) \right].
@@ -258,12 +307,12 @@ For the entire dataset, the gradient becomes:
     \label{t04eq15}
 \end{equation}
 
-Setting $\nabla_\bm{w} L = \vec{0}$ theoretically yields the optimal parameters. In practice, due to the nonlinearity of $f_k$, numerical iterative methods—such as gradient descent (or Newton's method when second-order information is available)—are used. The convexity of the loss function guarantees a unique global minimum.
+Setting $\nabla_{\bm{w}} L = \bm{0}$ theoretically yields the optimal parameters. In practice, due to the nonlinearity of $f_k$, numerical iterative methods—such as gradient descent (or Newton's method when second-order information is available)—are used. The convexity of the loss function guarantees a unique global minimum.
 
 \section{Toy Example} 
-Consider a toy soil-health dataset:
+Consider a toy water-quality dataset:
 \[
-\mathcal{D} = \{(c_k, x_k) \mid k=1,2,3\} = \{(0, 3.0), (0, 5.0), (1, 7.0)\}.
+\mathcal{D} = \{(x_k, c_k) \mid k=1,2,3\} = \{(3.0, 0), (5.0, 0), (7.0, 1)\}.
 \]
 For this dataset, the logistic regression model is given by:
 \[

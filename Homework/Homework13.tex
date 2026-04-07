@@ -1,0 +1,73 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 13\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\doublespacing
+
+\section*{Q1}
+Please review \href{https://umsystem.instructure.com/courses/280496/files/34489746?module_item_id=10021742}{Lecture 16 notes}, read and answer the following questions. 
+
+\begin{enumerate}
+  \item In a historical context, in which era did \emph{expert systems} emerge as a major topic in Artificial Intelligence research?  
+
+  \item To develop an expert system, what methodological components were involved during such time? 
+    % Briefly describe the technological and funding landscape of that period.
+
+    \item What are the main challenges and limitations that led to the waning of expert systems?  
+    \item Describe the strengths and weaknesses of classic AI (e.g., expert systems) and modern generative AI systems. 
+
+\end{enumerate}
+
+\newpage
+
+\section*{Q2} Please review \href{https://umsystem.instructure.com/courses/280496/files/34489748?module_item_id=10021744}{Lecture 17 notes}; note that I have updated the slides at the end about LLM prompting techniques.  
+
+\begin{enumerate}
+  \item From the evolution of NLP methods, starting with rule‑based systems, n‑gram models, and HMMs, through early neural architectures (RNNs, LSTMs, Seq2Seq), to modern large language models, which learning model architecture enabled NLP to move from effective domain‑specific solutions to a generally capable, zero‑/few‑shot framework? Explain the key innovations of this architecture.
+  
+  \item List and briefly describe the basic components of a transformer‑based large language model. 
+
+  \item Review the slides and qualitatively comment about the capacity of a modern LLM model in terms of the dimension of the underlying embedding space. 
+  
+  \item Suppose you wish to ask an LLM to solve the maximization of a cubic-order polynomial function. Outline a chain‑of‑thought prompt that breaks down the reasoning steps in a way an entry‑level model can follow to arrive at the correct solution. \textit{Hint: This is essentially a math question - say you will solve the maximum/minimum of a function $y(x) = a_3 x^3 + a_2 x^2 + a_1 x + a_0$, and you have your knowledge how to work it out manually, and then you provide basic logical steps that the LLM can solve each step.}
+\end{enumerate}
+
+\newpage 
+\section*{}
+
+
+\end{document}

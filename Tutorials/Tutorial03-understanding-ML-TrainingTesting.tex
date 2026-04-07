@@ -1,8 +1,5 @@
 \documentclass[12pt]{article}
-\usepackage{../TopicChapters/ceai}
-
-% Make listings display code normally (do not render spaces/tabs as visible symbols)
-\lstset{showspaces=false,showstringspaces=false,showtabs=false}
+\usepackage{ceai}
 
 \begin{document}
 \title{Tutorial 03:  Understanding ML Learning Steps}
@@ -52,7 +49,7 @@ Codes in the following conduct these steps:
 
 
 
-\noindent \pmb{1. Data Generator Module (\texttt{topic3\_data\_generator.py})}
+\noindent \textbf{1. Data Generator Module (\texttt{naive\_discriminative\_model.py})}
 
 Please place this python file in your Google Drive folder. We will NOT study and skip this part in class. 
 
@@ -91,21 +88,20 @@ def generate_data(n_points=20, weights=(1.0, 1.0, -0.5), noise_ratio=0.0, seed=4
 \end{lstlisting}
 
 \noindent \pmb{In-Class Exercise Code}
-Assuming that you have place the $topic3\_data\_generator.py$ in your GoogleDrive folder. When you open a notebook, first, we need to mount the folder
+Assuming that you have place the $naive\_discriminative_model.py$ in your GoogleDrive folder ($./Colab\ Notebooks/PyUtil$). When you open a notebook, first, we need to mount the folder
 
 \begin{lstlisting}[numbers=none, language=Python]
-# mount your google drive and find your working folder
+# mount your google drive and find your working folder (as usual)
+
+
 from google.colab import drive
-drive.mount('/content/drive')
-import os
-folder_path = '/content/drive/My Drive/Classroom/UMKC CE401 5501 Applied AI/Topic03' #update with the name of your working folder
-itmes = os.listdir(folder_path)
-# Get a list of files and directories in the folder
-items = os.listdir(folder_path)
-# Print the list
-for item in items:
-  print(item)
-os.chdir(folder_path) #changing the working directory to the specified folder.
+drive.mount("/content/drive")
+
+import sys
+
+BASE = "/content/drive/MyDrive/Colab Notebooks"
+if BASE not in sys.path:
+    sys.path.append(BASE)
 \end{lstlisting}
 
 
@@ -115,7 +111,7 @@ The following codes show how we use the `trained' classifier to conduct testing 
 # load the library/modules
 import numpy as np
 import matplotlib.pyplot as plt
-from topic3_data_generator import generate_data, decision_function
+from PyUtils.naive_discriminative_model import generate_data, decision_function
 
 # Set classifier weights - yes, we just directly set it without a learning process ...
 weights = (1.0, 1.0, -0.5)  # (w1, w2, w0)
@@ -401,7 +397,7 @@ plt.show()
 If all successful the resulting visualization should like this in Fig.~\ref{cs-topic03-fig02}.
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.5\linewidth]{figs/cs-topic03-fig02.png}
+    \includegraphics[width=0.5\linewidth]{../figs/cs-topic03-fig02.png}
     \caption{Learned likelihood distributions and the total distribution of the flipping-coin feature.}
     \label{fig:cs-topic03-fig02}
 \end{figure}

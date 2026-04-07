@@ -1,0 +1,90 @@
+\documentclass[letterpaper, american]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage{style}       % Custom style
+\usepackage{mnfrontpage} % Front page
+\usepackage{kantlipsum}  % Dummy text
+
+\title{Advanced Engineering Mathematics}
+\subtitle{An all-in-one semester coverage for Civil and Mechanical Engineers}
+\author{ZhiQiang Chen}
+\kind{Spring \2022\hfill\the\year} % Optional
+
+\includeonly
+{
+    %TopicChapters/abstract,
+    %TopicChapters/acknowledgements,
+    %TopicChapters/introduction,
+    % TopicChapters/Preface,
+    % TopicChapters/Topic01,
+    % TopicChapters/Topic02,
+    % TopicChapters/Topic03,
+    % TopicChapters/Topic04,
+    % TopicChapters/Topic05,
+    % TopicChapters/Topic06,
+    % TopicChapters/Topic07,
+    % TopicChapters/Topic08,
+    % TopicChapters/Topic09,
+    % TopicChapters/Topic10,
+    % TopicChapters/Topic11,
+    % TopicChapters/Topic12,
+    % TopicChapters/Topic13,
+    % TopicChapters/Topic14,
+    % TopicChapters/Topic15,
+    % TopicChapters/Topic16,
+    % TopicChapters/Topic17,
+    % TopicChapters/Homework01-2025,
+    % TopicChapters/Homework02-2025,
+    % TopicChapters/Homework03-2025,
+    % TopicChapters/Homework04-2025,
+    % TopicChapters/Homework05-2025,
+    % TopicChapters/Homework06-2025-part01
+}
+
+\begin{document}
+
+    \frontmatter        % Folios in Roman numerals, unnumbered chapters.
+
+    \mnfrontpage
+
+    % \include{TopicChapters/abstract}
+    % \include{TopicChapters/acknowledgements}
+
+    \cleartorecto
+    \tableofcontents    % Or \tableofcontents*
+    \cleartorecto
+    \listoffigures      % Or \listoffigures*
+    \cleartorecto
+    \listoftables       % Or \listoftables*
+
+    \mainmatter         % Folios in Arabic numerals, numbered chapters.
+
+    % \include{TopicChapters/introduction}
+
+    \part{Introduction and Preliminaries}
+    \include{TopicChapters/Topic01.tex}
+    \include{TopicChapters/Topic02.tex}
+    
+    \part{Basics of Machine Learning}
+    \include{TopicChapters/Topic03}
+    
+    \part{Supervised Learning}
+    \include{TopicChapters/Part04-Topic01}
+    
+    \part{Unsupervised Learning}
+    \include{TopicChapters/Part04-Topic01}
+    
+    \part{Advanced Topics}
+    \include{TopicChapters/Part04-Topic01}
+    
+    
+    \appendix           % "Chapter" is renamed "Appendix"
+    \appendixpage       % Similar to \part*{Appendices}, but appears in TOC.
+
+    % \include{TopicChapters/appendixA}
+    % \include{TopicChapters/appendixB}
+
+    \backmatter         % Folios in Arabic numerals, unnumbered chapters.
+
+    \printbibliography
+
+\end{document}

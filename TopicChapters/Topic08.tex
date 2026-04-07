@@ -1,49 +1,36 @@
 %% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
 
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath,amssymb,graphics,setspace}
-\usepackage{graphicx} 
+\usepackage{ceai} % Style file is in the project root.
 \usepackage{bm}
-\graphicspath{{./figs/}}
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-\newcommand{\mathsym}[1]{}
-\newcommand{\unicode}[1]{}
-
-\usepackage[english]{babel}
-\newtheorem{theorem}{Theorem}
-
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-}
-
-\def\bm#1{\textbf{\em #1}}
+\graphicspath{{../figs/}}
 
 \begin{document}
-\doublespacing	
-
-\title{CE 401/5501: Applied AI \\ \large Topic 8: Generative Learning for Supervised Classification}
-\author{Dr. ZhiQiang Chen}
+\doublespacing
+\title{CE 488/5588: Applied AI \\ \large Topic 8: Generative Learning for Supervised Classification}
+\author{}
 \date{}
 \maketitle
 
+
+In sequence with our previous topic on discriminative formalism, we now study the generative formalism for supervised classification. Discriminative learning focuses on decision boundaries or directly models \(p(c_i \mid \bm{x})\). Generative learning models the data-generation mechanism itself, typically through \(p(\bm{x}, c_i)\), or equivalently \(p(\bm{x} \mid c_i)\) together with \(p(c_i)\). This is the distinctive feature of generative formalism: it explains both class assignment and the emergence of observations.
+
+Why do we need this formalism? It provides probabilistic interpretability, enables principled use of prior knowledge, and supports inference under uncertainty, class imbalance, and limited data. It also gives a direct route to Bayes-optimal decision rules and Bayes error analysis.
+
+Its relation to today's generative AI is conceptual and foundational. Modern generative AI models aim to learn distributions that can produce realistic samples (text, images, and signals). Classical generative classification is smaller in scale, but it shares the same core idea: learn a probability model of how data are generated, then use that model for inference and prediction.
+
+\textbf{Learning Objectives}
+\begin{itemize}
+    \item Distinguish discriminative and generative formalisms in supervised learning.
+    \item Explain the distinctive feature of generative models using \(p(\bm{x}, c_i)\), \(p(\bm{x} \mid c_i)\), and \(p(c_i)\).
+    \item Apply Bayes' rule to MAP and ML inference for classification.
+    \item Formulate MAP/MLE parameter estimation under the i.i.d. assumption.
+    \item Interpret Bayes error and connect classical generative models to modern generative AI.
+\end{itemize}
+
 \section{Generative Classification}
 
-Probabilistic generative classification is a machine learning approach that models the joint probability distribution \(p(\bm{x}, c_i)\) of the input features \(\bm{x}\) and the class labels \(c_i\). In this lecture, we first discuss Bayes' rule, which serves as the foundation for probabilistic classification. Next, we explore the case where the class-conditional probability densities \(p(\bm{x} \mid c_i)\) are Gaussian distributions. Finally, we discuss the concept of Bayes error in the Gaussian context.
+Probabilistic generative classification is a machine learning approach that models the joint probability distribution \(p(\bm{x}, c_i)\) of input features \(\bm{x}\) and class labels \(c_i\). In this lecture, we first discuss Bayes' rule, which serves as the foundation for probabilistic classification. Next, we examine the case in which the class-conditional probability densities \(p(\bm{x} \mid c_i)\) are Gaussian. Finally, we discuss the concept of Bayes error in the Gaussian setting.
 
 To proceed, we assume that we have a supervised learning dataset \(\mathcal{D}\) for learning the probabilistic models:
 \[
@@ -138,10 +125,10 @@ In modern ML theory, there are two main parametric modeling approaches to addres
         \item Assuming a complex yet tractable distribution for \(p(\bm{x} \mid c_i)\), for example, a multivariate Gaussian mixture distribution.
         \item Assuming conditional independence, which leads to the Naive Bayes classification model (discussed in the next lecture).
     \end{itemize}
-    \item \textbf{Introducing causal relations into \(p(\bm{x} \mid c_i)\):} In this approach, a graphical structure—formally, a Bayesian network—is constructed to encode the causal relationships between the components of \(\bm{x}\); a Bayesian tree or a hidden Markov model\footnote{Bayesian networks are beyond the scope of this course; topics such as ``Probabilistic Learning'', ``Graphical Models'', or ``Bayesian Networks'' cover this subject.}.
+    \item \textbf{Introducing causal relations into \(p(\bm{x} \mid c_i)\):} In this approach, a graphical structure—formally, a Bayesian network—is constructed to encode the causal relationships between the components of \(\bm{x}\), such as a Bayesian tree or a hidden Markov model\footnote{Bayesian networks are beyond the scope of this course; topics such as ``Probabilistic Learning'', ``Graphical Models'', or ``Bayesian Networks'' cover this subject.}.
 \end{itemize}
 
-These different approaches lead to dramatically different procedures for parameter estimation of the model \(p(\bm{x} \mid c_i)\). In each case, the problem reduces to estimating a parameter vector \(\pmb{\theta}_i\) for \(p(\bm{x} \mid c_i)\) using the dataset \(\mathcal{D}\). For characterizing the dataset, we introduce a crucial assumption, which, in most practical cases, holds true, the indispensable \textit{i.i.d.} assumption.
+These different approaches lead to dramatically different procedures for parameter estimation of the model \(p(\bm{x} \mid c_i)\). In each case, the problem reduces to estimating a parameter vector \(\pmb{\theta}_i\) for \(p(\bm{x} \mid c_i)\) using the dataset \(\mathcal{D}\). To characterize the dataset, we introduce a crucial assumption that, in most practical cases, holds true: the indispensable \textit{i.i.d.} assumption.
 
 \subsection{Identically and Independently Distributed Data}
 Given a dataset 
@@ -159,7 +146,7 @@ Then the i.i.d.\ assumption states that all observed \(\bm{x}_n\) are identicall
 p(\mathcal{D} \mid \pmb{\theta}) = \prod_{n=1}^{N} p(\bm{x}_n \mid \pmb{\theta}).
 \end{equation}
 
-This assumption, and the approach to modeling \(\mathcal{D}\), form the basis for two model parameter estimation methods. In line with the inference framework introduced earlier, we derive either a Maximum A Posteriori (MAP) or Maximum Likelihood Estimation (MLE) method. 
+This assumption, and the approach to modeling \(\mathcal{D}\), form the basis for two model parameter estimation methods. In line with the inference framework introduced earlier, we derive either a Maximum A Posteriori (MAP) method or a Maximum Likelihood Estimation (MLE) method.
 
 \subsection*{Maximum A Posteriori (MAP) Parameter Estimation}
 In MAP estimation, we aim to find the parameter values \(\pmb{\theta}\) that maximize the posterior probability \(p(\pmb{\theta} \mid \mathcal{D})\). By Bayes' rule,
@@ -354,7 +341,7 @@ Traditional generative models, such as Naive Bayes, Gaussian mixture models, and
 In contrast, modern generative AI models leverage deep learning architectures, including variational autoencoders, generative adversarial networks, and transformer-based models. These approaches can capture complex, high-dimensional data distributions and generate highly realistic outputs across various modalities. It is important to note that modern GenAI models are not necessarily probabilistic in the traditional sense; they are called generative because they produce outputs in a way analogous to sampling from a probability distribution. While modern GenAI models typically require large datasets and significant computational resources, they have revolutionized applications in natural language processing, computer vision, and creative arts, pushing the boundaries of what generative modeling can achieve.
 
 \section{Conclusion}
-In this topic, we explored the fundamental aspects of generative classification. We began with a detailed discussion of Bayes' rule and its pivotal role in computing posterior probabilities for classification. We then examined two primary inference methods---Maximum A Posteriori (MAP) and Maximum Likelihood (ML)---and demonstrated how each approach is used to infer class labels based on the input features. 
+In this topic, we explored the fundamental aspects of generative classification. We began with a detailed discussion of Bayes' rule and its pivotal role in computing posterior probabilities for classification. We then examined two primary inference methods---Maximum A Posteriori (MAP) and Maximum Likelihood (ML)---and demonstrated how each approach is used to infer class labels based on the input features.
 
 Furthermore, we delved into the parameter estimation process for generative models, comparing MAP estimation, which incorporates prior information through a hyperprior, with MLE, which relies solely on the likelihood under the i.i.d.\ assumption. Finally, we discussed the concept of Bayes error, which quantifies the inherent classification uncertainty and establishes a theoretical lower bound on the error rate.
 

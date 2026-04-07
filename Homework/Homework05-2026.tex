@@ -1,0 +1,253 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+
+\title{CE 488/5588 Homework 05 - Concrete Strength Classification Using Machine Learning\\[2in]
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\date{}
+\maketitle
+
+\newpage
+\doublespacing
+
+\section{Introduction}
+
+This project extends the concepts introduced in Tutorials 04-A and 04-B on supervised classification using the UCI Concrete Compressive Strength dataset.
+
+You will implement and evaluate machine learning classifiers that distinguish between normal-strength concrete (NSC) and high-strength concrete (HSC). The project emphasizes both computational analysis and engineering interpretation.
+
+The tasks involve three stages:
+
+\begin{enumerate}
+\item Defining the classification problem and establishing a baseline model
+\item Training a more expressive classifier and evaluating its capability
+\item Performing external validation using your own designed concrete mixtures
+\end{enumerate}
+
+All implementations should be carried out using Python in a Google Colab environment.
+
+\section{Dataset and Classification Definition}
+
+The dataset used in this project is the UCI Concrete Compressive Strength dataset.
+
+Each sample includes mixture composition variables such as cement, slag, fly ash, water, and age, along with the measured compressive strength.
+
+You should define a binary classification label separating NSC and HSC.
+
+\subsection{Classification Threshold}
+
+In the tutorials, a nominal threshold of
+
+\[
+f'_c(28) = 40 \text{ MPa}
+\]
+
+was used.
+
+For this project, you may choose your own nominal threshold value for defining the classes.
+
+The classification rule should be written as
+
+\[
+y =
+\begin{cases}
+1 & f'_c(28) \le T \\
+0 & f'_c(28) > T
+\end{cases}
+\]
+
+where
+
+\begin{itemize}
+\item $T$ is your chosen threshold
+\end{itemize}
+
+Please briefly justify your chosen value of $T$.
+
+\section{Baseline Model}
+
+You should construct a baseline classifier using either
+
+\begin{itemize}
+\item Logistic regression, or
+\item Perceptron
+\end{itemize}
+
+\subsection{Model Description}
+
+Please briefly describe the model used, including
+
+\begin{itemize}
+\item the decision function
+\item the activation function
+\item the classification rule
+\end{itemize}
+
+\subsection{Training and Testing}
+
+Using a train-test split procedure, please report
+
+\begin{itemize}
+\item training accuracy
+\item testing accuracy
+\end{itemize}
+
+\subsection{Confusion Matrix}
+
+Please compute and report the confusion matrix for the testing dataset.
+
+From this matrix, you should compute the following performance measures:
+
+\begin{itemize}
+\item Accuracy
+\item Precision
+\item Recall
+\item F1 score
+\end{itemize}
+
+\section{Advanced Model}
+
+You should train a more expressive classifier using one of the following approaches:
+
+\begin{itemize}
+\item Multi-Layer Perceptron (MLP) with at least two hidden layers
+\item Support Vector Machine (SVM) with a nonlinear kernel
+\end{itemize}
+
+\subsection{Model Design}
+
+Please specify the model architecture or configuration.
+
+For an MLP, please describe
+
+\begin{itemize}
+\item number of hidden layers
+\item number of neurons per layer
+\item activation functions
+\end{itemize}
+
+For an SVM, please specify
+
+\begin{itemize}
+\item kernel type (e.g., polynomial or RBF)
+\item kernel parameters
+\item regularization parameter $C$
+\end{itemize}
+
+You should briefly explain your design choices.
+
+\subsection{Training and Testing Performance}
+
+Please compute and report the following metrics for the advanced model:
+
+\begin{itemize}
+\item training accuracy
+\item testing accuracy
+\item confusion matrix
+\item precision
+\item recall
+\item F1 score
+\end{itemize}
+
+\section{Classifier Capability Analysis}
+
+To evaluate classifier capability beyond simple accuracy, you should analyze performance across different classification thresholds.
+
+\subsection{ROC Curve}
+
+Please generate the ROC curve for both
+
+\begin{itemize}
+\item the baseline model
+\item the advanced model
+\end{itemize}
+
+Both curves should be plotted on the same figure.
+
+Please also compute the area under the curve (AUC).
+
+\subsection{Precision–Recall Curve}
+
+Please generate the precision–recall curve for both models and overlay them on the same figure.
+
+\subsection{Model Capability Comparison}
+
+You should compare the performance of the two models and discuss:
+
+\begin{itemize}
+\item Which model appears more capable?
+\item Does the nonlinear model improve classification performance?
+\item Are there trade-offs between precision and recall?
+\end{itemize}
+
+\section{External Validation Using Designed Mixtures}
+
+In this section, you will evaluate your trained model using concrete mixtures designed by yourself.
+
+\subsection{Designing Concrete Mixtures}
+
+Please design two concrete mixtures:
+
+\begin{itemize}
+\item one intended to produce normal-strength concrete (NSC)
+\item one intended to produce high-strength concrete (HSC)
+\end{itemize}
+
+For each mixture, please report:
+
+\begin{itemize}
+\item cement content
+\item water content
+\item supplementary cementitious materials
+\item aggregate quantities (if included)
+\item curing age
+\end{itemize}
+
+You should briefly explain the reasoning behind your mixture design.
+
+\subsection{Model Prediction}
+
+Using your trained classifier, please compute the predicted class for each designed mixture.
+
+Please report:
+
+\begin{itemize}
+\item predicted probability
+\item predicted class
+\end{itemize}
+
+\subsection{Engineering Interpretation}
+
+Please discuss whether the prediction aligns with your expected strength category.
+
+If discrepancies occur, please comment on possible reasons, such as
+
+\begin{itemize}
+\item limitations of the training dataset
+\item mixture variables not captured in the dataset
+\item uncertainty in the strength estimation model
+\end{itemize}
+
+\section{Project Deliverables}
+
+Please submit:
+
+\begin{itemize}
+\item a short report (PDF)
+\item the Colab notebook used for analysis
+\end{itemize}
+
+Your report should include:
+
+\begin{itemize}
+\item description of the classification threshold
+\item description of the baseline model
+\item description of the advanced model
+\item training and testing performance metrics
+\item ROC and PR curve comparisons
+\item mixture design and external validation results
+\item discussion and conclusions
+\end{itemize}
+\end{document}

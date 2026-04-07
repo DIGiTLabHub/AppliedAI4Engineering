@@ -1,0 +1,180 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,setspace}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{multicol,multirow}
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[cal=boondox]{mathalfa}
+
+% Define colors for lstlisting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+% First, add this in your preamble if not already done
+\usepackage{setspace}
+
+% Then, modify your lstlisting style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\normalsize\setstretch{1}, % set single spacing explicitly here
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,  
+    columns=flexible,         
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    literate={'}{{\textquotesingle}}1 {''}{{\textquotedbl}}2
+}
+
+\lstset{style=mystyle}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Your Document Title},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+\newcommand{\fullunderline}{\noindent\makebox[\linewidth]{\rule{\linewidth}{0.1pt}}\\[-2em]}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 08\\[2in]
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\date{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+
+\section*{Concept Questions}
+
+\noindent \textbf{Question 1}
+
+First, review the SVM model (Topic 06 notes) and the perceptron model (Topic 05) concepts. If the perceptron uses a hard activation function (a sign function), then a linear SVM and a perceptron both have the following functional form:
+\[
+m(\bm{x}) = f\bigl[u(\bm{x})\bigr] = \mathrm{sign}\bigl[u(\bm{x})\bigr]
+\]
+with
+\[
+u(\bm{x}) = \langle \bm{w}, \bm{x} \rangle + w_0,
+\]
+where $\bm{w}$ is the weight vector and $w_0$ is the bias (intercept) parameter.
+
+Discuss by listing a few points that differentiate a linear SVM from a perceptron in the binary classification case.
+
+\newpage
+\noindent \textbf{Question 2}
+
+Given a linear SVM, the loss function is defined as 
+\[
+h_i = \max\bigl[0,\, 1- u(\bm{x})\times y_i\bigr],
+\]
+where $u(\bm{x})$ is the decision function and $y_i$ is the true label of the data point $\bm{x}_i$. 
+
+\begin{itemize}
+    \item Plot manually the loss function $h_i(u)$ versus $u$. \textit{Hint: Discuss the two cases $y_i = 1$ and $y_i = -1$, with $u$ varying from, for example, $-3$ to $3$. You can first write it as a piece-wise function of $u$.}
+    
+    \item Then, summarize how the loss changes when $|u| \geq 1$ and when $|u| \leq 1$.
+\end{itemize}
+
+\newpage
+\noindent \textbf{Question 3}
+
+When using a polynomial kernel SVM, its kernel function is expressed as
+\begin{align*}
+  K(\bm{x}, \bm{x}_i) & = \langle \Phi(\bm{x}), \Phi(\bm{x}_i)\rangle\\[1mm]
+  & = \bigl(\langle \bm{x}, \bm{x}_i\rangle + 1\bigr)^d,
+\end{align*}
+where $d$ is the degree of the polynomial.
+
+To achieve this kernel, the transformed feature $\Phi(\bm{x})$ is mapped to a higher-dimensional space. If $\bm{x} \in \mathbb{R}^D$, then $\Phi(\bm{x}) \in \mathbb{R}^{D_k}$ with 
+\[
+D_k = \binom{D+d}{d}.
+\]
+
+Given this:
+\begin{itemize}
+    \item If $D = 2$ and $d = 2$, namely, a 2nd-order polynomial kernel is used for features in a 2-dimensional space, calculate $D_k$ to determine the dimension of the transformed space.
+    
+    \item Use ChatGPT or Gemini and prompt something like: 
+    \begin{quote}
+    ``In a polynomial kernel SVM, if the input feature is $\bm{x} = [x_1, x_2]^T$, and the kernel is $k(\bm{x}, \bm{x}') = (\langle \bm{x}, \bm{x}'\rangle + 1)^2$, i.e., using a 2nd-order polynomial kernel, what does the transformation mapping look like?''
+    \end{quote}
+    Report what you find and write out the transformed feature of $\bm{x} = [x_1, x_2]^T$:
+    \[
+    \Phi(\bm{x}) = ?
+    \]
+    
+\end{itemize}
+
+\newpage
+\section*{Programming Practice on SVMs}
+
+In this practice, we continue the class demonstration using the same \emph{concrete data} (please download the \href{https://umsystem.instructure.com/courses/280496/files/33240224?module_item_id=9853160}{class notebook file}) and further study the behavior of different SVM classifiers.
+
+First, please change the train-test split ratio; in this exercise, we will use $50\%$ of the data as the testing set (as follows).
+\begin{verbatim}
+X_train, X_test, y_train, y_test = ...
+train_test_split(X, y, test_size=0.5, random_state=107)
+\end{verbatim}
+
+The following tasks are to be completed:
+\begin{itemize}
+    \item Using a linear SVM (i.e., with \texttt{kernel='linear'} and $C=1$), report the confusion matrix and the overall accuracy on both the training and testing sets. Additionally, display the decision boundary and margin plots using the provided sample code.
+    
+    \item Using polynomial kernels, consider the following experimental matrix (where $d$ is the degree of the polynomial and $C$ is the regularization parameter):
+    % Please add the following required packages to your document preamble:
+    % \usepackage{booktabs}
+    % \usepackage{multirow}
+    \begin{table}[htb]
+    \centering
+    \begin{tabular}{|lc|ccc|}
+    \hline
+    \multicolumn{2}{|c|}{\multirow{2}{*}{\textit{OA}}} & \multicolumn{3}{c|}{$C$}                                 \\ \cline{3-5} 
+    \multicolumn{2}{|c|}{}                             & \multicolumn{1}{c|}{0.1} & \multicolumn{1}{c|}{1} & 10 \\ \hline
+    \multicolumn{1}{|l|}{\multirow{3}{*}{$d$}} & 2 & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} &  \\ \cline{2-5} 
+    \multicolumn{1}{|l|}{}             & 3             & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}  &    \\ \cline{2-5} 
+    \multicolumn{1}{|l|}{}             & 5             & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}  &    \\ \hline
+    \end{tabular}
+    \end{table}
+    
+    That is, you will consider nine combinations of hyperparameters; for example, $(C = 0.1,\, d = 2)$, $(C = 1,\, d = 2)$, etc.
+    
+    \begin{itemize}
+        \item For each combination of hyperparameters, report the overall accuracy (OA) on the testing data and fill in the table above.
+        \item Compared with the benchmark result from the first task (using a linear kernel with $C=1$), indicate which hyperparameter setting yields the best accuracy.
+        \item Based on the results, for a fixed $C$ (e.g., $C=1$ or $C=10$), does the accuracy of the model increase as $d$ increases? Also, for a fixed $d$, is there a consistent trend in model accuracy as $C$ varies from 0.1 to 10 across different $d$ values?
+    \end{itemize}
+
+\end{itemize}
+
+\end{document}

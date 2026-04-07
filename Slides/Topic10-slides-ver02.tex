@@ -1,0 +1,655 @@
+\documentclass[12pt]{beamer}
+\usepackage{../ceai-beamer}
+\usepackage{ragged2e}
+\AtBeginEnvironment{frame}{\justifying}
+
+\title{CE 488/5588: Applied AI}
+\subtitle{Topic 10: Generalization and Model Selection}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+% ==========================================================
+% Generalization
+% ==========================================================
+\section{Generalization}
+
+\begin{frame}{Why this topic matters}
+  \begin{conceptbox}{Core question}
+    The real objective of machine learning is not to score well on the data we already saw,
+    but to perform reliably on unseen data drawn from the same or similar conditions.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Apparent training or test success can be misleading when the split is small or lucky.
+    \item In engineering practice, labeled data are often expensive, limited, and noisy.
+    \item This makes \textbf{generalization} the central criterion for judging model quality.
+  \end{itemize}
+  \begin{warningbox}{ Yet, does it create a dilemma? }
+ Expecting a greater performance on unseen data (leading to higher generalization), but the data has not been collected.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Learning objectives}
+  \begin{itemize}
+    \item Explain what generalization means in supervised learning.
+    \item Distinguish underfitting and overfitting.
+    \item Understand why bias and variance pull in opposite directions.
+    \item Use re-sampling methods to estimate model performance more robustly.
+    \item Describe model selection through threshold tuning, hyperparameter tuning, and model comparison.
+    \item Summarize why ensemble methods often improve robustness.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A simple train-test split is not the whole story}
+  \begin{columns}[T]
+    \column{0.52\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth, font=\small, x=1cm, y=1cm]
+        \foreach \i in {0,...,8} {
+          \fill[blue!35] (0.55*\i,0) rectangle +(0.42,0.42);
+        }
+        \foreach \i in {9,10,11} {
+          \fill[orange!55] (0.55*\i,0) rectangle +(0.42,0.42);
+        }
+        \draw[thick, rounded corners] (-0.15,-0.15) rectangle (6.55,0.60);
+        \node[anchor=west] at (-0.1,0.95) {Finite labeled dataset $\mathcal{D}$};
+        \draw[->, thick] (2.2,-0.35) -- (2.2,-1.15);
+        \draw[->, thick] (5.7,-0.35) -- (5.7,-1.15);
+        \node[draw, rounded corners, fill=blue!8, minimum width=2.6cm, minimum height=0.8cm] (train) at (2.2,-1.65) {Train on $\mathcal{D}_{tr}$};
+        \node[draw, rounded corners, fill=orange!12, minimum width=2.6cm, minimum height=0.8cm] (test) at (5.7,-1.65) {Evaluate on $\mathcal{D}_{te}$};
+        \node[anchor=west, text width=6.1cm] at (-0.1,-2.55) {One lucky split can look strong even if performance changes on a different unseen holdout.};
+      \end{tikzpicture}
+    \column{0.44\textwidth}
+      \begin{itemize}
+        \item Typical supervised workflow trains on $\mathcal{D}_{tr}$ and evaluates on $\mathcal{D}_{te}$.
+        \item With finite data,
+          \[
+            \mathcal{D}=\{(\bm{x}_i,c_i)\mid i=1,\ldots,N\}
+          \]
+          must be partitioned.
+        \item Different splits can produce noticeably different estimates.
+        \item Large sensitivity to the split signals weak generalization.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{What is generalization?}
+  \begin{conceptbox}{Working definition}
+    Generalization is a model's ability to capture underlying patterns so that it remains effective
+    on unseen samples rather than merely memorizing the training set.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Good generalization means low error on future data from the same task distribution.
+    \item Poor generalization usually appears in two opposite failure modes:
+      \begin{itemize}
+        \item \textbf{Underfitting}: the model is too simple to capture the structure.
+        \item \textbf{Overfitting}: the model learns noise, accidental detail, or sampling quirks.
+      \end{itemize}
+  \end{itemize}
+  \bhref{https://see.stanford.edu/Course/CS229/53}{Stanford bias-variance}
+\end{frame}
+
+\begin{frame}{Underfitting vs. overfitting}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+      \begin{warningbox}{Underfitting}
+        \begin{itemize}
+          \item Model capacity is too low.
+          \item Training error stays high.
+          \item Test error is also high.
+          \item Important signal is missed.
+        \end{itemize}
+      \end{warningbox}
+    \column{0.48\textwidth}
+      \begin{warningbox}{Overfitting}
+        \begin{itemize}
+          \item Model capacity is too high for the available data.
+          \item Training error becomes very low.
+          \item Test performance deteriorates.
+          \item Noise is treated as signal.
+        \end{itemize}
+      \end{warningbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Generalization as a tradeoff}
+  \begin{columns}[T]
+    \column{0.50\textwidth}
+      \begin{itemize}
+        \item Bias and variance offer a useful lens for understanding model behavior.
+        \item \textbf{Bias}: error from oversimplifying the true relationship.
+        \item \textbf{Variance}: error from excessive sensitivity to sampled data.
+        \item Good generalization appears near the balance point, not at either extreme.
+      \end{itemize}
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth, font=\scriptsize, x=1cm, y=1cm]
+        \draw[->, thick] (0,0) -- (4.8,0) node[right] {Model complexity};
+        \draw[->, thick] (0,0) -- (0,3.4) node[above] {Error};
+        \draw[blue!70!black, thick, smooth] plot coordinates {(0.3,2.9) (1.1,2.2) (2.0,1.5) (3.0,1.0) (4.2,0.8)};
+        \draw[red!70!black, thick, smooth] plot coordinates {(0.3,0.5) (1.1,0.7) (2.0,1.0) (3.0,1.9) (4.2,3.0)};
+        \draw[black!75, very thick, smooth] plot coordinates {(0.3,2.2) (1.1,1.5) (2.0,1.0) (3.0,1.3) (4.2,2.2)};
+        \draw[dashed] (2.1,0) -- (2.1,1.0);
+        \node[blue!70!black, anchor=west] at (3.0,0.95) {bias};
+        \node[red!70!black, anchor=west] at (3.05,2.15) {variance};
+        \node[anchor=west] at (2.25,0.55) {best region};
+        \node[anchor=north] at (0.7,-0.2) {too simple};
+        \node[anchor=north] at (4.0,-0.2) {too complex};
+      \end{tikzpicture}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Bias-variance intuition}
+\vspace{-50pt}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.42\textwidth]{bias-variance-01.pdf}\hfill
+    \includegraphics[width=0.52\textwidth]{bias-variance-02.pdf}
+  \end{figure}
+  \vspace{-10pt}
+  \begin{itemize}
+    \item As complexity increases, bias usually decreases.
+    \item Past a certain point, variance rises quickly and hurts unseen-data performance.
+    \item The best model is usually near the minimum of validation or test error, not training error.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{How we improve generalization in practice}
+  \begin{itemize}
+    \item Four practical levers appear repeatedly:
+      \begin{itemize}
+        \item \textbf{Regularization}: constrain model complexity.
+        \item \textbf{Re-sampling}: estimate performance more robustly from limited data.
+        \item \textbf{Model selection}: choose thresholds, hyperparameters, or model families wisely.
+        \item \textbf{Ensembling}: combine multiple learners to reduce instability.
+      \end{itemize}
+    \item This topic emphasizes re-sampling, selection, and ensemble strategies.
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Re-sampling Methods
+% ==========================================================
+\section{Re-sampling Methods}
+
+\begin{frame}{Why re-sampling is needed}
+  \begin{itemize}
+    \item A single split wastes information when data are scarce.
+    \item Re-sampling reuses the available dataset to estimate performance more reliably.
+    \item It supports three practical goals:
+      \begin{itemize}
+        \item more robust performance measurement,
+        \item better detection of overfitting or underfitting,
+        \item more defensible model selection.
+      \end{itemize}
+  \end{itemize}
+  \bhref{https://scikit-learn.org/stable/modules/cross_validation.html}{sklearn cross-validation}
+\end{frame}
+
+\begin{frame}{K-fold cross-validation: idea}
+  \begin{conceptbox}{Main idea}
+    Partition the dataset into $K$ folds, train on $K-1$ folds, test on the remaining fold,
+    and repeat until every fold has served once as the validation fold.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Every sample is used for both training and validation, but not in the same iteration.
+    \item Typical choices are $K=5$ or $K=10$.
+    \item The reported score is usually the mean across folds, often with standard deviation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{K-fold cross-validation workflow}
+  \begin{columns}[T]
+    \column{0.58\textwidth}
+      \centering
+      \begin{tikzpicture}[font=\scriptsize, x=1cm, y=1cm]
+        \foreach \r/\hold in {0/1,1/2,2/3,3/4,4/5} {
+          \node[anchor=east] at (-0.15,-0.55*\r) {Fold \the\numexpr\r+1\relax};
+          \foreach \c in {1,...,5} {
+            \pgfmathsetmacro{\x}{0.72*(\c-1)}
+            \ifnum\c=\hold
+              \fill[orange!60] (\x,-0.55*\r-0.18) rectangle +(0.56,0.32);
+            \else
+              \fill[blue!35] (\x,-0.55*\r-0.18) rectangle +(0.56,0.32);
+            \fi
+            \draw (\x,-0.55*\r-0.18) rectangle +(0.56,0.32);
+          }
+        }
+        \node[draw, rounded corners, fill=blue!8, minimum width=1.2cm, minimum height=0.45cm] at (0.9,-3.1) {train};
+        \node[draw, rounded corners, fill=orange!15, minimum width=1.2cm, minimum height=0.45cm] at (2.6,-3.1) {validate};
+      \end{tikzpicture}
+    \column{0.38\textwidth}
+      \begin{itemize}
+        \item Split $\mathcal{D}$ into $K$ folds.
+        \item Hold out one fold at a time.
+        \item Train on the other $K-1$ folds.
+        \item Average the fold scores:
+          \[
+            \bar{s}=\frac{1}{K}\sum_{j=1}^{K}s_j
+          \]
+        \item Report both mean and variability.
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Why K-fold cross-validation helps}
+  \begin{itemize}
+    \item It reduces dependence on one arbitrary holdout split.
+    \item It exposes instability:
+      \begin{itemize}
+        \item large variance across folds suggests sensitivity to data selection,
+        \item consistently weak scores suggest underfitting or poor features.
+      \end{itemize}
+    \item It is widely used for hyperparameter tuning and model comparison.
+    \item Stratified variants are often preferred for imbalanced classification.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bootstrapping: idea}
+  \begin{columns}[T]
+    \column{0.54\textwidth}
+      \begin{conceptbox}{Sampling with replacement}
+        Bootstrapping repeatedly draws new datasets from the original dataset by sampling with replacement.
+      \end{conceptbox}
+      \begin{itemize}
+        \item Each bootstrap sample has the same nominal size as the original dataset.
+      \end{itemize}
+    \column{0.42\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth, font=\scriptsize, x=1cm, y=1cm]
+        \foreach \i/\label in {0/A,1/B,2/C,3/D,4/E} {
+          \node[draw, rounded corners, fill=blue!10, minimum width=0.55cm, minimum height=0.45cm] (o\i) at (0, -0.6*\i) {\label};
+        }
+        \foreach \i/\label/\src in {0/B/1,1/E/4,2/B/1,3/A/0,4/D/3} {
+          \node[draw, rounded corners, fill=green!10, minimum width=0.55cm, minimum height=0.45cm] (b\i) at (2.6, -0.6*\i) {\label};
+          \draw[->, thick] (o\src.east) -- (b\i.west);
+        }
+        \node[anchor=south] at (0,0.35) {Original data};
+        \node[anchor=south] at (2.6,0.35) {Bootstrap sample};
+      \end{tikzpicture}
+          \begin{itemize}
+        \item Some samples repeat; some are omitted.
+        \item Repeated fits estimate variability of the model or statistic.
+      \end{itemize}
+  \end{columns}
+  \bhref{https://www.stat.cmu.edu/~larry/=sml/Boot.pdf}{CMU bootstrap notes}
+\end{frame}
+
+\begin{frame}{Cross-validation vs. bootstrapping}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.25}
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{|p{2.1cm}|p{3.2cm}|p{3.2cm}|}
+    \hline
+    Method & Strengths & Caveats \\
+    \hline
+    K-fold CV & Non-overlapping validation folds; natural for model comparison; widely used in ML workflows & Can still be noisy on very small datasets; repeated training cost grows with $K$ \\
+    \hline
+    Bootstrap & Useful for estimating variability and uncertainty from limited data; reuses samples aggressively & Samples repeat with replacement; interpretation differs from fold-based validation \\
+    \hline
+  \end{tabular}
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Cross-validation is usually the default for model evaluation and tuning.
+    \item Bootstrapping is especially useful when distributional uncertainty is of interest.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Practical cautions for re-sampling}
+  \begin{warningbox}{Avoid leakage}
+    Any preprocessing learned from data -- scaling, feature selection, imputation, threshold tuning --
+    must be fit inside each training split, not on the full dataset ahead of time.
+  \end{warningbox}
+  \begin{itemize}
+    \item Leakage produces over-optimistic performance estimates.
+    \item Time-series, grouped, or spatial data often require specialized split strategies.
+    \item Re-sampling estimates model quality; it does not magically fix poor data quality.
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Model Selection
+% ==========================================================
+\section{Model Selection}
+
+\begin{frame}{Three model-selection scenarios}
+  \begin{itemize}
+    \item \textbf{Threshold selection}: choose the decision cutoff for turning scores into labels.
+    \item \textbf{Hyperparameter tuning}: choose values such as $C$, kernel width, depth, or layer count.
+    \item \textbf{Architecture selection}: choose among different model families or complexity levels.
+  \end{itemize}
+  \begin{conceptbox}{Common principle}
+    Every selection decision should be based on expected unseen-data performance rather than training fit alone.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Classification threshold selection}
+  \begin{columns}[T]
+    \column{0.50\textwidth}
+      \begin{itemize}
+        \item Many classifiers produce a score or estimated probability $P(c\mid\bm{x})$.
+        \item A hard decision is then made by thresholding that score.
+        \item The threshold determines the operating point of the classifier.
+        \item A threshold of $0.5$ is a convention, not a law.
+      \end{itemize}
+      \[
+        c =
+        \begin{cases}
+          1 & P(c\mid\bm{x}) \geq 0.5 \\
+          0 & P(c\mid\bm{x}) < 0.5
+        \end{cases}
+      \]
+    \column{0.46\textwidth}
+      \centering
+      \begin{tikzpicture}[>=Stealth, font=\scriptsize, x=1cm, y=1cm]
+        \draw[->, thick] (0,0) -- (4.9,0) node[right] {predicted score};
+        \foreach \x/\txt in {0/0.0,2.2/0.5,4.4/1.0} {
+          \draw (\x,0.08) -- (\x,-0.08) node[below] {\txt};
+        }
+        \draw[very thick, dashed, orange!90!black] (2.2,-0.7) -- (2.2,1.1);
+        \node[orange!90!black, anchor=west] at (2.3,1.0) {threshold};
+        \fill[red!60] (0.7,0.4) circle (0.09);
+        \fill[red!60] (1.3,0.7) circle (0.09);
+        \fill[red!60] (1.8,0.2) circle (0.09);
+        \fill[green!60!black] (2.7,0.55) circle (0.09);
+        \fill[green!60!black] (3.4,0.25) circle (0.09);
+        \fill[green!60!black] (4.1,0.75) circle (0.09);
+        \node[text=red!70!black] at (1.1,-0.45) {predict class 0};
+        \node[text=green!50!black] at (3.55,-0.45) {predict class 1};
+      \end{tikzpicture}
+  \end{columns}
+  \bhref{https://sklearn.org/stable/modules/classification_threshold.html}{sklearn threshold tuning}
+\end{frame}
+
+\begin{frame}{Why the threshold should depend on the application}
+  \begin{itemize}
+    \item Different applications attach different costs to false positives and false negatives.
+    \item Example: medical diagnosis
+      \begin{itemize}
+        \item false negative: miss a dangerous condition,
+        \item false positive: trigger follow-up testing or anxiety.
+      \end{itemize}
+    \item If missing a positive case is more severe, lower the threshold to increase recall.
+    \item If false alarms are very expensive, raise the threshold to improve precision.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ROC curves for threshold analysis}
+  \begin{itemize}
+    \item ROC tracks performance over all thresholds using:
+      \[
+        TPR=\frac{TP}{TP+FN}, \qquad FPR=\frac{FP}{FP+TN}.
+      \]
+    \item Each threshold gives one operating point.
+    \item Curves closer to the upper-left corner indicate better ranking behavior.
+    \item Area under the ROC curve (AUC) summarizes threshold-wide separability.
+  \end{itemize}
+  \bhref{https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc}{Google ROC/AUC}
+\end{frame}
+
+\begin{frame}{ROC visualization and reading}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.72\textwidth]{Topic08fig01.png}
+    \caption{ROC curve with threshold-dependent tradeoff and baseline.}
+  \end{figure}
+  \begin{itemize}
+    \item $AUC=1$ means perfect ranking; $AUC=0.5$ is random ranking.
+    \item ROC is useful when class distributions are reasonably balanced.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Precision-recall curves}
+  \begin{itemize}
+    \item PR curves focus directly on the positive class:
+      \[
+        Precision=\frac{TP}{TP+FP}, \qquad Recall=\frac{TP}{TP+FN}.
+      \]
+    \item They are especially informative when positive cases are rare.
+    \item A strong model keeps precision high while recall increases.
+    \item Use PR together with ROC when class imbalance matters.
+  \end{itemize}
+  \bhref{https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html}{sklearn PR curve}
+\end{frame}
+
+\begin{frame}{PR visualization and imbalance warning}
+  \begin{columns}[T]
+    \column{0.58\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{Topic08fig02.png}
+      \end{figure}
+    \column{0.38\textwidth}
+      \begin{warningbox}{Why PR matters}
+        \begin{itemize}
+          \item ROC can look strong when true negatives dominate.
+          \item PR exposes whether the retrieved positives are actually useful.
+          \item For rare-event detection, PR is often the more revealing curve.
+        \end{itemize}
+      \end{warningbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Hyperparameter tuning}
+  \begin{itemize}
+    \item Hyperparameters are design choices set by the user rather than learned directly from data.
+    \item Examples:
+      \begin{itemize}
+        \item logistic regression or SVM regularization parameter $C$,
+        \item kernel type and RBF width $\gamma$,
+        \item tree depth, number of estimators, network depth.
+      \end{itemize}
+    \item Hyperparameter tuning is a model-selection problem because different settings change model capacity.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A practical tuning workflow}
+  \begin{enumerate}
+    \item Choose a metric aligned with the application goal.
+    \item Define a candidate grid or search space for hyperparameters.
+    \item Evaluate each setting with cross-validation.
+    \item Compare mean score and variability across folds.
+    \item Retrain the selected setting on the full training set.
+    \item Report final performance on a held-out test set.
+  \end{enumerate}
+  \bhref{https://sklearn.org/stable/model_selection.html}{sklearn model selection}
+\end{frame}
+
+\begin{frame}{Choosing among different model architectures}
+  \begin{itemize}
+    \item Sometimes the decision is not just a parameter value but a whole model family:
+      \begin{itemize}
+        \item MLP vs. SVM,
+        \item decision tree vs. logistic regression,
+        \item shallow vs. deep models.
+      \end{itemize}
+    \item More flexible models can capture richer patterns but usually demand more data and stronger regularization.
+    \item Simpler models are easier to interpret and often more stable on small datasets.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Occam's razor and information criteria}
+  \begin{conceptbox}{Parsimony principle}
+    If multiple models explain the data similarly well, prefer the simpler one unless extra complexity
+    clearly improves expected performance.
+  \end{conceptbox}
+  \begin{itemize}
+    \item Probability-based criteria penalize complexity while rewarding fit.
+    \item Common examples: AIC, BIC, MDL, and Structural Risk Minimization (SRM).
+    \item In this course, these are awareness concepts rather than implementation details.
+  \end{itemize}
+  \bhref{https://sta210-s22.github.io/website/supplemental/model-selection-criteria.html}{AIC/BIC notes}
+\end{frame}
+
+% ==========================================================
+% Ensemble Models
+% ==========================================================
+\section{Ensemble Models}
+
+\begin{frame}{Why combine models?}
+  \begin{itemize}
+    \item Different models make different mistakes.
+    \item Combining them can reduce variance, improve robustness, and sometimes improve accuracy.
+    \item Ensemble thinking is especially attractive when no single architecture dominates consistently.
+  \end{itemize}
+  \begin{conceptbox}{Key intuition}
+    Weak or unstable learners can become stronger when aggregated appropriately.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Three major ensemble strategies}
+  \centering
+  \begin{tikzpicture}[>=Stealth, font=\scriptsize, x=1cm, y=1cm]
+    \node[font=\small\bfseries] at (1.6,2.1) {Bagging};
+    \node[draw, rounded corners, fill=blue!8, minimum width=1.0cm, minimum height=0.5cm] (bd) at (0.6,1.4) {data};
+    \foreach \y/\name in {1.8/b1,1.35/b2,0.9/b3} {
+      \node[draw, rounded corners, fill=green!10, minimum width=0.9cm, minimum height=0.45cm] (\name) at (1.7,\y) {model};
+      \draw[->] (bd.east) -- (\name.west);
+    }
+    \node[draw, rounded corners, fill=orange!12, minimum width=1.1cm, minimum height=0.55cm] (bv) at (3.0,1.35) {vote};
+    \foreach \name in {b1,b2,b3} {\draw[->] (\name.east) -- (bv.west);}
+
+    \node[font=\small\bfseries] at (6.0,2.1) {Boosting};
+    \node[draw, rounded corners, fill=blue!8, minimum width=0.9cm, minimum height=0.5cm] (xd) at (4.6,1.35) {data};
+    \node[draw, rounded corners, fill=green!10, minimum width=0.9cm, minimum height=0.45cm] (x1) at (5.7,1.35) {weak 1};
+    \node[draw, rounded corners, fill=green!10, minimum width=0.9cm, minimum height=0.45cm] (x2) at (6.9,1.35) {weak 2};
+    \node[draw, rounded corners, fill=green!10, minimum width=0.9cm, minimum height=0.45cm] (x3) at (8.1,1.35) {weak 3};
+    \draw[->] (xd.east) -- (x1.west);
+    \draw[->] (x1.east) -- node[above] {focus errors} (x2.west);
+    \draw[->] (x2.east) -- node[above] {focus errors} (x3.west);
+
+    \node[font=\small\bfseries] at (3.9,0.15) {Stacking};
+    \node[draw, rounded corners, fill=blue!8, minimum width=0.9cm, minimum height=0.5cm] (sd) at (1.0,-0.5) {data};
+    \foreach \x/\name/\label in {2.3/s1/base 1,3.6/s2/base 2,4.9/s3/base 3} {
+      \node[draw, rounded corners, fill=green!10, minimum width=0.95cm, minimum height=0.45cm] (\name) at (\x,-0.5) {\label};
+      \draw[->] (sd.east) -- (\name.west);
+    }
+    \node[draw, rounded corners, fill=orange!12, minimum width=1.2cm, minimum height=0.55cm] (meta) at (6.6,-0.5) {meta-model};
+    \foreach \name in {s1,s2,s3} {\draw[->] (\name.east) -- (meta.west);}
+  \end{tikzpicture}
+  \vspace{0.5em}
+  \begin{itemize}
+    \item Bagging averages parallel models, boosting refines mistakes sequentially, and stacking learns how to combine diverse predictors.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bagging, boosting, and stacking compared}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.2}
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{|p{1.8cm}|p{2.5cm}|p{2.7cm}|p{2.2cm}|}
+    \hline
+    Method & Training pattern & Main benefit & Typical example \\
+    \hline
+    Bagging & Parallel models on re-sampled data & Lower variance, better stability & Random forest \\
+    \hline
+    Boosting & Sequential learners focusing on errors & Stronger predictive accuracy & AdaBoost, gradient boosting \\
+    \hline
+    Stacking & Diverse base learners plus meta-learner & Learns how to combine strengths & Blended heterogeneous models \\
+    \hline
+  \end{tabular}
+  \vspace{0.4em}
+  \bhref{https://scikit-learn.org/stable/modules/ensemble.html}{sklearn ensembles}
+\end{frame}
+
+\begin{frame}{When ensembles help most}
+  \begin{itemize}
+    \item Complex datasets where no single model captures every pattern well.
+    \item High-variance learners whose predictions fluctuate with the sampled data.
+    \item Situations where robustness matters more than having one elegant model.
+  \end{itemize}
+  \begin{warningbox}{But not free}
+    \begin{itemize}
+      \item Ensembles increase computation and deployment complexity.
+      \item Interpretability often becomes harder.
+      \item If all component models make the same mistake, ensembling adds little value.
+    \end{itemize}
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Topic 10 big picture}
+  \begin{itemize}
+    \item Generalization is the ultimate target.
+    \item Re-sampling provides better evidence about expected unseen-data performance.
+    \item Model selection chooses the operating point, the hyperparameters, and sometimes the architecture.
+    \item Ensemble learning is a practical hedge against instability and single-model weakness.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A synthesis view of Topic 10}
+  \centering
+  \begin{tikzpicture}[>=Stealth, font=\scriptsize, x=1cm, y=1cm]
+    \node[draw, rounded corners, fill=blue!8, minimum width=2.6cm, minimum height=0.95cm, align=center] (goal) at (4.4,2.5) {Generalization\\on unseen data};
+
+    \node[draw, rounded corners, fill=green!10, minimum width=2.7cm, minimum height=0.95cm, align=center] (resample) at (1.5,1.0) {Re-sampling\\cross-validation, bootstrap};
+    \node[draw, rounded corners, fill=orange!12, minimum width=2.7cm, minimum height=0.95cm, align=center] (selection) at (4.4,1.0) {Model selection\\thresholds, hyperparameters, architecture};
+    \node[draw, rounded corners, fill=red!10, minimum width=2.7cm, minimum height=0.95cm, align=center] (ensemble) at (7.3,1.0) {Ensembling\\bagging, boosting, stacking};
+
+    \draw[->, thick] (resample.north) -- node[left, align=center] {estimate\\robustly} (goal.south west);
+    \draw[->, thick] (selection.north) -- node[right, align=center] {choose\\wisely} (goal.south);
+    \draw[->, thick] (ensemble.north) -- node[right, align=center] {stabilize\\predictions} (goal.south east);
+
+    \node[draw, rounded corners, fill=black!3, minimum width=2.6cm, minimum height=0.8cm, align=center] (biasvar) at (4.4,-0.55) {Bias-variance balance};
+    \draw[->, dashed, thick] (biasvar.north) -- (selection.south);
+    \draw[->, dashed, thick] (biasvar.north west) -- (resample.south east);
+    \draw[->, dashed, thick] (biasvar.north east) -- (ensemble.south west);
+  \end{tikzpicture}
+  \vspace{0.5em}
+  \begin{itemize}
+    \item The central workflow is: measure reliably, choose carefully, and combine models when stability or accuracy benefits justify the extra complexity.
+  \end{itemize}
+\end{frame}
+
+% ==========================================================
+% Conclusion Remarks
+% ==========================================================
+\section{Conclusion Remarks}
+
+\begin{frame}{Key takeaways}
+  \begin{itemize}
+    \item Strong training fit does not guarantee strong deployment behavior.
+    \item Underfitting and overfitting are best understood through bias-variance balance.
+    \item K-fold cross-validation and bootstrapping improve evaluation with limited data.
+    \item Threshold tuning, hyperparameter tuning, and architecture selection are all model-selection tasks.
+    \item Ensemble methods often improve robustness by combining complementary models.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Suggested workflow for practice}
+  \begin{enumerate}
+    \item Start with a simple baseline model.
+    \item Pick a metric tied to the application cost function.
+    \item Use cross-validation for tuning and comparison.
+    \item Inspect ROC and PR behavior when threshold choice matters.
+    \item Evaluate whether a simpler model is good enough before moving to an ensemble.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{References for further study}
+  \begin{itemize}
+    \item \bhref{https://see.stanford.edu/Course/CS229/53}{Stanford: Bias-Variance Tradeoff}
+    \item \bhref{https://scikit-learn.org/stable/modules/cross_validation.html}{scikit-learn: Cross-Validation}
+    \item \bhref{https://www.stat.cmu.edu/~larry/=sml/Boot.pdf}{CMU: Bootstrap Chapter}
+    \item \bhref{https://sklearn.org/stable/modules/classification_threshold.html}{scikit-learn: Threshold Tuning}
+    \item \bhref{https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc}{Google: ROC and AUC}
+    \item \bhref{https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html}{scikit-learn: PR Curves}
+    \item \bhref{https://sklearn.org/stable/model_selection.html}{scikit-learn: Model Selection}
+    \item \bhref{https://scikit-learn.org/stable/modules/ensemble.html}{scikit-learn: Ensemble Methods}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Q\&A}
+  \centering
+  Questions?
+\end{frame}
+
+\end{document}

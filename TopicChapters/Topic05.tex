@@ -1,50 +1,41 @@
 %% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
 
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath, amssymb, graphics, setspace}
-\usepackage{graphicx} 
-\usepackage{bm}
-\graphicspath{{./figs/}}
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-
-\newcommand{\mathsym}[1]{{}}
-\newcommand{\unicode}[1]{{}}
-
-\usepackage{tikz}
-\usepackage{subcaption}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-}
-
-\def\bm#1{\textbf{\em #1}}
+\usepackage{ceai} % Style file is in the project root.
+\graphicspath{{../figs/}}
 
 \begin{document}
 \doublespacing	
 
-\title{CE 401/5501: Applied Machine Learning\\ \large Topic 5: Introduction to Neural Networks}
-\author{Dr. ZhiQiang Chen}
+
+\title{CE 488/5588: Applied Machine Learning\\ \large Topic 5: Introduction to Neural Networks}
+\author{}
 \date{}
 \maketitle
 
 In this topic, we will learn another supervised model---the artificial neural network (ANN). The idea behind ANNs is one of the most profoundly meaningful machine learning methodologies in modern artificial intelligence. The first ANN---called the \textit{perceptron}---was invented in the late 1950s by Frank Rosenblatt, a psychologist at Cornell University. Since then, ANNs, as an essential branch of AI, have experienced both highs and lows. Thanks to advances in deep neural networks (DNNs) and the breakthrough of convolutional neural networks (CNNs) by Geoffrey Hinton and his students (2012), ANNs (including various versions of DNNs and CNNs) have re-ignited AI, leading to transformative developments and applications.
 
-\section{Neuron Cell and Perception}
-\begin{figure}[h]
+\noindent\textbf{Learning objectives.} After completing this topic, you should be able to:
+\begin{itemize}
+    \item Write a single-neuron (perceptron) model in vector form and interpret the roles of weights and bias.
+    \item Explain how common activation functions affect optimization (e.g., saturation/vanishing gradients, ``dying'' ReLUs).
+    \item Choose appropriate output-layer/activation and loss pairs for binary classification, multi-class classification, and regression.
+    \item Explain why a single linear decision boundary cannot solve XOR, and why hidden layers resolve this limitation.
+    \item Describe (at a high level) how backpropagation applies the chain rule to compute gradients efficiently.
+\end{itemize}
+
+\vspace{0.5em}
+\noindent\textbf{Terminology (to avoid common confusion).}
+\begin{itemize}
+    \item \textbf{Perceptron (classic):} a linear classifier with a hard threshold activation (step/sign) and the perceptron learning rule.
+    \item \textbf{Logistic regression (single neuron):} a linear model with a sigmoid output interpreted probabilistically, typically trained with cross-entropy.
+    \item \textbf{MLP:} a feedforward network with one or more hidden layers, trained via gradient-based methods/backpropagation.
+\end{itemize}
+
+\section{Neuron Cell and Perceptron}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.75\textwidth]{figs/Topic05fig01.png}
+    \includegraphics[width=0.75\textwidth]{Topic05fig01.png}
     \caption{Anatomy of a neural cell.}
     \label{topic05fig01}
 \end{figure}
@@ -58,11 +49,11 @@ Neural activities in any life form are very complex, and a complete understandin
 
 By understanding a neuron cell in this way, we can represent its mechanism through mathematical modeling. Specifically, we consider that $D$ values are transmitted to the synapse, denoted by 
 \[
-\bm{x} = [x_1, x_2, \cdots, x_D].
+    \bm{x} = [x_1, x_2, \cdots, x_D].
 \]
 After passing through the synapses, a weight is applied so that the signal becomes $w_i \cdot x_i$. The cell body aggregates these weighted signals (possibly adding an extra term), which is written as 
 \[
-u(\bm{x}) = \sum_{i = 1}^{D} w_i \cdot x_i + b.
+    u(\bm{x}) = \sum_{i = 1}^{D} w_i \cdot x_i + b.
 \]
 Effectively, $u(\bm{x})$ defines a linear hyperplane function with intercept $b$. This linear summation is then transformed nonlinearly by an activation function $f(\cdot)$, which is written as 
 \begin{equation}
@@ -79,13 +70,13 @@ The resulting value is then transmitted as a response signal, $y$, to the next n
 \centering
 \begin{subfigure}[b]{0.5\textwidth}
     \centering
-    \includegraphics[width=1\textwidth]{figs/Topic05fig02.png}
+    \includegraphics[width=1\textwidth]{Topic05fig02.png}
     \caption{}
     \label{t05fig02}
 \end{subfigure}
 \begin{subfigure}[b]{0.5\textwidth}
     \centering
-    \includegraphics[width=1\textwidth]{figs/Topic05fig03.png}
+    \includegraphics[width=1\textwidth]{Topic05fig03.png}
     \caption{}
     \label{t05fig03}
 \end{subfigure}
@@ -128,7 +119,7 @@ With a perceptron parameterized by a weight vector \(\bm{w}\), once \(\bm{w}\) i
 
 An activation function that directly produces a classification label is called a \textit{hard-activation} function. Note that the sign function and the Heaviside function are essentially equivalent since \(2\,f_h(u)-1=f_s(u)\). However, hard-activation functions are not differentiable. An alternative is to use the standard logistic (sigmoid) function:
 \[
-f(u) = \frac{1}{1+\exp(-u)},
+    f(u) = \frac{1}{1+\exp(-u)},
 \]
 which is continuous and differentiable; such activations are called \textit{soft-activation} functions.
 
@@ -214,30 +205,31 @@ Thus, estimating the model parameter vector \(\bm{w}\) becomes an optimization p
     \label{t05eq08}
 \end{equation}
 
-While logistic regression yields a convex optimization problem, the optimization for a perceptron is not necessarily convex.
+While logistic regression yields a convex optimization problem, the optimization for a perceptron is not necessarily convex.\footnote{In the presentation above, we effectively used an $L_1$ (absolute-difference) loss to measure prediction error. In modern neural networks (e.g., MLPs), it is common to use an $L_2$ loss (squared error), i.e., to square the absolute difference, which yields a smooth objective that is convenient for gradient-based optimization.}
 
 \subsection{Solution to the Perceptron}
 The perceptron’s goal is to find a separating hyperplane if one exists. The algorithm iteratively adjusts the weights based on misclassified examples without explicitly calculating the gradient over the entire dataset. Note that the loss surface as a function of \(\bm{w}\) is non-convex.
 
 The good news is that if the training data \(\mathcal{D}\) is \textit{separable} and a hard-activation function is used, then a global solution always exists (i.e., the iterative process converges, as has been classically proven). The bad news is that many global loss-minimizing solutions exist—in this case, for separable data, the minimum loss is zero for all solutions. Such a simple perceptron with hard-activation has been classically described as a logical-gate operator; in fact, a perceptron can realize logical operators such as `AND', `OR', and `NOR'. Fig.~\ref{t05fig04a} illustrates the 'AND' gate.
-% \begin{figure}[h]
+% \begin{figure}[ht]
 % \centering
 % \begin{subfigure}[b]{0.45\textwidth}
 %     \centering
-%     \includegraphics[width=1\textwidth]{figs/Topic05fig04a.png}
+%     \includegraphics[width=1\textwidth]
+% Topic05fig04a.png
 %     \caption{}
 %     \label{t05fig04a}
 % \end{subfigure}
 % \begin{subfigure}[b]{0.45\textwidth}
 %     \centering
-%     \includegraphics[width=1\textwidth]{figs/Topic05fig04b.png}
+%     \includegraphics[width=1\textwidth]{Topic05fig04b.png}
 %     \caption{}
 %     \label{t05fig04b}
 % \end{subfigure}
 % \caption{Decision boundary for (a) separable data points and (b) non-separable data points. For non-separable data, a nonlinear decision boundary is necessary.}
 % \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[ht]
 \centering
 \begin{subfigure}[b]{0.45\textwidth}
   \centering
@@ -299,9 +291,10 @@ To enhance the capacity of a perceptron, one stacks multiple perceptrons to form
 An MLP is a form of artificial neural network (ANN) known as a feedforward neural network (FF-NN). FF-NNs are characterized by a network of neurons arranged as a directed acyclic graph, where data is transmitted from the input layer to the output layer and full connections are not necessary. An MLP is a specific type of fully connected FF-NN that has one or more hidden layers between the input and output layers. Each neuron in a hidden layer receives input from the previous layer and passes its output to the next layer. More specific FF-NN's exist, such as the radial-basis ANN\footnote{A radial-basis neural network (RB-NN) has three layers, including one hidden layer, and uses a radial basis function as its activation function.}. By extending an MLP, one can construct an ANN with tens to hundreds of layers, known as a deep neural network (DNN). Recent advances in AI have largely focused on DNNs.
 
 The architecture of an MLP is illustrated in Fig.~\ref{t05fig05}.
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=1\textwidth]{figs/Topic05fig05.png}
+    \includegraphics[width=1\textwidth]
+    {Topic05fig05.png}
     \caption{Decision boundary for (a) separable data points and (b) non-separable data points. For non-separable data, a nonlinear decision boundary is necessary.}
     \label{t05fig05}
 \end{figure}
@@ -315,15 +308,15 @@ Suppose the input feature \(\bm{x}\) is a \(D\)-dimensional vector (e.g., \(D=3\
 \end{itemize}
 In general, we denote the weight connecting the \((l-1)^\text{th}\) layer to the \(l^\text{th}\) layer as \(w_{j,k}^{(l)}\). Furthermore, at the \(l^\text{th}\) layer (excluding the input layer), an activation function \(f^{(l)}(\cdot)\) is applied. For the three-layer MLP in Fig.~\ref{t05fig05}, using a compact inner-product notation, the operation between the \((l-1)^\text{th}\) and \(l^\text{th}\) layers is repeated \(m_l\) times, and the aggregation can be represented as a matrix-vector product. Define
 \[
-\bm{W}^{(l)} = \{w_{j,k}^{(l)}\}.
+    \bm{W}^{(l)} = \{w_{j,k}^{(l)}\}.
 \]
 The aggregation from the \((l-1)^\text{th}\) layer to the \(l^\text{th}\) layer is then
 \[
-\bm{W}^{(l)} \bm{x} \quad \text{(if the \((l-1)^\text{th}\) layer is the input layer)}
+    \bm{W}^{(l)} \bm{x} \quad \text{(if the \((l-1)^\text{th}\) layer is the input layer)}
 \]
 or
 \[
-\bm{W}^{(l)} \bm{f}^{(l-1)} \quad \text{(if the \((l-1)^\text{th}\) layer is a hidden layer)}.
+    \bm{W}^{(l)} \bm{f}^{(l-1)} \quad \text{(if the \((l-1)^\text{th}\) layer is a hidden layer)}.
 \]
 
 Thus, for a three-layer MLP, the output can be written as:
@@ -343,7 +336,7 @@ L = \sum_i \left|  f^{(3)}\Bigl( {\bm{W}^{(3)}}^T f^{(2)}\bigl( {\bm{W}^{(2)}}^T
 \end{equation}
 and if we denote the prediction vector and true label vector as \(\bm{y}\) and \(\bm{y}^*\) respectively, then the loss can be written compactly as
 \[
-L = \|\bm{y} - \bm{y}^*\|^2.
+    L = \|\bm{y} - \bm{y}^*\|^2.
 \]
 In gradient descent procedures to minimize \(L\), the gradient with respect to each weight matrix \(\bm{W}^{(l)}\) is determined using the chain rule, propagating the error backward from the final layer to the first hidden layer. This is why the algorithm is called backpropagation. (Many excellent online resources cover these details; see, e.g., \href{http://neuralnetworksanddeeplearning.com/chap2.html}{this resource}.)
 
@@ -380,7 +373,7 @@ Many other types of ANNs exist in modern AI literature. The classic ones include
 
 \newgeometry{margin=1cm} % Modify this if you need even more space
 \begin{landscape}
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{|p{3cm}|p{8cm}|p{5cm}|p{5cm}|}
 \hline
@@ -410,6 +403,8 @@ Feedforward Neural Network (FNN) & A broad category of neural networks in which 
 
 
 \newgeometry{margin=1in} 
+\doublespacing	
+
 \section{Conclusion}
 In this topic, we explored the fundamental building blocks of artificial neural networks, starting with the perceptron model and its biological inspirations. We examined various activation functions and loss models, and discussed the limitations of single-layer perceptrons for complex, non-separable data. The transition to multi-layer perceptrons (MLPs) was shown as a natural extension to enhance model capacity through additional hidden layers and nonlinear transformations, leading to the powerful deep neural networks used in modern AI. This foundation sets the stage for further exploration of advanced neural architectures and training algorithms in subsequent topics.
 

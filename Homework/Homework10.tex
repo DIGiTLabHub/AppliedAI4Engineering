@@ -1,0 +1,150 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 10\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\noindent Please review lecture notes:
+\begin{itemize}
+    \item \href{https://umsystem.instructure.com/courses/280496/files/33698586?module_item_id=9919505}{Topic 8}: Generative Learning
+    \item \href{https://umsystem.instructure.com/courses/280496/files/33699788?module_item_id=9919650}{Topic 10}: Generalization and model selection 
+\end{itemize}
+
+complete the following concept understanding questions:
+
+\noindent \pmb{Q1} \\
+Given two random variables $x$ and $c$ that $x$ is feature with $x\in \mathbb{R}$ and $c \in \{A1, A2, A3\}$ is a categorical variable. The following priors are known:
+\begin{align*}
+    P(A1) & = 0.1 \\
+    P(A2) & = 0.3 \\
+    P(A3) & = 0.6
+\end{align*}
+
+\begin{itemize}
+    \item Given these priors, attempt to write out all the possible inference equations, i.e., the maximum a posteriori (MAP) expression. 
+
+For example, we have the first one:
+\[
+P(A1 | x) \propto p(x|A1) \times 0.1 = 0.1 p(x|A1)
+\]
+Write out the other two.
+
+\item Suppose we know the true distributions for the likelihood functions, which all follow an Exponential distribution 
+\[
+p(x|c) = \lambda e^{-\lambda x}
+\]
+with if $c = A1$, $\lambda = 0.5$; if $c = A2$, $\lambda = 1.0$; and if $c = A3$, $\lambda = 1.5$, plot all the resulting MAP expressions in one plot. 
+
+\item Then suppose we have three measurements: $x = 0.5$, $x = 1$, and $x = 2$, can you decide the class labels for the three measurements?
+\end{itemize}
+
+
+\newpage
+\noindent \pmb{Q2} \\
+In this problem, we will do the practice example again as we did in class with some modifications (see Topic 8 notes).
+
+Again we monitor the direct vertical loads from passing vehicles on a bridge. Based on engineering judgment, we assume that the loads follow different uniform distributions for two vehicle types:
+
+\begin{itemize}
+    \item \textbf{Car (class 0):} The load follows a uniform distribution 
+    \[
+    X \sim U(a,\, 2a+1).
+    \]
+    \item \textbf{Pickup Truck (class 1):} The load follows a uniform distribution 
+    \[
+    X \sim U(2a,\, 3a+2).
+    \]
+\end{itemize}
+
+We observe the following data:
+\[
+\{(2, 0),\, (3, 0),\, (4, 0/1),\, (4, 1),\, (5, 1)\},
+\]
+where the first entry is the measured load and the second entry indicates the vehicle type (with 0 for a car and 1 for a pickup truck).
+
+Yet, there is a `glitch' in that at the third data point, the observer (maybe through a camera) does not recognize whether the vehicle is a car or a truck. Given such uncertainty and since we have considered the case that it is a car ('0'), let's assume that it could be a pickup truck (`1').
+
+\begin{itemize}
+    \item Follow the class example process, do it again, and determine the resulting total likelihood and the estimate to the parameter $a$.
+    \item With the estimate of $a$, calculate the total likelihood from the two cases, namely assuming it is a car and it is a pickup truck. By comparing the total likelihood values, which scenario is more reliable?
+    \item In class, we consider, which is a strong assumption, equal priors, namely 
+    \begin{align*}
+    P(`car') & = P(0) = 0.5 \\
+    P(`pickup') &= P(1) = 0.5
+    \end{align*}
+
+If we keep this strong assumption, does it change Baye's error rate?
+
+What if we consider the reality (the evidence of five observations we have), considering the two scenarios among the five observations:
+\begin{itemize}
+\item if it is a car:
+  \begin{align*}
+    P(`car') & = P(0) = \frac{3}{5} \\
+    P(`pickup') &= P(1) = \frac{2}{5}
+    \end{align*}
+\item if it is a pickup
+  \begin{align*}
+    P(`car') & = P(0) = \frac{2}{5} \\
+    P(`pickup') &= P(1) = \frac{3}{5}
+    \end{align*}
+\end{itemize}
+Does it modify the underlying Baye's error rate?
+    
+\end{itemize}
+
+\newpage
+\noindent \pmb{Q3} \\
+Regarding the generalization performance of a classification model (Topic 10), denoted as 
+\[
+m(c|\bm{x}, \bm{w}, \alpha)
+\]
+which outputs the class label given an input $\bm{x}$, where $\bm{w}$ is the model weight vector and $\alpha$ is a hyperparameter (e.g., the $C$ parameter in an SVM or a threshold in an MLP (at the last layer to threshold the sigmoid output, in general, it is 0.5 but it could be selected differently). 
+
+Select from the following statements which one is very likely not correct.
+
+\begin{enumerate}
+    \item A model that underfits the training data typically exhibits high bias and low variance, leading to poor performance on both training and testing datasets.
+    \item A model that overfits the training data has a low bias but high variance, resulting in an excellent performance on training examples while performing poorly on unseen data.
+    \item Increasing the model complexity, such as by adding more parameters or hidden units, always improves a model's ability to generalize to unseen data.
+    \item Using cross-validation guarantees that the selected hyperparameters will deliver optimal and flawless performance on any new unseen data.
+    \item In support vector machines, choosing a very high value for the parameter \( C \) forces the model to aggressively minimize training errors, which can lead to a complex decision boundary and an increased risk of overfitting.
+    \item For generative models based on Bayes’ rule, even with a large amount of training data, poor model assumptions or insufficient model complexity can result in underfitting.
+    \item Overfitting occurs when a model learns not only the underlying pattern but also the noise inherent in the training data, leading to degraded performance on new, unseen examples.
+    \item Achieving good generalization in classic machine learning models requires balancing the bias-variance trade-off through careful model selection, hyperparameter tuning, and appropriate regularization.
+\end{enumerate}
+
+
+
+\end{document}

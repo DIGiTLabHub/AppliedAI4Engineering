@@ -1,385 +1,368 @@
 %% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
 
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath, amssymb, graphics, setspace}
-\usepackage{graphicx} \graphicspath{ {./figs/} }
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-\newcommand{\mathsym}[1]{{}}
-\newcommand{\unicode}[1]{{}}
-
-\usepackage[english]{babel}
-\newtheorem{theorem}{Theorem}
-
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-    }
-
-\def\mathbi#1{\textbf{\em #1}}
+\usepackage{ceai} % Style file is in the project root.
+\graphicspath{{../figs/}}
 
 \begin{document}
-\doublespacing	
+\doublespacing
 
-\title{CE 401/5501: Applied AI \\ \large Topic 11: Supervised ML for Regression}
-\author{Dr. ZhiQiang Chen}
+\title{CE 488/5588: Applied AI \\ \large Topic 11: Supervised ML for Regression}
+\author{}
 \date{}
 \maketitle
 
-\section{Regression or Data-fitting Problems}
-Given a dataset of $N$ points, where each point consists of an $m$-dimensional column vector $\mathbf{x} = (x_1, x_2, \dots, x_m)^T$ and a scalar target value $y$, which relates to the vector variable $\mathbf{x}$. As in our previous classification topics, the data set can be expressed as
+In the previous topics, we studied supervised learning mainly through classification, where the goal is to assign an input to one of several categories. We are now in a position to examine the other major supervised-learning setting: regression. The learning pipeline remains the same -- features, labeled data, training, validation, and testing -- but the target changes. Instead of predicting a class label, we predict a numerical quantity. For engineers, this shift is essential because many practical tasks are naturally continuous: estimating settlement, forecasting electrical load, predicting traffic speed, inferring material strength, or approximating the response of a physical system.
+
+This chapter focuses on supervised machine learning for regression. We begin with linear regression because it provides the clearest mathematical setting for defining residuals, objective functions, and least-squares estimation. We then briefly introduce regularized linear regression, which helps when the design matrix is poorly conditioned or when overfitting becomes a concern. After that, we extend the discussion to nonlinear regression using Multi-Layer Perceptrons (MLPs) and Support Vector Regression (SVR). Finally, we show how time-series prediction can also be framed as a supervised regression problem by constructing lag-based features from past observations.
+
+By the end of this chapter, you should be able to:
+\begin{itemize}
+    \item explain how regression fits within the supervised-learning framework and how it differs from classification;
+    \item formulate linear regression in scalar and vectorized forms using residual-based objectives;
+    \item derive the least-squares solution, interpret the role of the design matrix, and explain why regularization can improve stability;
+    \item evaluate regression models using common error metrics such as MAE, MSE, RMSE, and $R^2$;
+    \item describe how MLPs and SVR perform nonlinear regression; and
+    \item explain how time-series prediction can be cast as a supervised regression problem using lag features.
+\end{itemize}
+
+\section{Regression as Supervised Prediction}
+
+Let the dataset be
 \[
-\mathcal{D} = \{ (\mathbf{x}_i, y_i) | i = 1, 2, \cdots, N\}
+\mathcal{D} = \{(\mathbf{x}_i, y_i) \mid i = 1,2,\ldots,N\},
 \]
-Compared with the previous dataset for supervised learning, the target variable $y$ is not categorical, and in general, it is Real valued. 
+where $\mathbf{x}_i \in \mathbb{R}^m$ is the feature vector for sample $i$ and $y_i \in \mathbb{R}$ is the corresponding target value. In regression, the learning task is to estimate a function
+\[
+\hat{y} = f(\mathbf{x})
+\]
+that maps features to a real-valued output.
 
-\subsection{Problem Definition: Linear Regression}
+Compared with classification, the main change is not the training pipeline but the meaning of the output. In classification, small changes in a score may or may not change the final label. In regression, the predicted value itself matters, so the size of the numerical error becomes central.
 
-In the following, we formulate the problem in the classic linear regression context. For this task, we want to fit the data with a linear model using the following form:
+\subsection{Linear Regression Model}
 
+We begin with the classical linear regression model:
 \begin{equation}
-f(\mathbf{x}) = a_1 x_1 + a_2 x_2 + \cdots + a_m x_m + a_0
-\label{p03t08eq01}
+f(\mathbf{x}) = a_1x_1 + a_2x_2 + \cdots + a_mx_m + a_0,
+\label{eq:topic11-linear-model}
 \end{equation}
-which is a hyperplane defined in a space of $\mathbb{R}^{m+1}$, where $a_i$'s define the linear coefficients and $a_0$ is an intercept. 
+where $a_1,\ldots,a_m$ are the slope coefficients and $a_0$ is the intercept. Geometrically, this model defines a hyperplane in feature space.
 
-To estimate the model, more specifically to estimate $a_i$'s from the data, the basic approach is called the least-square estimation method. In the following, we formulate the LSE using two ways: (1) scalar formulation; and (2) vectorized formulation. The former provides understanding to the latter.
+Even when the final model used in practice is nonlinear, linear regression remains important because it introduces the core ideas of prediction, residuals, optimization, and model evaluation in the simplest possible setting.
 
-\subsection{Scalar Formulation}
-The LSE starts with defining the error of the prediction. The general principle for regression modeling is that an objective function is defined, which is often based on the errors, in terms of the modeling parameters. In this case we define $\mathbf{x}_j$ being the measured $j^{th}$ vector, $y_j$ the $j^{th}$ measured output, and $\bar{y}_j$ is the model prediction from the function model in Eq.~\ref{p03t08eq01}, $\bar{y}_j = f(\mathbf{x}_j)$. 
+\subsection{Residuals and Scalar Objective Functions}
 
-First, an individual error at the $j^{th}$ point is defined:
+For sample $i$, let
 \[
-\begin{split}
-e_j & = y_j - \bar{y}_j \\
-    & = y_j - f(\mathbf{x}_j)
-\end{split}
+\hat{y}_i = f(\mathbf{x}_i)
 \]
+denote the model prediction. The residual (prediction error) is
+\begin{equation}
+e_i = y_i - \hat{y}_i = y_i - f(\mathbf{x}_i).
+\end{equation}
 
-We can can tell this error can be either negative and positive. Fig.~\ref{part03topic08fig01} illustrates this assuming $\mathbf{x}$ is a 1-D variable.
+When $\mathbf{x}$ is one-dimensional, the residual is the vertical distance between a data point and the fitted line, as illustrated in Fig.~\ref{fig:topic11-linear-regression}.
 
-\begin{figure}
+\begin{figure}[t]
 \centering
-\includegraphics[scale=0.5]{figs/part03topic08fig01.png}
-\caption{Linear regression illustration.}
-\label{part03topic08fig01}
+\includegraphics[width=0.52\textwidth]{part03topic08fig01.png}
+\caption{Illustration of residuals in linear regression.}
+\label{fig:topic11-linear-regression}
 \end{figure}
 
-
-The question is to how to combine all errors from all data points? Apparently, if we keep the error expression above, errors can be cancelled out as they are either positive or negative. There are two ways to accumulate errors.
-\begin{enumerate}
-    \item [(1)] SAE: Sum up using the absolute of the errors.
-    \item [(2)] SSE: Sum up using the squares of the errors. 
-\end{enumerate}
-Corresponding to the two schemes we have:
-\begin{equation}
-E1(\mathbf{a}) = \sum_{j = 1}^N |y_j - f(\mathbf{x}_j)| 
-\label{p03t08eq02}
-\end{equation}
-\begin{equation}
-E2(\mathbf{a})= \sum_{j = 1}^N |y_j - f(\mathbf{x}_j)|^2
-\label{p03t08eq03}
-\end{equation}
-where $E1$ and $E2$ are functions of the model parameters $\mathbf{a} = (a_1, a_2, \cdots, a_m, a_0)$.
-
-With the total errors defined above, they provide the objective function for estimating the regression model parameters $\mathbf{a}$. The common scheme is to minimize either the SAE or SSE above, which is to find $\mathbf{a}$ that minimizes the objective function. 
-\begin{equation}
-\hat{\mathbf{a}} = \arg_{\mathbf{a}} E(\mathbf{a})
-\label{p03t08eq04}
-\end{equation}
-
-It is not straightforward, however, to tell which total error form (SSE or SAE) is better or which one has advantages over the other one. To illustrate this, we assume that only one data points are available ($N = 2$), and $\mathbf{x} = x$ being a 1-D vector variable. With these conditions, the total errors can be written as:
+To estimate the coefficients, we need an objective function that aggregates residuals over all $N$ samples. Two common choices are:
+\begin{itemize}
+    \item the \textbf{sum of absolute errors (SAE)}
+    \begin{equation}
+    E_1(\mathbf{a}) = \sum_{i=1}^N |y_i - f(\mathbf{x}_i)|,
+    \end{equation}
+    \item the \textbf{sum of squared errors (SSE)}
+    \begin{equation}
+    E_2(\mathbf{a}) = \sum_{i=1}^N (y_i - f(\mathbf{x}_i))^2,
+    \end{equation}
+\end{itemize}
+where
 \[
-E1(a_1, a_0) = |y_1 - a_1 x_1 - a_0|
+\mathbf{a} = [a_1, a_2, \ldots, a_m, a_0]^T
 \]
-\[
-\begin{split}
-    E2(a_1, a_0) &= (y_1 - a_1 x_1 - a_0)^2\\
-    & = y_1^2 - 2y_1a_1x_1 - 2y_1a_0 + a_1^2x_1^2 + 2a_1a_0*x_1 + a_0^2
-\end{split}
-\]
-We see that the SSE can be expanded, which gives out a second-order or quadratic form in terms of the model parameters $a_1$ and $a_0$. Upon this, from our basic algebraic knowledge, we know that SSE can be minimized with a unique solution by taking the derivatives of $E2$ with respect to $a_1$ and $a_0$ respectivley, and set them equal to zero to solve for $a_1$ and $a_0$. Hence, $a_1$ and $a_0$ are solved directly (e.g., with using iterative procedures by starting with guess values to $a_1$ and $a_0$).
+collects all model parameters.
 
-More formally, we state that the SSE as an objective function is convex (more specifically, it is quadratic). What about the SAE objective function $E1(a_1, a_0)$? We will state that it is still convex (as we can tell from plotting the function of $|a|$); however, there are derivatives (gradient) defined with respect to the vector of $(a_1, a_0)$ . A more specific programming algorithm needs to be used for solving this convex programming problem \footnote{Minimization of SAE is a linear programming problem, which can be solved using standard optimization techniques such as simplex method or interior point methods. A basic process of writing the linear constraints is involved in both methods.}. 
-
-In the following, we will adopt the SSE approach to modeling the objective function. As a matter of fact, by minimizing an SSE objective, it is to obtain the least of squared errors, which is called a least-square (LS) problem. The process to estimate a model parameter is then called a least-square-estimation (LSE) process. 
-
-By using the vectorized notations, we are meant to generalize the process above by considering $\mathbf{x}$ as a vector, and we will introduce a set of notations, and utilize vector calculus to estimate the modeling parameters directly due to the quadratic nature as illustrated above. 
-
-\subsection{Vectorized Formulation: L-1 Norm and L-2 Norm}
-The vectorized formulation starts with rewriting the linear model in Eq.~\ref{p03t08eq01}. In the following, we will take the following conversion: (1) Introduce $a_{m+1}$ and let $a_{m+1}$ as the intercept variable; and (2) introduce an augmented constant and treated as $x_{m+1}$; and (3) use the inner product operation by defining 
-\[
-\mathbf{a} = [a_1, a_2, \cdots, a_{m+1}]^T
-\]
-\[
-\mathbf{x} = [x_1, x_2, \cdots, x_{m+1}]^T
-\]
-
+The parameter-estimation problem is then
 \begin{equation}
-\begin{split}
-f(\mathbf{x}) & = a_1 x_1 + a_2 x_2 + \cdots + a_m x_m + a_0 \\
-              & = a_1 x_1 + a_2 x_2 + \cdots + a_m x_m + a_{m+1} \cdot 1 \\
-              & = a_1 x_1 + a_2 x_2 + \cdots + a_m x_m + a_{m+1} x_{m+1} \\
-              & = <\mathbf{x}, \mathbf{a}>
-\end{split}
-\label{p03t08eq05}
+\hat{\mathbf{a}} = \underset{\mathbf{a}}{\operatorname{argmin}}\; E(\mathbf{a}).
 \end{equation}
 
-With this nation, the previous total error definitions (as objective functions) in Eq.~\ref{p03t08eq02} and Eq.~\ref{p03t08eq03} become:
+Both objectives are meaningful, but they emphasize errors differently:
+\begin{itemize}
+    \item SAE is less sensitive to large outliers because the penalty grows linearly with error magnitude.
+    \item SSE penalizes large errors more strongly because the penalty grows quadratically.
+\end{itemize}
 
-\begin{equation}
-\begin{split}
-E1(\mathbf{a}) & = \sum_{j = 1}^N |y_j - <\mathbf{x}_j, \mathbf{a}>| \\
-               & = \sum_{j = 1}^N |y_j - \mathbf{x}_j^T \mathbf{a}|
-\end{split}
-\label{p03t08eq06}
-\end{equation}
+For least-squares regression, the squared-error form is especially attractive because it is smooth and leads to a closed-form solution when the model is linear in its parameters. By contrast, the absolute-value objective is convex but not differentiable at zero, so it is typically solved with more specialized optimization methods. In the following, we adopt the squared-error form because it leads naturally to the normal-equation solution.
 
-\begin{equation}
-\begin{split}
-E2(\mathbf{a}) & = \sum_{j = 1}^N |y_j - <\mathbf{x}_j, \mathbf{a}>|^2 \\
-            &  = \sum_{j = 1}^N |y_j - \mathbf{x}_j^T \mathbf{a}|^2
-\end{split}
-\label{p03t08eq07}
-\end{equation}
-where $(y_j, \mathbf{x}_j)$ constructs the $j^{th}$ measured data pair. In addition, we introduce the matrix-vector product form of an inner product.
+\subsection{Vectorized Formulation: L-1 and L-2 Views}
 
-At this step, we introduce two notations that contain all $N$ measurements based the basic measurement $(y_j, \mathbf{x}_j)$:
+To write the model more compactly, introduce the augmented feature vector
 \[
-\mathbf{X} = \begin{bmatrix}
-\mathbf{x}_1^T \\
-\mathbf{x}_2^T \\
-\vdots\\
-\mathbf{x}_N^T    
+\tilde{\mathbf{x}} = [x_1, x_2, \ldots, x_m, 1]^T,
+\]
+so that Eq.~\ref{eq:topic11-linear-model} becomes
+\begin{equation}
+f(\mathbf{x}) = \tilde{\mathbf{x}}^T\mathbf{a}.
+\end{equation}
+
+Now stack all samples into the design matrix
+\[
+\mathbf{X} =
+\begin{bmatrix}
+\tilde{\mathbf{x}}_1^T \\
+\tilde{\mathbf{x}}_2^T \\
+\vdots \\
+\tilde{\mathbf{x}}_N^T
 \end{bmatrix}
+\in \mathbb{R}^{N \times (m+1)}
 \]
-which is a $N \times (m+1)$ matrix \footnote{Note that in class, I used the transpose of $X$ above as $X$, which causes some inconsistency with the Everstine's text}. Note that this matrix is an augmented matrix, as the last row $\mathbf{x}_N^T$ is a one's row vector $[1, 1, \cdots, 1]$ as implied in Eq.~\ref{p03t08eq05}.
-
-
-and 
+and the targets into
 \[
-\mathbf{y} = \begin{bmatrix}
+\mathbf{y} =
+\begin{bmatrix}
 y_1 \\
-\vdots\\
-y_N 
+y_2 \\
+\vdots \\
+y_N
 \end{bmatrix}
+\in \mathbb{R}^{N}.
 \]
-which is a $N \times 1$ vector.
 
-
-
-By adopting the vectorized notations, we have two vectorized objective functions, which are termed (i) an L-1 Norm objective function, and (ii) a squared L-1 Norm objective function (Yes, a square operation is needed):
+The prediction vector is then
+\[
+\hat{\mathbf{y}} = \mathbf{X}\mathbf{a}.
+\]
+Therefore, the previous scalar objectives can be rewritten as
 \begin{equation}
-E1(\mathbf{a}) = \|\mathbf{y} - \mathbf{X} \mathbf{a} \|_1 \\
-\label{p03t08eq08}
+E_1(\mathbf{a}) = \|\mathbf{y} - \mathbf{X}\mathbf{a}\|_1,
+\end{equation}
+and
+\begin{equation}
+E_2(\mathbf{a}) = \|\mathbf{y} - \mathbf{X}\mathbf{a}\|_2^2.
 \end{equation}
 
+This vectorized notation is more than a convenience. It reveals that linear regression is an optimization problem over a norm of the residual vector. The L-1 form corresponds to the absolute-error objective, while the squared L-2 form corresponds to least squares.
+
+\subsection{Least-Squares Estimation}
+
+Consider the least-squares problem
 \begin{equation}
-E2(\mathbf{a}) = \|\mathbf{y} - \mathbf{X} \mathbf{a} \|_2^2
-\label{p03t08eq09}
-\end{equation}
-We have obtained two compact vecterized form for the objective functions. In addition, the two forms correspond to the previous SAE and SSE formulation when using scalar variables.  
-
-
-
-\subsection{LSE Solution}
-Given the least-squares problem:
-
-\begin{equation}
-\min_{\mathbf{a}} E(\mathbf{a}) = \|\mathbf{y} - \mathbf{Xa} \|^2
-\label{p03t08eq10}
+\min_{\mathbf{a}} \; E(\mathbf{a}) = \|\mathbf{y} - \mathbf{X}\mathbf{a}\|_2^2.
 \end{equation}
 
-We compute the gradient of \(E(\mathbf{a})\) with respect to \(\mathbf{a}\) and then solve for \(\mathbf{a}\) by letting the gradient equal to a zero vector. 
-
-First, rewrite the objective function:
-
-\begin{equation}
-\begin{split}
-E(\mathbf{a}) &= \|\mathbf{y} - \mathbf{Xa} \|^2 \\
-              &= (\mathbf{y} - \mathbf{Xa})^T(\mathbf{y} - \mathbf{Xa})
-\end{split}
-\label{p03t08eq11}
-\end{equation}
-
-Next, compute the gradient of \(E(\mathbf{a})\) with respect to \(\mathbf{a}\):
-
+Expanding the objective gives
 \begin{equation}
 \begin{aligned}
-\nabla E(\mathbf{a}) &= \frac{\partial E(\mathbf{a})}{\partial \mathbf{a}} \\
-                     &= -2\mathbf{X}^T(\mathbf{y} - \mathbf{Xa})  \\
-                     &= -2\left( \mathbf{X}^T \mathbf{y} -  \mathbf{X}^T \mathbf{Xa} \right)
+E(\mathbf{a})
+&= (\mathbf{y} - \mathbf{X}\mathbf{a})^T(\mathbf{y} - \mathbf{X}\mathbf{a}).
 \end{aligned}
-\label{p03t08eq12}
 \end{equation}
 
-Now, set the gradient to zero and solve for \(\mathbf{a}\):
-
+Taking the gradient with respect to $\mathbf{a}$,
 \begin{equation}
-\begin{aligned}
-\nabla E(\mathbf{a}) &= 0 \\
-\mathbf{X}^T \mathbf{y} -  \mathbf{X}^T \mathbf{Xa}  & = 0 \\
-\mathbf{X}^T \mathbf{Xa}  &= \mathbf{X}^T \mathbf{y}
-\end{aligned}
-\label{p03t08eq13}
+\nabla E(\mathbf{a}) = -2\mathbf{X}^T(\mathbf{y} - \mathbf{X}\mathbf{a}).
 \end{equation}
 
-Finally, find the solution for \(\mathbf{a}\):
-
+Setting the gradient to zero yields the normal equations:
 \begin{equation}
-\begin{aligned}
-\mathbf{a} &= (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}
-\end{aligned}
-\label{p03t08eq14}
+\mathbf{X}^T\mathbf{X}\mathbf{a} = \mathbf{X}^T\mathbf{y}.
 \end{equation}
 
-At this moment, we should practice the inner-dimensionality rule for matrix-vector multiplication: $\mathbf{X}$ is a $N\times (m+1)$ matrix, $\mathbf{X}^T \mathbf{X}$ and its inverse are $(m+1) \times (m+1)$, $\mathbf{y}$ is $N\times 1$. As a result, $\mathbf{a}$ is expected as a $(m+1) \times 1$ column vector.
+If $\mathbf{X}^T\mathbf{X}$ is invertible, the least-squares solution is
+\begin{equation}
+\hat{\mathbf{a}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}.
+\end{equation}
 
+Dimensionally, $\mathbf{X}$ is $N \times (m+1)$, so $\mathbf{X}^T\mathbf{X}$ is $(m+1) \times (m+1)$ and $\hat{\mathbf{a}}$ is a column vector in $\mathbb{R}^{m+1}$. In ideal settings this solution is straightforward. In practice, however, difficulties arise when $\mathbf{X}^T\mathbf{X}$ is singular or ill-conditioned, or when a highly flexible linear model begins to overfit noisy data.
 
+\subsection{A Brief Note on Regularized Linear Regression}
 
+The least-squares objective focuses only on fitting the data. A common improvement is to add a penalty term that discourages unnecessarily large coefficients. This idea is called \textbf{regularization}. Regularization can improve numerical stability when $\mathbf{X}^T\mathbf{X}$ is ill-conditioned, and it can also improve generalization by reducing sensitivity to noise in the training data.
 
+Two widely used examples are ridge regression and lasso regression.
 
+\paragraph{Ridge Regression}
+Ridge regression adds an L-2 penalty to the least-squares objective:
+\begin{equation}
+\min_{\mathbf{a}} \; \|\mathbf{y} - \mathbf{X}\mathbf{a}\|_2^2 + \lambda \|\mathbf{a}\|_2^2,
+\end{equation}
+where $\lambda > 0$ is a user-chosen regularization parameter. The penalty shrinks the coefficient magnitudes and tends to produce a more stable solution, especially when features are highly correlated.
 
-\section{Neural Network-Based Regression Using Multi-Layer Perceptron (MLP)}
+\paragraph{Lasso Regression}
+Lasso regression replaces the L-2 penalty with an L-1 penalty:
+\begin{equation}
+\min_{\mathbf{a}} \; \|\mathbf{y} - \mathbf{X}\mathbf{a}\|_2^2 + \lambda \|\mathbf{a}\|_1.
+\end{equation}
+Like ridge regression, lasso discourages overly large coefficients. In addition, the L-1 penalty can drive some coefficients exactly to zero, which makes lasso useful when feature selection is also desirable.
 
-\subsection{Introduction to MLP for Regression}
-A Multi-Layer Perceptron (MLP) is a type of neural network that is well-suited for modeling nonlinear relationships due to its architecture, which includes multiple layers of neurons with nonlinear activation functions. This allows MLPs to learn complex patterns in the data, making them highly effective for regression tasks where the relationship between input variables and the output variable is not linear.
+In both cases, the regularization parameter $\lambda$ controls the tradeoff between data fit and model complexity. A larger $\lambda$ usually reduces variance but increases bias. This is the same generalization tradeoff discussed in Topic 10, now expressed in a regression setting.
 
-\subsection{Architecture of MLP}
-An MLP for regression typically consists of:
+\subsection{How Do We Evaluate a Regression Model?}
+
+Once a regression model is trained, we still need to judge how well it performs on validation or test data. As in Topic 10, apparent performance on the training set is not enough; the more important question is how accurately the model predicts unseen data. Several common metrics are used in practice:
+
+\paragraph{Mean Absolute Error (MAE)}
+\begin{equation}
+\mathrm{MAE} = \frac{1}{N}\sum_{i=1}^N |y_i - \hat{y}_i|.
+\end{equation}
+MAE measures the average magnitude of error in the same physical units as the target variable.
+
+\paragraph{Mean Squared Error (MSE)}
+\begin{equation}
+\mathrm{MSE} = \frac{1}{N}\sum_{i=1}^N (y_i - \hat{y}_i)^2.
+\end{equation}
+Because errors are squared, MSE emphasizes large deviations.
+
+\paragraph{Root Mean Squared Error (RMSE)}
+\begin{equation}
+\mathrm{RMSE} = \sqrt{\mathrm{MSE}}.
+\end{equation}
+RMSE has the same units as the target variable and is often easier to interpret than MSE.
+
+\paragraph{Coefficient of Determination ($R^2$)}
+\begin{equation}
+R^2 = 1 - \frac{\sum_{i=1}^N (y_i - \hat{y}_i)^2}{\sum_{i=1}^N (y_i - \bar{y})^2},
+\end{equation}
+where $\bar{y}$ is the sample mean of the observed targets. Roughly speaking, $R^2$ measures how much of the variation in the target is explained by the model relative to simply predicting the mean.
+
+No single metric is always best. In engineering applications, the choice should reflect the cost of error. For example, squaring errors may be appropriate when large misses are especially harmful, whereas MAE may be preferable when interpretability and robustness to outliers are more important.
+
+\section{Neural-Network Regression with Multi-Layer Perceptrons}
+
+Linear regression is simple and interpretable, but many engineering systems are nonlinear. We therefore now turn to a more flexible model family. A Multi-Layer Perceptron (MLP) addresses this limitation by composing affine transformations with nonlinear activation functions, allowing the model to represent much more complex input--output relationships.
+
+\subsection{Basic Idea}
+
+For a single hidden layer, an MLP regressor can be written as
+\begin{equation}
+\hat{y} = \mathbf{w}_2^T\,\sigma(\mathbf{W}_1\mathbf{x} + \mathbf{b}_1) + b_2,
+\end{equation}
+where $\mathbf{W}_1$ and $\mathbf{b}_1$ define the hidden layer, $\sigma(\cdot)$ is a nonlinear activation function, and $\mathbf{w}_2, b_2$ define the output layer. For regression, the output layer is usually linear so that the predicted value is not artificially restricted to a small range.
+
+With multiple hidden layers, the model becomes a nested composition of nonlinear transformations. In practice, this means an MLP can approximate curved trends, interactions among variables, and other behaviors that a single hyperplane cannot represent.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{sin-mlp.pdf}
+\caption{An MLP can learn a nonlinear regression function such as a sinusoidal trend.}
+\end{figure}
+
+\subsection{Training Loss and Generalization}
+
+MLP regression is typically trained by minimizing a loss such as MSE on the training set:
+\begin{equation}
+\min_{\boldsymbol{\theta}} \; \frac{1}{N}\sum_{i=1}^N \left(y_i - f_{\boldsymbol{\theta}}(\mathbf{x}_i)\right)^2,
+\end{equation}
+where $\boldsymbol{\theta}$ denotes all network weights and biases. The optimization is carried out iteratively using backpropagation together with gradient-based algorithms such as stochastic gradient descent or Adam.
+
+Because MLPs can be highly flexible, they are also susceptible to overfitting. Consistent with Topic 10, typical control strategies include:
 \begin{itemize}
-    \item An \textbf{input layer} that accepts feature vectors $\mathbf{x} = (x_1, x_2, \dots, x_m)^T$.
-    \item One or more \textbf{hidden layers} where each neuron applies a non-linear activation function to the weighted sum of inputs from the previous layer.
-    \item An \textbf{output layer} with a single neuron if the task is to predict a single continuous variable. The activation function in this layer might often be linear or none, depending on the nature of the output variable.
+    \item using a validation set for early stopping,
+    \item applying weight regularization such as L2 penalties,
+    \item limiting network size when data are scarce, and
+    \item monitoring test-set performance rather than training loss alone.
 \end{itemize}
 
-\subsection{Activation Functions}
-Activation functions introduce non-linear properties to the network, enabling it to learn more complex decision boundaries. They are applied to the weighted sum of inputs:
-
-\begin{equation}
-a = \sigma(\mathbf{W}\mathbf{x} + \mathbf{b})
-\end{equation}
-
-where $\mathbf{W}$ and $\mathbf{b}$ are the weight matrix and bias vector of the layer, and $\sigma$ represents the activation function. Common choices of activation functions include:
-\begin{itemize}
-    \item \textbf{ReLU (Rectified Linear Unit):} $\sigma(x) = \max(0, x)$. It is popular due to its simplicity and effectiveness in alleviating the vanishing gradient problem.
-    \item \textbf{Sigmoid:} $\sigma(x) = \frac{1}{1 + e^{-x}}$. It is useful for models where we need to predict probabilities as its output is always between 0 and 1.
-    \item \textbf{Tanh (Hyperbolic Tangent):} $\sigma(x) = \tanh(x)$. This function outputs values between -1 and 1, making it more suitable for layers deep in the network where maintaining zero-centered data helps with learning efficiency.
-\end{itemize}
-
-For the output layer in regression tasks, a linear activation function (or no activation function) is often used to allow the model to output a range of values that are not bounded, which is suitable for regression predictions.
-
-\subsection{Model Formulation}
-The complete MLP model can be represented as a series of functional transformations:
-\begin{equation}
-f(\mathbf{x}) = \sigma^{(L)}(\mathbf{W}^{(L)} \sigma^{(L-1)}(\mathbf{W}^{(L-1)} \cdots \sigma^{(1)}(\mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}) \cdots) + \mathbf{b}^{(L-1)}) + \mathbf{b}^{(L)})
-\end{equation}
-
-where $L$ is the number of layers, $\mathbf{W}^{(l)}$ and $\mathbf{b}^{(l)}$ are the weight matrix and bias vector for layer $l$, and $\sigma^{(l)}$ is the activation function used in layer $l$.
-
-\subsection{Loss Function for Regression}
-In regression tasks, the choice of the loss function is critical as it quantifies how well the predicted outputs match the actual target values. Commonly used loss functions in regression include:
-\begin{itemize}
-    \item \textbf{Mean Squared Error (MSE):} It is the average of the squares of the differences between the predicted and actual values.
-    \begin{equation}
-    \text{MSE} = \frac{1}{N} \sum_{i=1}^N (y_i - f(\mathbf{x}_i))^2
-    \end{equation}
-    \item \textbf{Mean Absolute Error (MAE):} It is the average of the absolute differences between predicted and actual values, providing a measure of error magnitude without considering direction.
-    \begin{equation}
-    \text{MAE} = \frac{1}{N} \sum_{i=1}^N |y_i - f(\mathbf{x}_i)|
-    \end{equation}
-    \item \textbf{Huber Loss:} A combination of MSE and MAE, which is quadratic for small errors and linear for large errors, defined by a parameter $\delta$.
-    \begin{equation}
-    L_\delta(y, f(\mathbf{x})) = \begin{cases} 
-    \frac{1}{2}(y - f(\mathbf{x}))^2 & \text{for } |y - f(\mathbf{x})| \leq \delta \\
-    \delta(|y - f(\mathbf{x})| - \frac{1}{2}\delta) & \text{otherwise}
-    \end{cases}
-    \end{equation}
-\end{itemize}
-
-These loss functions help in guiding the training process to minimize prediction errors effectively. The choice between these can depend on the specific characteristics of the data and the impact of outliers.
-
-
-\subsection{Dangers of Overfitting}
-Overfitting is a significant challenge in neural networks, particularly in complex models like MLPs with many layers or neurons. Overfitting occurs when a model learns the detail and noise in the training data to an extent that it negatively impacts the performance of the model on new data. Essentially, the model becomes too well-tailored to the training data, losing its ability to generalize.
-
-\subsection{Strategies to Overcome Overfitting}
-To prevent overfitting in MLPs, several strategies can be implemented:
-\begin{itemize}
-    \item \textbf{Regularization Techniques:} Adding regularization terms such as L1 or L2 penalties to the loss function can constrain the magnitude of the model weights and help prevent the model from becoming too complex.
-    \item \textbf{Dropout:} Randomly dropping units in layers during the training phase can prevent complex co-adaptations on the training data. It effectively makes the model more robust and able to generalize better.
-    \item \textbf{Early Stopping:} Monitoring the model's performance on a validation set during training and stopping the training process once the performance starts to degrade (i.e., when performance on the validation set worsens) can prevent overfitting.
-    \item \textbf{Cross-Validation:} Using cross-validation techniques can help ensure that the model performs well across different subsets of the data and is not overfitting to a specific part of the training data.
-    \item \textbf{Simplifying the Model:} Reducing the number of layers or the number of neurons in each layer can help make the model less complex and less prone to overfitting.
-\end{itemize}
-
-\subsection{Training MLP}
-Training an MLP involves adjusting the network weights to minimize a loss function, typically using backpropagation and an optimization algorithm like stochastic gradient descent (SGD), Adam, or RMSprop. It is crucial to monitor not only the loss on the training data but also on a separate validation set to gauge the model's ability to generalize.
-
-
-
-
-
-
+The main advantage of MLP regression is expressive power. The tradeoff is that model selection, training stability, and interpretation are usually more challenging than in ordinary linear regression.
 
 \section{Support Vector Regression (SVR)}
 
-\subsection{Introduction to SVR}
-Support Vector Regression (SVR) extends the concepts from Support Vector Machines (SVM) used in classification to regression problems. The goal of SVR is not only to fit the data but also to ensure that deviations from the actual values are within a certain threshold, maintaining a balance between model complexity and error minimization.
+Support Vector Regression adapts the geometric and regularization ideas behind Support Vector Machines to continuous targets. The goal is not merely to fit every point as closely as possible, but to find a function that is both accurate and sufficiently flat. In that sense, SVR provides another example of how predictive accuracy and model complexity must be balanced together.
 
-\subsection{Formulation of Linear SVR}
-SVR constructs a linear model in a higher-dimensional feature space where the data points are mapped via a linear function. The formulation is similar to finding the "flatness" in SVM classification. The linear SVR function is modeled as:
+\subsection{Linear SVR Model}
+
+In its linear form, SVR uses
 \begin{equation}
-f(\mathbf{x}) = \mathbf{w}^T \mathbf{x} + b
+f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b,
 \end{equation}
-where $\mathbf{w}$ is the weight vector and $b$ is the bias. The objective of SVR is to minimize the coefficient vector $\mathbf{w}$, which helps in reducing model complexity and overfitting.
+where $\mathbf{w}$ and $b$ are the model parameters.
 
-\subsection{Objective Function with Epsilon-Insensitive Loss}
-The epsilon-insensitive loss function used in SVR ignores errors that are within a certain distance $\epsilon$ of the true values, focusing on larger deviations which are more significant:
+The distinctive feature of SVR is the $\epsilon$-insensitive loss. Instead of penalizing every residual, SVR ignores errors that fall within a tolerance band of width $2\epsilon$ around the prediction:
 \begin{equation}
-L_\epsilon(y, f(\mathbf{x})) = \max(0, |y - f(\mathbf{x})| - \epsilon)
+L_{\epsilon}(y, f(\mathbf{x})) = \max\left(0, |y - f(\mathbf{x})| - \epsilon\right).
 \end{equation}
-The complete objective function to be minimized under the constraints imposed by the data points becomes:
+
+Thus, small deviations inside the $\epsilon$-tube are treated as acceptable, while larger deviations are penalized.
+
+\subsection{Optimization Problem}
+
+The standard primal SVR problem is
 \begin{equation}
-\min_{\mathbf{w}, b, \xi, \xi^*} \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^N (\xi_i + \xi_i^*)
+\min_{\mathbf{w},b,\xi_i,\xi_i^*} \; \frac{1}{2}\|\mathbf{w}\|_2^2 + C\sum_{i=1}^N (\xi_i + \xi_i^*),
 \end{equation}
-subject to:
-\begin{align*}
-y_i - (\mathbf{w}^T \mathbf{x}_i + b) &\leq \epsilon + \xi_i, \\
-(\mathbf{w}^T \mathbf{x}_i + b) - y_i &\leq \epsilon + \xi_i^*, \\
-\xi_i, \xi_i^* &\geq 0, \forall i.
-\end{align*}
-where $\xi_i$ and $\xi_i^*$ are slack variables that measure the degree of misfit.
+subject to
+\begin{align}
+ y_i - (\mathbf{w}^T\mathbf{x}_i + b) &\leq \epsilon + \xi_i, \\
+ (\mathbf{w}^T\mathbf{x}_i + b) - y_i &\leq \epsilon + \xi_i^*, \\
+ \xi_i,\xi_i^* &\geq 0.
+\end{align}
 
-\subsection{Kernel Trick for Nonlinear SVR}
-To handle non-linear relationships, SVR can be extended using the kernel trick, allowing the algorithm to perform linear regression in a transformed feature space:
+Here, $C$ controls the tradeoff between model flatness and training error, while $\xi_i$ and $\xi_i^*$ are slack variables that allow points to fall outside the $\epsilon$-tube.
+
+\subsection{Kernel SVR for Nonlinear Regression}
+
+Like SVM classification, SVR can be kernelized to represent nonlinear relationships. Instead of working directly in the original feature space, the input is mapped implicitly into a higher-dimensional space through a kernel function
 \begin{equation}
-k(\mathbf{x}_i, \mathbf{x}_j) = \langle \phi(\mathbf{x}_i), \phi(\mathbf{x}_j) \rangle
+k(\mathbf{x}_i, \mathbf{x}_j) = \langle \phi(\mathbf{x}_i), \phi(\mathbf{x}_j) \rangle.
 \end{equation}
-where $\phi$ represents a transformation to a higher-dimensional space. Common kernels include the polynomial, radial basis function (RBF), and sigmoid kernels.
 
-\subsection{Sparsity and Model Complexity}
-In SVR, sparsity refers to the model relying on only a subset of the training data to form the decision function. Specifically, only support vectors, which are data points that lie outside the $\epsilon$ margin, contribute to the model. This leads to a model that is both simpler and often more robust to overfitting. The degree of sparsity is controlled by the parameter $C$, which balances the model's complexity against its performance on the training data.
+The resulting regression function takes the form
+\begin{equation}
+f(\mathbf{x}) = \sum_{i=1}^N (\alpha_i - \alpha_i^*) k(\mathbf{x}_i, \mathbf{x}) + b,
+\end{equation}
+where only a subset of training points contributes nonzero coefficients. These influential samples are the support vectors.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{cos-svr.pdf}
+\caption{Kernel SVR can represent nonlinear regression behavior while retaining margin-based regularization.}
+\end{figure}
 
-\subsection{Optimization and Solution}
-The dual form of the optimization problem is often solved using quadratic programming techniques that handle the constraints and optimize the margins. This dual formulation allows for the incorporation of kernels and solves the regression problem by maximizing the margin while minimizing the loss within the epsilon-insensitive zone.
+SVR is often effective when the dataset is moderate in size and when the user wants strong regularization with a clear geometric interpretation. Key hyperparameters include $C$, $\epsilon$, and the kernel parameters (for example, the width parameter in an RBF kernel).
 
+\section{Time-Series Prediction as Supervised Regression}
 
+Many engineering datasets are time-indexed: power demand over hours, traffic speed over minutes, reservoir level over days, or structural vibration measurements over seconds. Although time-series analysis is a large subject on its own, an important practical viewpoint is that many forecasting problems can be cast as ordinary supervised regression.
 
+\subsection{Lag Features and Forecast Targets}
 
+Suppose $s_t$ denotes a scalar signal observed at time $t$. To predict a future value, we can build a feature vector from previous observations:
+\begin{equation}
+\mathbf{x}_t = [s_{t-1}, s_{t-2}, \ldots, s_{t-p}]^T,
+\end{equation}
+and define the regression target as
+\begin{equation}
+y_t = s_t
+\quad \text{or, more generally,} \quad
+y_t = s_{t+h},
+\end{equation}
+where $p$ is the number of lagged observations used as inputs and $h$ is the forecast horizon.
+
+Additional exogenous variables can also be appended to the feature vector, such as temperature, occupancy, rainfall, day-of-week indicators, or control inputs. Once this feature-target dataset is constructed, the forecasting problem can be solved using the same regression models discussed earlier: linear regression, MLP regression, or SVR.
+
+\subsection{Engineering Examples}
+
+For example, short-term electrical load forecasting may use past load, temperature, and calendar variables to predict demand in the next hour. Traffic forecasting may use recent flow or speed measurements together with incident or weather information. In structural health monitoring, past vibration amplitudes or modal features may be used to predict future response or detect deviations from expected behavior.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\textwidth]{topic11_load_forecast.png}
+\caption{An example of engineering time-series forecasting, which can be formulated as supervised regression using lagged and contextual features.}
+\end{figure}
+
+The key conceptual point is that time ordering changes how we construct features and split the data, but it does not fundamentally change the supervised-regression viewpoint. We still learn a mapping from inputs to a numerical target; we simply define those inputs using the recent history of the process.
+
+\section{Conclusion Remarks}
+
+In this topic, we examined supervised machine learning for regression, with emphasis on predicting continuous quantities rather than class labels. We began with linear regression, where residual-based objectives lead naturally to L-1 and L-2 formulations and, in the least-squares case, to the normal-equation solution. We then noted that regularization provides a practical extension when numerical instability or overfitting becomes a concern. Finally, we extended the discussion to nonlinear regression through MLPs and SVR, two important model families that trade simplicity for flexibility in different ways.
+
+For engineering practice, the central lesson is that regression is not only about fitting curves; it is about making numerical predictions whose errors must be defined, measured, and interpreted in context. Metrics such as MAE, MSE, RMSE, and $R^2$ help quantify performance, but model choice should still be guided by data size, nonlinearity, robustness, and the operational cost of prediction error. Time-series forecasting fits naturally into this same framework when past observations are converted into lag-based features, reinforcing the broader idea that many engineering prediction problems can be approached as supervised regression tasks.
 
 \end{document}

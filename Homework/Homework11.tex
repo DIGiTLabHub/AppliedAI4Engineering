@@ -1,0 +1,163 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 11\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\doublespacing
+
+\section*{Overview}
+In this assignment, we will extend our exploration of the MNIST dataset by:
+\begin{enumerate}
+  \item Evaluating the impact of dimensionality reduction (PCA and t-SNE) on classification performance using a Perceptron.
+  \item Investigating how the regularization parameter \(C\) affects multi‐class SVM (with RBF kernel) performance, and selecting the best \(C\) via cross‐validation.
+  \item Put it into action: experiment and test your own capture!
+\end{enumerate}
+
+In the meantime, please review 
+\begin{enumerate}
+    \item  The \href{https://umsystem.instructure.com/courses/280496/files/33966689?module_item_id=9952773}{class presentation} about the NISt/MNIST dataset. 
+    \item The \href{https://umsystem.instructure.com/courses/280496/files/33966689?module_item_id=9952773}{MNIST notebook} is here and you should copy it to your google's colab notebook folder to run it. 
+    \item Dimensionality demonstration as in this \href{https://umsystem.instructure.com/courses/280496/files/33859915?module_item_id=9938963}{notebook}.
+\end{enumerate}
+
+\newpage
+
+\section*{Task 1: Dimensionality Reduction \& Perceptron}
+
+Please following the following steps to complete:
+\subsection*{A. Data Preparation}
+\begin{enumerate}
+  \item Load MNIST from \texttt{sklearn.datasets}.
+  \item Standardize the pixel values to zero mean and unit variance.
+  \begin{itemize}
+      \item We didn't do this in class as we used the `mnist\_784' dataset directly. 
+      \item % Given a pixel vector \bm{x} = (x_1, \dots, x_d)^\top, we compute its sample mean and standard deviation, then standardize each component.
+
+\[
+\text{Mean:}\quad
+\mu = \frac{1}{d} \sum_{i=1}^d x_i,
+\qquad
+\text{(the average pixel value)}
+\]
+
+\[
+\text{Standard deviation:}\quad
+\sigma = \sqrt{\frac{1}{d} \sum_{i=1}^d \bigl(x_i - \mu\bigr)^2},
+\qquad
+\text{(the spread of the pixel values)}
+\]
+
+\[
+\text{Standardization:}\quad
+\tilde{x}_i = \frac{x_i - \mu}{\sigma}, 
+\quad i = 1,2,\dots,d,
+\]
+\[
+\text{so that the transformed vector }
+\tilde{\bm{x}} = (\tilde{x}_1,\dots,\tilde{x}_d)^\top
+\text{ has zero mean and unit variance.}
+\]
+
+  \end{itemize}
+\end{enumerate}
+
+If programmed properly, the entire dataset of $\bm{X}$ can be processed and standardized in a few lines. Please explore this. We will use the symbol $\bm{Y}$ to express it.
+
+\subsection*{B. PCA (Principal Component Analysis)}
+\begin{enumerate}
+  \item Use \texttt{sklearn.decomposition.PCA} to reduce the 784‐dimensional standardized data $\bm{Y}$ to 3 principal components.
+  \item Create a 3D scatter plot or three 2D scatter plots of the first 3 components, coloring points by their true digit labels. 
+  \item Report the scatter plots; and remark that if you see 10 clusters well separated corresponding to the underlying 10 digits. 
+\end{enumerate}
+
+\subsection*{C. t‑SNE}
+\begin{enumerate}
+  \item Use \texttt{sklearn.manifold.TSNE} with \texttt{n\_components=3}, \texttt{perplexity=30}, and a select random state.
+  \item Create a 3D scatter plot or three 2D scatter plots of the first 3 components, coloring points by their true digit labels. 
+  \item Report the scatter plots; and remark that if you see 10 clusters well separated corresponding to the underlying 10 digits. 
+  \item Comment on visual separability compared to PCA.
+\end{enumerate}
+
+\subsection*{D. Classification with Perceptron}
+\begin{enumerate}
+  \item Train a \texttt{sklearn.linear\_model.Perceptron} on:
+    \begin{itemize}
+      \item The original 784‐dimensional data.
+      \item The 3‐dimensional PCA‐reduced data.
+      \item The 3‐dimensional t‑SNE‐reduced data.
+    \end{itemize}
+  \item Evaluate each model on a held‐out test set (i.e., the same testing data); report accuracy, precision, recall, and F1‐score for each digit. 
+  \item Summarize how dimensionality reduction affected classification performance.
+\end{enumerate}
+
+\newpage
+
+\section*{Task 2: SVM Hyperparameter Tuning}
+\subsection*{Baseline SVM}
+\begin{enumerate}
+  \item Using the full (no feature‐extraction) MNIST dataset, train a multi‐class SVM with RBF kernel (\texttt{sklearn.svm.SVC(decision\_function\_shape='ovr')}). \textit{(note that here we are using `one-vs-rest' multi-class scheme).}
+  \item Use default \(C=1.0\) as a baseline; report the test set accuracy.
+\end{enumerate}
+
+\subsection*{Effect of the \(C\) Parameter}
+\begin{enumerate}
+  \item Define a grid of \(C\) values, e.g.\ \(\{0.01, 0.1, 1, 10, 100\}\).
+  \item For each \(C\), perform 5‐fold cross‐validation on a fraction of the training set (you can choose $20\%$ of the total training dataset), and record the mean CV accuracy. 
+  \begin{itemize}
+      \item K-fold cross-validation is an essential technique for hyperparameter selection or more generally model selection toward generalization. 
+      \item Learn the usage of `cross-validation' from \href{https://scikit-learn.org/stable/modules/cross_validation.html#multimetric-cross-validation}{this link}.
+  \end{itemize}
+  \item Plot \(\mathrm{CV\ Accuracy}\) vs.\ \(\log_{10}(C)\), and report the resulting plot. 
+\end{enumerate}
+
+\subsection*{Selecting the Best \(C\)}
+\begin{enumerate}
+  \item Identify the \(C\) value with the highest mean cross‐validation accuracy.
+  \item Retrain the SVM using this \(C\) on the full training set.
+  \item Evaluate on the test set; report the final test accuracy and a confusion matrix (\texttt{sklearn.metrics.ConfusionMatrixDisplay}).
+\end{enumerate}
+
+\section*{Task 3: Test your own image}
+Please review the code added at the last of the class demo \href{https://umsystem.instructure.com/courses/280496/files/33967083?module_item_id=9952773}{notebook}
+
+\begin{itemize}
+    \item Try the best calligraphic skills and write down some numbers on paper (each number on one paper), and take pictures using phone. Then transfer it to your google drive. 
+    \item Learn the code there and convert it to MNIST ready feature vectors and call your best hand-written digit classification model so far and test the accuracy.
+    \item You may check out \href{https://umsystem.instructure.com/courses/280496/files/33966714?module_item_id=9952778}{this image} - the logistic regression classifier used in class actually failed!
+    \item Report your results and remark. 
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+
+\title{CE 488/5588 Homework 06\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+\newpage
+
+\section*{Topic 10: Generalization and Model Selection}
+
+\begin{ch-box}
+This homework is based on the lecture content on generalization, re-sampling methods,
+model selection, and ensemble learning. Answer all five questions. Show simple calculations
+where requested.
+\end{ch-box}
+
+\section*{Conceptual Questions and Short Calculations}
+
+\subsection*{Question 1: Fill in the blanks}
+For each statement below, fill in the most appropriate term from the list:
+
+\begin{center}
+\textbf{underfitting, overfitting, bias, variance}
+\end{center}
+
+\begin{enumerate}[label=(\alph*)]
+    \item A model that performs very well on the training set but poorly on unseen data is showing \underline{\hspace{3cm}}.
+    \item A model that is too simple to capture the main pattern in the data is showing \underline{\hspace{3cm}}.
+    \item Error caused by oversimplifying the true relationship is called \underline{\hspace{3cm}}.
+    \item Error caused by excessive sensitivity to the sampled training data is called \underline{\hspace{3cm}}.
+\end{enumerate}
+
+\subsection*{Question 2: Multiple choice}
+A civil engineer has only 120 labeled inspection cases for a binary classification problem. She wants a more reliable estimate of unseen-data performance than one random train-test split can provide. Which choice below is the \textbf{best} first step?
+
+\begin{itemize}
+    \item [A.] Increase the model complexity until the training accuracy reaches 100\%.
+    \item [B.] Use K-fold cross-validation on the available labeled data.
+    \item [C.] Evaluate performance only on the training set because all data are valuable.
+    \item [D.] Lower the classification threshold to 0.1 before any evaluation.
+\end{itemize}
+
+Best answer: \rule{1in}{0.15mm}
+
+\bigskip
+
+Briefly explain why your choice is the best one.\\
+
+
+\vspace{20pt}
+\fullunderline
+
+\vspace{20pt}
+\fullunderline
+
+\subsection*{Question 3: Cross-validation calculation}
+An engineer evaluates one classifier using 5-fold cross-validation. The validation accuracies from the five folds are:
+
+\[
+0.81,\quad 0.78,\quad 0.84,\quad 0.80,\quad 0.77
+\]
+
+Answer the following:
+
+\begin{enumerate}[label=(\alph*)]
+    \item Compute the mean cross-validation accuracy.\\
+    \rule{2in}{0.15mm}
+    \item Compute the range of the fold accuracies (maximum minus minimum).\\
+    \rule{2in}{0.15mm}
+    \item Based on these five scores, does the model appear extremely unstable across folds? Answer yes or no and give one short reason.\\
+    \fullunderline
+\end{enumerate}
+
+\subsection*{Question 4: Threshold selection}
+A binary classifier outputs the following class-membership probabilities for four new data points:
+
+\[
+0.18,\quad 0.42,\quad 0.67,\quad 0.91
+\]
+
+Assume the prediction rule is
+\[
+\text{predict class }1 \text{ if } P(c\mid \bm{x}) \ge \tau,
+\]
+where \(\tau\) is the threshold.
+
+\begin{enumerate}[label=(\alph*)]
+    \item If \(\tau = 0.50\), write the predicted labels for the four data points.\\
+    \rule{3in}{0.15mm}
+    \item If \(\tau = 0.30\), write the predicted labels for the four data points.\\
+    \rule{3in}{0.15mm}
+    \item Which threshold, 0.50 or 0.30, is more likely to increase recall? \underline{\hspace{1.5cm}}.
+\end{enumerate}
+
+\subsection*{Question 5: Ensemble methods --- identify the strategy}
+Match each scenario below with the most appropriate ensemble term:
+
+\begin{center}
+\textbf{bagging, boosting, stacking}
+\end{center}
+
+\begin{enumerate}[label=(\alph*)]
+    \item Several models are trained on different sampled subsets of the training data, and their predictions are averaged. This is \underline{\hspace{3cm}}.
+    \item Weak learners are trained sequentially, and each new learner focuses more on the previous mistakes. This is \underline{\hspace{3cm}}.
+    \item A logistic regression model is trained to combine the predictions from an SVM, a decision tree, and a neural network. This is \underline{\hspace{3cm}}.
+\end{enumerate}
+
+\bigskip
+
+In one or two sentences, explain why ensemble learning can sometimes improve generalization.\\
+
+\vspace{20pt}
+\fullunderline
+
+\vspace{20pt}
+\fullunderline
+
+\end{document}

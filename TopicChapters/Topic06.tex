@@ -1,43 +1,31 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath, amssymb, graphics, setspace}
-\usepackage{bm}
-\usepackage{graphicx} 
-\graphicspath{{./figs/}}
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-\newcommand{\mathsym}[1]{{}}
-\newcommand{\unicode}[1]{{}}
-
-\usepackage[english]{babel}
-\newtheorem{theorem}{Theorem}
-
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-}
-
-\def\bm#1{\textbf{\em #1}}
+\usepackage{ceai} % Style file is in the project root.
+\graphicspath{{../figs/}}
 
 \begin{document}
 \doublespacing	
-
-\title{CE 401/5501: Applied Machine Learning\\ \large Topic 6: Support Vector Machines}
-\author{Dr. ZhiQiang Chen}
+\title{CE 488/5588: Applied Machine Learning\\ \large Topic 6: Support Vector Machines}
+\author{}
 \date{}
 \maketitle
+
+
+In Topic~05, we learned that artificial neural networks (ANNs) can be used to predict and classify objects/subjects from multi-dimensional features, where the input $\bm{x}$ can be a high-dimensional vector in $\mathbb{R}^D$. In principle, by making a network deeper (more layers) and wider (more neurons per layer), we can represent extremely rich nonlinear decision boundaries---indeed, with sufficient capacity, ANNs can approximate essentially any discriminative surface---\emph{as long as we can train it}.
+
+However, this ``as long as'' condition is a major obstacle: before the deep-learning era, training large networks was often too difficult and unstable, and high-dimensional feature spaces exacerbated the challenge. In particular, the curse of dimensionality typically demands either much more complex models or much higher-volume training data, both of which make the resulting optimization problem significantly harder.
+
+Support Vector Machines (SVMs) offer a beautiful alternative mechanism grounded in Statistical Learning Theory: rather than relying on ever-larger networks, SVMs control model capacity explicitly through margin maximization and regularization. Moreover, with the \emph{kernel trick}, SVMs can implicitly operate in very high-dimensional (even infinite-dimensional) feature spaces while still solving a well-posed, regularized optimization problem. In this lecture, we will learn how to construct a linear SVM and then extend it to a kernel SVM, highlighting how kernels enable nonlinear decision boundaries without explicitly engineering high-dimensional feature mappings.
+
+\noindent\textbf{Learning objectives.} After completing this topic, you should be able to:
+\begin{itemize}
+    \item Explain the geometric intuition of a linear SVM (decision boundary, margin, and support vectors).
+    \item Formulate the linear SVM learning objective as a regularized optimization problem and interpret the role of the regularization term.
+    \item Define the hinge loss and describe how it handles non-separable data via margin violations.
+    \item Explain the kernel trick and how kernel SVMs construct nonlinear decision boundaries in the original input space.
+    \item Identify common kernel functions (e.g., polynomial and RBF) and discuss when they are appropriate.
+\end{itemize}
 
 \section{Introduction}
 In this topic, we will learn SVMs starting with their simplest form --- Linear SVM when dealing with separable and non-separable data. With a good understanding of Linear SVMs, we will then learn Kernel SVM (or Nonlinear SVM), where the seminal ``kernel trick'' is adopted. The geometric interpretation will be primarily pursued, and while some analytic formulations are provided, the focus is on intuitive understanding. Several excellent textbooks are dedicated to SVMs and their theoretical foundations (e.g., \textit{An Introduction to Support Vector Machines} by Cristianini and Shawe-Taylor). Many online tutorials also cover introductory formulations, advanced theories, coding, and toolboxes.
@@ -67,7 +55,7 @@ For illustration purposes, we assume $D=2$ so that the decision boundary can be 
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\textwidth]{figs/Topic06fig01.png}
+\includegraphics[width=0.5\textwidth]{Topic06fig01.png}
 \caption{Linear decision boundary $u(\bm{x})=0$ is orthogonal to the weight vector $\bm{w}$.}
 \label{t06fig01}
 \end{figure}
@@ -91,7 +79,7 @@ and
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width = 0.5\textwidth]{figs/Topic06fig02.png}
+\includegraphics[width = 0.5\textwidth]{Topic06fig02.png}
 \caption{Decision margin in linear SVM with separable data, where the vector $\bm{w}$ is perpendicular to the decision margins and boundary.}
 \label{t06fig02}
 \end{figure}
@@ -129,7 +117,7 @@ Fig.~\ref{t06fig03} illustrates the trade-off between model complexity and train
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.5\textwidth]{figs/Topic06fig03.png}
+\includegraphics[width=0.5\textwidth]{Topic06fig03.png}
 \caption{Balancing model complexity and training loss to achieve minimal true (testing) loss.}
 \label{t06fig03}
 \end{figure}
@@ -197,14 +185,14 @@ which maps $\mathbb{R}^2$ to $\mathbb{R}^3$.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.5\textwidth]{figs/Topic06fig04.png}
+\includegraphics[width=0.5\textwidth]{Topic06fig04.png}
 \caption{Handwritten digits (4 and 6) with significant intra-class and inter-class variations.}
 \label{t06fig04}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.5\textwidth]{figs/Topic06fig05.png}
+\includegraphics[width=0.5\textwidth]{Topic06fig05.png}
 \caption{A polynomial transformation from 2D to 3D that enables linear separability (Courtesy of Professor Michael Jordan).}
 \label{t06fig05}
 \end{figure}

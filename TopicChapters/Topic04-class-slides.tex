@@ -1,0 +1,252 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\graphicspath{{./figs/}}
+\usepackage{amsmath, amssymb}
+\usepackage{tcolorbox}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{multirow}
+
+
+\title{CE 401/5501: Applied Artificial Intelligence}
+\subtitle{Topic 4: Simple yet Significant Logistic Regression}
+\author{Dr. ZhiQiang Chen}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Introduction \& Historical Context}
+\begin{frame}{Introduction}
+  \begin{itemize}
+    \item Understand logistic regression as a discriminative, supervised classifier.
+    \item Generalize its formulation to comprehend other classifiers.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Historical Context \& Significance}
+  \begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black]
+    \textbf{Historical Context:}\\[1ex]
+    Logistic regression originated as a statistical method for binary outcomes (e.g., survival vs.\ non-survival) and evolved into a widely used machine learning classifier.\\[1ex]
+    \textbf{Significance:}
+    \begin{itemize}
+      \item \textbf{Simplicity \& Interpretability}
+      \item \textbf{Computational Efficiency}
+      \item \textbf{Probability Estimation}
+    \end{itemize}
+  \end{tcolorbox}
+\end{frame}
+
+\section{Sigmoid and Logistic Functions}
+\begin{frame}{Sigmoid / Logistic Function}
+  \begin{block}{Definition}
+    The Sigmoid function is a special case of the logistic function:
+    \[
+    \mathrm{Sigmoid:}\ f(x) = \frac{1}{1 + \exp(-x)}
+    \]
+      \[
+     \mathrm{Logistic:}\  f[u(x)] = L\ \frac{1}{1 + \exp[-u(x)]}
+    \]
+  \end{block}
+  \begin{itemize}
+    \item Continuous and monotonically increasing.
+    \item $f(0)=\frac{1}{2}$, and limits:
+      \[
+      \lim_{x \to -\infty} f(x) = 0,\quad \lim_{x \to \infty} f(x) = 1.
+      \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Sigmoid Function: Derivative and Figure}
+  \begin{block}{Derivative}
+    \[
+    \frac{df(x)}{dx} = f(x)[1-f(x)]
+    \]
+  \end{block}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/topic04fig01.png}
+    \caption{Sigmoid function.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Logistic Function as an ML Model}
+  \begin{itemize}
+    \item Transform input via \( u(x) = w_0 + w_1 x \).
+    \item Logistic model: 
+      \[
+      f(x,\mathbf{w}) = \frac{1}{1+\exp(-w_0 - w_1 x)}
+      \]
+    \item Decision making via threshold \( f(x) \ge \frac{1}{2} \) or \( u(x) \ge 0 \).
+  \end{itemize}
+\end{frame}
+
+\section{Learning from Data and Decision Function}
+\begin{frame}{Learning from Data}
+  \begin{itemize}
+    \item Given a dataset:
+      \[
+      \mathbf{D} = \{(x_k, c_k) \mid k=1,2,\ldots,N\}
+      \]
+    \item Toy example (soil-health experiment):
+      \[
+      \mathbf{D}_s = \{(3.0,0), (5.0,0), (7.0,1)\}
+      \]
+    \item Decision boundary defined in the original and transformed spaces.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Decision Function Variants}
+  \begin{itemize}
+    \item \textbf{Linear:} \( u(x) = w_0 + w_1 x \)
+    \item \textbf{Nonlinear:} Polynomial transformation \( u(x)=w_0+w_1 x+\beta_2x^2+\cdots \)
+    \item \textbf{Multidimensional:} For \(\mathbf{x} \in \mathbb{R}^d\):
+      \[
+      u(\mathbf{x}) = \langle \mathbf{w},\mathbf{x}\rangle + w_0 = \sum_{i=1}^d w_i x_i + w_0
+      \]
+    \item \textbf{Kernel Methods:} Nonlinear transformations in high-dimensional spaces.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpreting the Output Probability}
+  \begin{itemize}
+    \item The logistic function outputs a value \( f[u(x)] \) that can be directly interpreted as a probability.
+    \item For example:
+      \begin{itemize}
+        \item \( f = 0.75 \) implies that the probability of \( m(x)=1 \) is 75\% (and \( m(x)=0 \) is 25\%).
+        \item \( f = 0.25 \) implies that the probability of \( m(x)=1 \) is 25\% (or equivalently, \( m(x)=0 \) is 75\%).
+      \end{itemize}
+    \item This probabilistic interpretation allows us to use \( f[u(x)] \) directly as a classifier.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Learning the Structure of \( u(x) \) from Data}
+  \begin{itemize}
+    \item Since \( f[u(x)] \) is used directly as a classifier, the goal is to learn the underlying function \( u(x) \) from data.
+    \item In the simplest case, \( u(x) \) is assumed to be linear:
+      \[
+      u(x) = w_1 x + w_0.
+      \]
+    \item Thus, the learning problem reduces to estimating the parameters \( w_1 \) and \( w_0 \) based on the training data.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Estimating the Model Parameters - a thought process}
+  \begin{itemize}
+    \item We assume a parametric structure for the decision function: 
+      \[
+      u(x) = w_1 x + w_0.
+      \]
+    \item Given a set of labeled training data \( \{(x_1, c_1), (x_2, c_2), \dots, (x_N, c_N)\} \), these data points constrain the possible values of \( w_1 \) and \( w_0 \).
+    \item Among many possible parameter values, there exists an optimal set that best explains the observed labels.
+    \item To find these optimal weights, we define an objective (loss) function that quantifies the discrepancy between the predicted outputs \( f[u(x)] \) and the true labels.
+    \item The goal is to minimize this loss function to obtain the best estimates of \( w_1 \) and \( w_0 \).
+  \end{itemize}
+\end{frame}
+
+
+\section{Loss Function and Optimization}
+\begin{frame}{Loss Function: Log-Loss}
+  \begin{block}{Loss for a single sample}
+    \[
+    l(f_k) = -c_k\ln(f_k) - (1-c_k)\ln(1-f_k)
+    \]
+  \end{block}
+  \begin{itemize}
+    \item Total loss over dataset:
+      \[
+      L = -\sum_k \left[c_k\ln(f_k) + (1-c_k)\ln(1-f_k)\right]
+      \]
+    \item Encourages high confidence in predictions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Optimization: Gradient-Based Methods}
+  \begin{itemize}
+    \item Objective: Find \(\mathbf{w}^* = \arg\min_{\mathbf{w}} L\).
+    \item Gradient for a single sample:
+      \[
+      \nabla_\mathbf{w} l(\mathbf{w}) = -(c-f)
+      \begin{bmatrix} 1 \\ x \end{bmatrix}
+      \]
+    \item Total gradient:
+      \[
+      \nabla_\mathbf{w} L =
+      \begin{bmatrix}
+      \sum_k -(c_k - f_k) \\
+      \sum_k -(c_k - f_k)x_k
+      \end{bmatrix}
+      \]
+    \item Use iterative methods (e.g., gradient descent or Newton's method) to update \(\mathbf{w}\).
+  \end{itemize}
+\end{frame}
+
+\section{Toy Example}
+\begin{frame}{Toy Example: Soil-Health Dataset}
+  \begin{itemize}
+    \item Dataset: 
+      \[
+      \mathcal{D} = \{(0,3.0), (0,5.0), (1,7.0)\}
+      \]
+    \item Logistic model:
+      \[
+      f(x,\mathbf{w}) = \frac{1}{1+\exp(-w_0-w_1x)}
+      \]
+    \item Total loss:
+      \[
+      L = -\ln\left[(1-f_1)(1-f_2)f_3\right]
+      \]
+      where
+      \[
+      f_1 = \frac{1}{1+\exp(-w_0-3w_1)},\quad
+      f_2 = \frac{1}{1+\exp(-w_0-5w_1)}
+      \]
+      \[
+      f_3 = \frac{1}{1+\exp(-w_0-7w_1)}.
+      \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Toy Example: Optimization and Decision Boundary}
+  \begin{itemize}
+    \item Parameter estimates (from numerical optimization):
+      \[
+      w_0 = -5.0718,\quad w_1 = 0.8186.
+      \]
+    \item Decision boundary: 
+      \[
+      0.8186\,x - 5.0718 = 0 \quad \Rightarrow \quad x^* \approx 6.1961.
+      \]
+    \item For \(x > x^*\), predict class 1; for \(x < x^*\), predict class 0.
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/topic04fig07.png}
+    \caption{Loss function surface in terms of \(w_0\) and \(w_1\).}
+  \end{figure}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}{Conclusion}
+  \begin{itemize}
+    \item \textbf{Recap:} We covered the theory and practical implementation of logistic regression.
+    \item \textbf{Key Points:}
+      \begin{itemize}
+        \item Sigmoid and logistic functions provide a probabilistic framework.
+        \item Decision functions transform input data for effective classification.
+        \item The log-loss function guides model training via gradient-based optimization.
+      \end{itemize}
+    \item \textbf{Practical Insight:} The toy example illustrated how parameter estimation yields a meaningful decision boundary.
+    \item \textbf{Overall:} Logistic regression remains a fundamental, interpretable model in both statistics and modern AI.
+  \end{itemize}
+\end{frame}
+
+\end{document}

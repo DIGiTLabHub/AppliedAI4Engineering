@@ -1,0 +1,333 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+
+\graphicspath{{./figs/}}
+
+\title{CE 488 / 5588 \\ Multi-Class Classification -- History and Trends \\ \large Case Study: Handwritten Digit Recognition}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+% \tableofcontents
+\newpage
+
+% =========================================================
+\section{Introduction}
+
+Handwritten digit recognition is one of the most influential benchmark problems in machine learning. 
+Although visually simple, it encapsulates nearly all core elements of supervised learning:
+
+\begin{itemize}
+    \item Multi-class classification (10 classes),
+    \item High-dimensional input space (pixel grids),
+    \item Nonlinear decision boundaries,
+    \item Representation learning,
+    \item Statistical generalization and robustness challenges.
+\end{itemize}
+
+The problem serves as a controlled experimental testbed for understanding:
+\begin{enumerate}
+    \item Classical machine learning pipelines,
+    \item Deep neural network evolution,
+    \item Error bounds and Bayes limits,
+    \item Overfitting and distribution shift.
+\end{enumerate}
+
+Despite being considered ``solved,'' MNIST remains pedagogically powerful for understanding how AI systems learn and where their limits lie.
+
+% =========================================================
+\section{Dataset Foundations}
+
+\subsection{NIST Special Database 19 (SD19)}
+
+The foundation dataset for modern handwritten character recognition is the 
+\textbf{NIST Special Database 19 (SD19)}.
+
+\begin{itemize}
+    \item Collected from approximately 3{,}600 writers.
+    \item 814{,}255 segmented character images.
+    \item Image resolution: $128 \times 128$ grayscale.
+    \item 62 ASCII classes:
+    \begin{itemize}
+        \item 10 digits,
+        \item 26 uppercase letters,
+        \item 26 lowercase letters.
+    \end{itemize}
+\end{itemize}
+
+This dataset reflects significant diversity in handwriting styles and stroke variability.
+
+\subsection{MNIST Benchmark Dataset}
+
+The MNIST dataset is a curated subset derived from SD19, designed for controlled benchmarking.
+
+\begin{itemize}
+    \item 60{,}000 training samples,
+    \item 10{,}000 test samples,
+    \item $28 \times 28$ grayscale images,
+    \item 10 digit classes: $\{0,1,\dots,9\}$,
+    \item Size-normalized and centered.
+\end{itemize}
+
+MNIST became the canonical benchmark for multi-class classification for over two decades.
+
+\subsection{Sample MNIST Digits}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{MnistExamplesModified.png}
+\caption{Example MNIST handwritten digits. Observe variations in stroke thickness, skew, and ambiguity between certain classes (e.g., 4 vs 9).}
+\end{figure}
+
+Even at this small scale, class ambiguity is evident.
+
+% =========================================================
+\section{Formal Multi-Class Classification Setup}
+
+Let the test dataset be:
+
+\[
+D_{\text{test}} = \{(x_i, y_i)\}_{i=1}^N,
+\]
+
+where:
+\begin{itemize}
+    \item $x_i \in \mathbb{R}^{784}$ is the flattened $28\times 28$ image,
+    \item $y_i \in \{0,1,\dots,9\}$ is the true label.
+\end{itemize}
+
+A classifier $f$ produces predictions:
+
+\[
+\hat{y}_i = f(x_i).
+\]
+
+\subsection{Error Rate and Accuracy}
+
+The empirical error rate is defined as:
+
+\[
+\epsilon =
+\frac{1}{N}
+\sum_{i=1}^N
+\mathbf{1}\{\hat{y}_i \neq y_i\}.
+\]
+
+Accuracy is:
+
+\[
+\text{Accuracy} = 1 - \epsilon.
+\]
+
+This corresponds to 0--1 loss evaluation.
+
+% =========================================================
+\section{Evolution of Benchmark Performance}
+
+\subsection{Milestone Models}
+
+\begin{itemize}
+    \item \textbf{1998 -- LeNet-5 (Convolutional Neural Network)} \\
+    Error rate: $\epsilon = 0.95\%$.
+
+    \item \textbf{2011 -- Multi-Column Deep Neural Network (MCDNN)} \\
+    Error rate: $\epsilon = 0.23\%$.
+
+    \item \textbf{2013 -- DropConnect CNN} \\
+    Error rate: $\epsilon = 0.21\%$.
+
+    \item \textbf{2017 -- Capsule Networks} \\
+    Error rate: $\epsilon = 0.16\%$.
+\end{itemize}
+
+\subsection{Common Characteristics}
+
+All top-performing approaches share:
+
+\begin{itemize}
+    \item End-to-end training directly on pixels,
+    \item Minimal preprocessing,
+    \item Hierarchical feature learning,
+    \item Joint optimization of representation and classifier.
+\end{itemize}
+
+Feature extraction is internal to the model.
+
+% =========================================================
+\section{Classical Feature-Based Methods}
+
+Before deep learning dominance, pipelines were typically:
+
+\[
+\text{Image} \rightarrow \text{Feature Extraction} \rightarrow \text{Classifier}.
+\]
+
+\subsection{HOG + SVM}
+
+\begin{itemize}
+    \item Histogram of Oriented Gradients (HOG),
+    \item Support Vector Machine classifier,
+    \item Error rate $\approx 0.64\%$.
+\end{itemize}
+
+\subsection{Random Forests}
+
+\begin{itemize}
+    \item Often combined with HOG features,
+    \item Error rate $\approx 2\%$--$3\%$.
+\end{itemize}
+
+\subsection{Naïve Bayes}
+
+\begin{itemize}
+    \item Gaussian likelihood per pixel,
+    \item Independence assumption among pixels,
+    \item Error rate $\approx 4\%$--$15\%$.
+\end{itemize}
+
+These methods separate representation learning from classification.
+
+% =========================================================
+\section{Can We Reach 100\% Accuracy?}
+
+The best reported test error on MNIST is approximately:
+
+\[
+\epsilon \approx 0.16\%.
+\]
+
+This raises a fundamental question:
+
+Is 100\% accuracy possible?
+
+% =========================================================
+\section{Bayes Error and Irreducible Uncertainty}
+
+Define the Bayes error rate:
+
+\[
+\varepsilon_{\text{Bayes}} = \min_f \Pr(f(x) \neq y).
+\]
+
+Even with infinite data and perfect modeling, no classifier can outperform this limit.
+
+Estimated Bayes error for MNIST:
+
+\[
+\varepsilon_{\text{Bayes}} \approx 0.1\% - 0.2\%.
+\]
+
+\subsection{Sources of Irreducible Error}
+
+\begin{itemize}
+    \item Ambiguous handwriting,
+    \item Mislabeling,
+    \item Overlapping class manifolds,
+    \item Intrinsic noise.
+\end{itemize}
+
+Some digits are fundamentally indistinguishable.
+
+\bigskip
+\textbf{Key Insight:} Not all error is model error; some error is information-theoretic.
+
+% =========================================================
+\section{Beyond Testing: Generalization}
+
+High test accuracy does not guarantee:
+
+\begin{itemize}
+    \item Robustness,
+    \item Out-of-distribution performance,
+    \item Stability under perturbation.
+\end{itemize}
+
+\subsection{Distribution Shift}
+
+MNIST assumes:
+
+\begin{itemize}
+    \item Same scanning pipeline,
+    \item Same normalization,
+    \item Same centering,
+    \item Same resolution.
+\end{itemize}
+
+Real-world deployment may involve:
+
+\begin{itemize}
+    \item Different lighting,
+    \item Camera distortions,
+    \item Writer demographics,
+    \item Image corruption.
+\end{itemize}
+
+\subsection{Adversarial Vulnerability}
+
+Small perturbations to pixel intensities can cause confident misclassification.
+
+Thus, robustness must be evaluated separately from raw accuracy.
+
+% =========================================================
+\section{Deeper Conceptual Lessons}
+
+Digit recognition embodies:
+
+\begin{itemize}
+    \item High-dimensional nonlinear manifolds,
+    \item Bias--variance tradeoff,
+    \item Statistical vs. information-theoretic limits,
+    \item Distributional robustness challenges.
+\end{itemize}
+
+These principles extend directly to:
+
+\begin{itemize}
+    \item Medical imaging,
+    \item Structural damage detection,
+    \item Infrastructure monitoring,
+    \item Autonomous systems.
+\end{itemize}
+
+The mathematical structure remains the same; only the domain changes.
+
+% =========================================================
+\section{Suggested Exercises}
+
+\begin{enumerate}
+    \item Train logistic regression on MNIST.
+    \item Compare linear and kernel SVM performance.
+    \item Add Gaussian noise and re-evaluate accuracy.
+    \item Rotate digits by $\pm 10^\circ$ and test.
+    \item Train a CNN and compare robustness.
+    \item Compute and interpret the confusion matrix.
+\end{enumerate}
+
+% =========================================================
+\section{Conclusion}
+
+MNIST is more than a solved benchmark.
+
+It provides a controlled environment to understand:
+
+\begin{itemize}
+    \item Representation learning,
+    \item End-to-end optimization,
+    \item Bayes limits,
+    \item Generalization versus memorization,
+    \item Robustness beyond benchmark performance.
+\end{itemize}
+
+The deeper question is not whether we can reach 100\% accuracy, but whether the model truly understands the concept of a digit beyond the dataset.
+
+\end{document}

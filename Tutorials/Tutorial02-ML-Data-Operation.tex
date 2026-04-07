@@ -1,7 +1,5 @@
 \documentclass[12pt]{article}
-\usepackage{../TopicChapters/ceai}
-
-
+\usepackage{ceai}
 
 \begin{document}
 \title{Tutorial 02:  Data Operation for AI and Machine Learning}
@@ -30,22 +28,15 @@ Tensor data processing is instrumental to modern deep learning and machine visio
 We will save and access codes/data in Google Drive. Suppose that you have a folder CE488 and a subfolder for HW02 where you save all your files and data. It is recommended that you have uploaded the necessary data files (e.g., an excel file) into it using local or online Google Drive. Theh following codes are commonly used.
 
 \begin{lstlisting}[numbers=none, language=Python, caption=Common codes for Google Drive Access]
-# Mount Google Drive and set a working folder
+# Mount Google Drive and set it a base path
 from google.colab import drive
-import os
+drive.mount("/content/drive")
 
-drive.mount('/content/drive')
+import sys
 
-# Update this path to match your course folder
-# (In Colab, Google Drive is typically mounted under /content/drive/MyDrive/)
-folder_path = '/content/drive/MyDrive/Classroom/UMKC CE401 5501 Applied AI/Topic02'
-
-# List files and (optionally) change the working directory
-items = os.listdir(folder_path)
-for item in items:
-    print(item)
-
-os.chdir(folder_path)
+BASE = "/content/drive/MyDrive/Colab Notebooks"
+if BASE not in sys.path:
+    sys.path.append(BASE)
 \end{lstlisting}
 
 
@@ -200,7 +191,7 @@ display(matrix_df)
 # Assuming students_df and matrix_df are already defined
 # (Requires openpyxl for .xlsx writing in most Colab environments)
 
-with pd.ExcelWriter('data.xlsx', engine='openpyxl') as writer:
+with pd.ExcelWriter('./DataSets/sample_data.xlsx', engine='openpyxl') as writer:
     students_df.to_excel(writer, sheet_name='Students', index=False)
     matrix_df.to_excel(writer, sheet_name='Matrix', index=False)
 \end{lstlisting}
@@ -242,7 +233,7 @@ eigenvalues = np.linalg.eigvals(cov_matrix)
 print("\nEigenvalues:", eigenvalues)
 \end{lstlisting}
 
-\subsection{Handling Structured Data}
+\subsection{Handling Structured Data in Excel and Processing}
 Pandas excels at structured data manipulation, particularly for:
 \begin{itemize}
 \item Reading/writing Excel/CSV files
@@ -259,32 +250,12 @@ from google.colab import drive
 # Mount Google Drive in Colab
 drive.mount('/content/drive')
 
-# Load the Excel file created above (two sheets: Students and Matrix)
-students_df = pd.read_excel('/content/drive/MyDrive/data.xlsx', sheet_name='Students')
-matrix_df = pd.read_excel('/content/drive/MyDrive/data.xlsx', sheet_name='Matrix')
+# Load the Excel file created above 
+bridge_id = pd.read_excel('/DataSets/MOpoorbridges.xlsx', sheet_name='Bridge #')
+length_ft = pd.read_excel('/DataSets/MOpoorbridges.xlsx', sheet_name='Length')
 
-print("Students overview:")
-display(students_df.head())
-print("\nMatrix overview:")
-display(matrix_df.head())
-\end{lstlisting}
+# Prompt to process the data ..
 
-\subsection{Data Operations}
-\begin{lstlisting}[numbers=none,language=Python, caption=Data Manipulation]
-import datetime as dt
-
-# Filter records (e.g., students with score >= 90)
-high_score = students_df[students_df['Score'] >= 90]
-display(high_score)
-
-# Add a computed column using the current year (avoids hard-coding)
-current_year = dt.date.today().year
-students_df['Birth_Year'] = current_year - students_df['Age']
-display(students_df)
-
-# Simple grouped statistics (mean score by age)
-score_by_age = students_df.groupby('Age')['Score'].agg(['mean', 'count'])
-display(score_by_age)
 \end{lstlisting}
 
 

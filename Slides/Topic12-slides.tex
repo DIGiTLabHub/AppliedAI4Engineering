@@ -1,0 +1,621 @@
+\documentclass[12pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e}
+\AtBeginEnvironment{frame}{\justifying}
+
+\title[Topic 12: Unsupervised Learning]{CE 488/5588: Applied AI\\Topic 12: Classic Unsupervised Learning}
+\author{}
+\date{}
+
+\newcommand{\source}[1]{\vspace{0.4em}{\tiny\color{gray}Source: #1\par}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Lecture Roadmap}
+  \justifying
+  \tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}{From Supervised to Unsupervised Learning}
+  \justifying
+  In supervised learning, each sample comes with a label or numerical target. In unsupervised learning, the dataset contains only observations, so the task is to uncover structure that is already present in the data.
+
+  \begin{conceptbox}{Core Idea}
+    Unsupervised learning looks for regularity without a teacher signal: groups, latent directions, redundancy, novelty, or operating regimes.
+  \end{conceptbox}
+
+  \source{\href{https://scikit-learn.org/stable/unsupervised_learning.html}{scikit-learn: Unsupervised learning}}
+\end{frame}
+
+\begin{frame}{Dataset View and Learning Goal}
+  \justifying
+  Let
+  \[
+    \mathcal{D} = \{\mathbf{x}_n \mid n=1,2,\ldots,N\}, \qquad \mathbf{x}_n \in \mathbb{R}^d.
+  \]
+  There are no class labels and no regression targets attached to the samples.
+
+  \begin{itemize}
+    \item We do not fit a decision boundary.
+    \item We do not predict a known scalar output.
+    \item We instead search for structure in geometry, density, correlation, and variation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why This Matters in Engineering}
+  \justifying
+  Unsupervised tools are useful before, after, or alongside predictive modeling.
+
+  \begin{examplebox}{Typical Uses}
+    \begin{itemize}
+      \item exploratory analysis of large sensor datasets,
+      \item operating-regime identification,
+      \item anomaly screening and fault investigation,
+      \item feature compression and denoising, and
+      \item preprocessing before later supervised learning.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{Learning Goals for Topic 12}
+  \justifying
+  By the end of this topic, you should be able to:
+  \begin{itemize}
+    \item distinguish clustering from dimensionality reduction,
+    \item formulate the k-means objective and algorithm,
+    \item explain how hierarchical clustering and DBSCAN differ from k-means,
+    \item evaluate clustering with internal and external criteria, and
+    \item explain how PCA constructs a lower-dimensional representation.
+  \end{itemize}
+\end{frame}
+
+\section{Clustering}
+
+\begin{frame}{What Clustering Tries to Recover}
+  \justifying
+  Clustering groups samples so that points within the same cluster are relatively similar, while points from different clusters are relatively dissimilar.
+
+  \begin{conceptbox}{Interpretation Challenge}
+    A cluster has no built-in meaning. Its engineering interpretation must come from domain context after the grouping is found.
+  \end{conceptbox}
+
+  Different algorithms encode similarity differently, so the expected data geometry should guide the method choice.
+\end{frame}
+
+\subsection{K-means clustering}
+
+\begin{frame}{K-means as Prototype-Based Clustering}
+  \justifying
+  K-means partitions a dataset into $K$ groups, each represented by a centroid.
+
+  \begin{conceptbox}{Modeling Assumption}
+    Each cluster is summarized well by its sample mean, so the algorithm works best for compact, roughly spherical groups under Euclidean distance.
+  \end{conceptbox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/clustering.html\#k-means}{scikit-learn: K-means}}
+\end{frame}
+
+\begin{frame}{K-means Objective Function}
+  \justifying
+  K-means minimizes the within-cluster sum of squares:
+  \[
+    J = \sum_{k=1}^{K} \sum_{\mathbf{x}_i \in S_k} \lVert \mathbf{x}_i - \boldsymbol{\mu}_k \rVert^2,
+  \]
+  where $S_k$ is cluster $k$ and $\boldsymbol{\mu}_k$ is its centroid.
+
+  \begin{conceptbox}{Interpretation}
+    A smaller $J$ means samples lie closer to the representative centroid of their assigned cluster.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{The Two Alternating Steps}
+  \justifying
+  Each iteration alternates between:
+  \begin{enumerate}
+    \item \textbf{Assignment step:} assign each point to the nearest centroid.
+    \item \textbf{Update step:} recompute each centroid as the mean of the currently assigned points.
+  \end{enumerate}
+
+  These two steps are repeated until assignments stabilize or the objective improvement becomes negligible.
+\end{frame}
+
+\begin{frame}{Why K-means Improves Monotonically}
+  \justifying
+  The assignment step minimizes $J$ with fixed centroids because each point is sent to its closest centroid.
+
+  The update step minimizes $J$ with fixed assignments because the least-squares representative of a cluster is its sample mean.
+
+  \begin{conceptbox}{Consequence}
+    Every iteration does not increase the objective, so k-means converges in finitely many steps to a local minimum.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{K-means as a Hard-Assignment EM Procedure}
+  \justifying
+  K-means can be interpreted as a special case of the expectation-maximization idea.
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{examplebox}{E-step Analogy}
+        Assign each sample to the cluster with the nearest centroid.
+      \end{examplebox}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{examplebox}{M-step Analogy}
+        Update each centroid using the current cluster mean.
+      \end{examplebox}
+    \end{column}
+  \end{columns}
+
+  This is a hard-assignment rather than probabilistic EM viewpoint.
+\end{frame}
+
+\begin{frame}{Initialization Matters}
+  \justifying
+  Because the objective is nonconvex, different starting centroids can lead to different final partitions.
+
+  \begin{warningbox}{Practical Lesson}
+    K-means is fast, but not globally optimal. Multiple restarts or informed initialization such as k-means++ are often necessary.
+  \end{warningbox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html}{scikit-learn API: KMeans}}
+\end{frame}
+
+\begin{frame}{Computational Considerations}
+  \justifying
+  A typical iteration costs approximately
+  \[
+    \mathcal{O}(N K d),
+  \]
+  where $N$ is the number of samples, $K$ is the number of clusters, and $d$ is the feature dimension.
+
+  \begin{itemize}
+    \item Larger $K$ increases assignment work.
+    \item Larger $d$ makes distance evaluations more expensive.
+    \item High-dimensional distance can become less informative.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Feature Scaling Is Usually Essential}
+  \justifying
+  K-means depends directly on distances, so variables with larger numeric range can dominate the partition.
+
+  \begin{warningbox}{Preprocessing Rule}
+    Standardize or normalize features when their scales differ substantially, otherwise the clustering may reflect units rather than true structure.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Choosing the Number of Clusters}
+  \justifying
+  The user must choose $K$ before running the basic algorithm.
+
+  \begin{itemize}
+    \item Too few clusters may merge distinct operating regimes.
+    \item Too many clusters may split natural groups into artificial fragments.
+    \item Practical selection often combines geometry, validation metrics, and engineering interpretation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Visual Effect of Different $K$ Values}
+  \centering
+  \begin{figure}
+    \includegraphics[width=0.9\textwidth,height=0.58\textheight,keepaspectratio,alt={Two-panel k-means example comparing a three-cluster solution with a five-cluster solution on the same dataset.}]{topic12_kmeans_k3_vs_k5.png}
+  \end{figure}
+  \vspace{-0.4em}
+  {\small Forcing a larger $K$ often splits visually coherent groups into smaller pieces.}
+\end{frame}
+
+\begin{frame}{Elbow and Silhouette Heuristics}
+  \justifying
+  Two common model-selection heuristics are:
+  \begin{itemize}
+    \item \textbf{Elbow method:} look for the point where the objective reduction begins to level off.
+    \item \textbf{Silhouette analysis:} assess whether samples are much closer to their own cluster than to neighboring clusters.
+  \end{itemize}
+
+  \source{\href{https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html}{scikit-learn: silhouette analysis example}}
+\end{frame}
+
+\begin{frame}{Elbow Plot for $K$ Selection}
+  \centering
+  \begin{figure}
+    \includegraphics[width=0.58\textwidth,height=0.56\textheight,keepaspectratio,alt={Example elbow curve showing diminishing improvement in k-means objective as the number of clusters increases.}]{topic12_elbow_method.png}
+  \end{figure}
+  \vspace{-0.4em}
+  {\small The elbow is a heuristic, not a theorem; engineering judgment still matters.}
+\end{frame}
+
+\begin{frame}{Strengths and Limitations of K-means}
+  \justifying
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{examplebox}{Strengths}
+        \begin{itemize}
+          \item simple and fast,
+          \item easy to interpret,
+          \item strong baseline for compact clusters.
+        \end{itemize}
+      \end{examplebox}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{warningbox}{Limitations}
+        \begin{itemize}
+          \item requires $K$ in advance,
+          \item sensitive to initialization and scale,
+          \item struggles with nonconvex shapes and heavy outliers.
+        \end{itemize}
+      \end{warningbox}
+    \end{column}
+  \end{columns}
+
+  \source{\href{https://projecteuclid.org/euclid.bsmsp/1200512992}{MacQueen (1967)}; \href{https://scikit-learn.org/stable/modules/clustering.html\#k-means}{scikit-learn}}
+\end{frame}
+
+\subsection{Hierarchical clustering}
+
+\begin{frame}{Hierarchical Clustering Builds a Tree of Groups}
+  \justifying
+  Agglomerative hierarchical clustering begins with each sample as its own cluster and repeatedly merges the two closest clusters.
+
+  \begin{conceptbox}{Output}
+    The result is a nested family of groupings summarized by a dendrogram rather than a single partition for one fixed $K$.
+  \end{conceptbox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/clustering.html\#hierarchical-clustering}{scikit-learn: Hierarchical clustering}}
+\end{frame}
+
+\begin{frame}{Linkage Rules Define Cluster Distance}
+  \justifying
+  Different linkage choices produce different merge behavior.
+
+  \begin{itemize}
+    \item \textbf{Single linkage:} distance between the closest pair of points.
+    \item \textbf{Complete linkage:} distance between the farthest pair of points.
+    \item \textbf{Average linkage:} average pairwise distance.
+    \item \textbf{Ward linkage:} increase in within-cluster variance after merging.
+  \end{itemize}
+
+  \source{\href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html}{SciPy: linkage documentation}}
+\end{frame}
+
+\begin{frame}{Reading a Dendrogram}
+  \justifying
+  A dendrogram visualizes the order and height of cluster merges.
+
+  \begin{conceptbox}{Interpretation}
+    A horizontal cut through the dendrogram produces a clustering. Higher cuts give fewer, coarser groups; lower cuts give more, finer groups.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Hierarchical Clustering Example}
+  \centering
+  \begin{figure}
+    \includegraphics[width=0.64\textwidth,height=0.56\textheight,keepaspectratio,alt={Dendrogram illustrating sequential merges in agglomerative hierarchical clustering.}]{topic12_hierarchical_dendrogram.png}
+  \end{figure}
+  \vspace{-0.4em}
+  {\small The tree view is useful when the data may have meaningful structure at multiple scales.}
+\end{frame}
+
+\begin{frame}{When Hierarchical Clustering Helps}
+  \justifying
+  \begin{examplebox}{Advantages}
+    \begin{itemize}
+      \item no need to fix $K$ at the start,
+      \item reveals multiscale structure,
+      \item useful when interpretability of nested groups matters.
+    \end{itemize}
+  \end{examplebox}
+
+  \begin{warningbox}{Tradeoffs}
+    Computational cost grows quickly on large datasets, and results depend strongly on linkage and distance choices.
+  \end{warningbox}
+\end{frame}
+
+\subsection{DBSCAN}
+
+\begin{frame}{DBSCAN Uses Density Rather Than Centroids}
+  \justifying
+  DBSCAN groups points that live in dense neighborhoods and labels isolated samples as noise.
+
+  \begin{conceptbox}{Key Benefit}
+    It can recover clusters of irregular shape and handles outliers more explicitly than k-means.
+  \end{conceptbox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/clustering.html\#dbscan}{scikit-learn: DBSCAN}; \href{https://aaai.org/papers/kdd96-037-a-density-based-algorithm-for-discovering-clusters-in-large-spatial-databases-with-noise/}{Ester et al. (1996)}}
+\end{frame}
+
+\begin{frame}{Core Points, Border Points, and Noise}
+  \justifying
+  For radius $\epsilon$, define the neighborhood
+  \[
+    \mathcal{N}_{\epsilon}(\mathbf{x}_n) = \{\mathbf{x}_j \in \mathcal{D} \mid \lVert \mathbf{x}_j - \mathbf{x}_n \rVert \leq \epsilon\}.
+  \]
+
+  \begin{itemize}
+    \item A \textbf{core point} has at least \textit{MinPts} neighbors.
+    \item A \textbf{border point} lies near a dense region but is not itself core.
+    \item A \textbf{noise point} does not belong to any dense region.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{DBSCAN Parameter Sensitivity}
+  \justifying
+  The method depends mainly on two choices: $\epsilon$ and \textit{MinPts}.
+
+  \begin{warningbox}{Tuning Tradeoff}
+    If $\epsilon$ is too small, many points become noise. If it is too large, nearby clusters may merge into one large region.
+  \end{warningbox}
+
+  Very high-dimensional data can still be difficult because distance-based neighborhoods lose contrast.
+\end{frame}
+
+\begin{frame}{DBSCAN Example: Irregular Clusters and Noise}
+  \centering
+  \begin{figure}
+    \includegraphics[width=0.64\textwidth,height=0.56\textheight,keepaspectratio,alt={Example density-based clustering result with irregularly shaped clusters and isolated noise points.}]{topic12_dbscan.png}
+  \end{figure}
+  \vspace{-0.4em}
+  {\small Density-based clustering is attractive when clusters are nonconvex or outliers matter.}
+\end{frame}
+
+\section{Clustering Evaluation}
+
+\begin{frame}{Why Clustering Evaluation Is Different}
+  \justifying
+  In supervised learning, predictions can often be compared directly with known labels. In clustering, such labels are usually unavailable.
+
+  \begin{conceptbox}{Evaluation Questions}
+    Are the groups compact? Are they well separated? Are they stable? Are they meaningful for the application?
+  \end{conceptbox}
+\end{frame}
+
+\subsection{Internal evaluation}
+
+\begin{frame}{Internal Evaluation Uses Geometry Alone}
+  \justifying
+  Internal metrics judge the clustering without any external ground truth.
+
+  \begin{examplebox}{Common Internal Metrics}
+    \begin{itemize}
+      \item inertia or within-cluster sum of squares,
+      \item silhouette score, and
+      \item Calinski--Harabasz index.
+    \end{itemize}
+  \end{examplebox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/clustering.html\#clustering-performance-evaluation}{scikit-learn: clustering performance evaluation}}
+\end{frame}
+
+\begin{frame}{Silhouette Score Intuition}
+  \justifying
+  For sample $\mathbf{x}_n$, define
+  \[
+    s(\mathbf{x}_n) = \frac{b(\mathbf{x}_n)-a(\mathbf{x}_n)}{\max\{a(\mathbf{x}_n),b(\mathbf{x}_n)\}},
+  \]
+  where $a(\mathbf{x}_n)$ is average distance to its own cluster and $b(\mathbf{x}_n)$ is the smallest average distance to another cluster.
+
+  \begin{conceptbox}{Interpretation}
+    Values near $1$ indicate well-separated assignment; values near $0$ indicate overlap; negative values suggest likely misassignment.
+  \end{conceptbox}
+
+  \source{\href{https://scikit-learn.org/dev/modules/generated/sklearn.metrics.silhouette_score.html}{scikit-learn API: silhouette score}}
+\end{frame}
+
+\begin{frame}{What Internal Metrics Can and Cannot Tell You}
+  \justifying
+  Internal metrics are useful for comparing candidate clusterings and tuning hyperparameters.
+
+  \begin{warningbox}{Important Limitation}
+    A geometrically tidy clustering is not automatically the most meaningful clustering for engineering decisions.
+  \end{warningbox}
+
+  Internal scores should be interpreted alongside domain knowledge and downstream use.
+\end{frame}
+
+\subsection{External evaluation}
+
+\begin{frame}{External Evaluation Uses Reference Labels}
+  \justifying
+  External metrics compare the clustering with a trusted reference grouping, such as expert annotations or known classes not used during training.
+
+  \begin{examplebox}{Common External Metrics}
+    \begin{itemize}
+      \item Adjusted Rand Index (ARI),
+      \item Normalized Mutual Information (NMI), and
+      \item Fowlkes--Mallows Index.
+    \end{itemize}
+  \end{examplebox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/generated/sklearn.metrics.adjusted_rand_score.html}{ARI}; \href{https://scikit-learn.org/stable/modules/generated/sklearn.metrics.normalized_mutual_info_score.html}{NMI}; \href{https://scikit-learn.org/stable/modules/generated/sklearn.metrics.fowlkes_mallows_score.html}{Fowlkes--Mallows}}
+\end{frame}
+
+\begin{frame}{Evaluation Workflow in Practice}
+  \justifying
+  A reasonable workflow is:
+  \begin{enumerate}
+    \item inspect the data and expected geometry,
+    \item choose candidate methods and hyperparameters,
+    \item compare internal scores,
+    \item use external scores when trusted labels exist, and
+    \item interpret the result in light of domain usefulness.
+  \end{enumerate}
+\end{frame}
+
+\section{Dimensionality Reduction}
+
+\begin{frame}{Why Reduce Dimension?}
+  \justifying
+  Dimensionality reduction replaces many variables with a smaller set of informative coordinates.
+
+  \begin{examplebox}{Benefits}
+    \begin{itemize}
+      \item easier visualization,
+      \item reduced redundancy,
+      \item denoising,
+      \item lower storage and computation, and
+      \item better preprocessing for later learning algorithms.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\subsection{Principal Component Analysis (PCA)}
+
+\begin{frame}{PCA Finds Directions of Maximum Variance}
+  \justifying
+  PCA is the classical linear dimensionality-reduction method.
+
+  \begin{conceptbox}{Main Goal}
+    Project the data onto a lower-dimensional subspace that preserves as much variation as possible.
+  \end{conceptbox}
+
+  \source{\href{https://scikit-learn.org/stable/modules/decomposition.html\#pca}{scikit-learn: PCA}}
+\end{frame}
+
+\begin{frame}{Centering and Covariance Matrix}
+  \justifying
+  First compute the sample mean
+  \[
+    \bar{\mathbf{x}} = \frac{1}{N}\sum_{n=1}^{N} \mathbf{x}_n,
+  \]
+  then the covariance matrix
+  \[
+    \mathbf{C} = \frac{1}{N}\sum_{n=1}^{N}(\mathbf{x}_n-\bar{\mathbf{x}})(\mathbf{x}_n-\bar{\mathbf{x}})^T.
+  \]
+
+  PCA uses the eigenstructure of $\mathbf{C}$ to define principal directions.
+\end{frame}
+
+\begin{frame}{Principal Components and Projection}
+  \justifying
+  Let $\mathbf{W}_p \in \mathbb{R}^{d \times p}$ collect the first $p$ eigenvectors of the covariance matrix.
+
+  The reduced representation is
+  \[
+    \mathbf{y}_n = \mathbf{W}_p^T(\mathbf{x}_n - \bar{\mathbf{x}}), \qquad \mathbf{y}_n \in \mathbb{R}^p.
+  \]
+
+  \begin{conceptbox}{Interpretation}
+    PCA rotates the coordinate system and then keeps the directions carrying the strongest linear variation.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Explained Variance and Dimension Choice}
+  \justifying
+  The eigenvalues associated with the principal components measure captured variance.
+
+  \begin{itemize}
+    \item Large leading eigenvalues indicate a compact low-dimensional summary may work well.
+    \item Cumulative explained variance helps choose a practical value of $p$.
+    \item The retained subspace is optimal for linear least-squares reconstruction.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{PCA for Visualization and Preprocessing}
+  \justifying
+  PCA is commonly used before clustering or regression when features are correlated or dimension is high.
+
+  \begin{examplebox}{Engineering Use}
+    A smaller orthogonal feature set can reduce noise and make Euclidean distance more meaningful before clustering.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{PCA Projection Example}
+  \centering
+  \begin{figure}
+    \includegraphics[width=0.72\textwidth,height=0.56\textheight,keepaspectratio,alt={Scatter plot of a dataset projected onto principal component axes for lower-dimensional visualization.}]{topic12_pca_iris.png}
+  \end{figure}
+  \vspace{-0.4em}
+  {\small PCA can summarize high-dimensional structure in a small number of visualizable coordinates.}
+\end{frame}
+
+\subsection{A Brief Note on Nonlinear Methods}
+
+\begin{frame}{Why PCA May Be Insufficient}
+  \justifying
+  PCA is linear, so it works best when the dominant structure lies near a flat low-dimensional subspace.
+
+  \begin{warningbox}{Failure Mode}
+    If data lie near a curved manifold, a linear projection may distort neighborhood relationships and hide meaningful structure.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Examples of Nonlinear Dimensionality Reduction}
+  \justifying
+  When geometry is strongly nonlinear, methods such as kernel PCA, Isomap, t-SNE, and UMAP may reveal useful low-dimensional structure.
+
+  \begin{itemize}
+    \item often excellent for visualization,
+    \item more parameter sensitive,
+    \item usually less directly interpretable than PCA.
+  \end{itemize}
+
+  \source{\href{https://scikit-learn.org/stable/modules/manifold.html}{scikit-learn: manifold learning}}
+\end{frame}
+
+\begin{frame}{Choosing Between PCA and Nonlinear Methods}
+  \justifying
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{examplebox}{Prefer PCA When}
+        \begin{itemize}
+          \item compression is the main goal,
+          \item interpretability matters,
+          \item stable preprocessing is needed.
+        \end{itemize}
+      \end{examplebox}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{warningbox}{Prefer Nonlinear Methods When}
+        \begin{itemize}
+          \item curved geometry is expected,
+          \item visualization is the main goal,
+          \item neighborhood preservation is critical.
+        \end{itemize}
+      \end{warningbox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Conclusion Remarks}
+
+\begin{frame}{Key Takeaways from Topic 12}
+  \justifying
+  \begin{itemize}
+    \item Unsupervised learning discovers structure without labels.
+    \item K-means gives a simple centroid-based baseline but assumes compact clusters.
+    \item Hierarchical clustering reveals nested structure, while DBSCAN handles irregular shapes and noise.
+    \item Internal and external metrics answer different evaluation questions.
+    \item PCA provides a practical linear route to lower-dimensional representations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Choosing the Right Unsupervised Tool}
+  \justifying
+  Method selection should reflect data geometry, outlier behavior, interpretability needs, and downstream use.
+
+  \begin{columns}[T]
+    \begin{column}{0.32\textwidth}
+      \begin{examplebox}{K-means}
+        Fast baseline for compact groups.
+      \end{examplebox}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{examplebox}{DBSCAN / Hierarchical}
+        Better when geometry or multiscale structure matters.
+      \end{examplebox}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{examplebox}{PCA}
+        Strong first choice for compression, denoising, and visualization.
+      \end{examplebox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}

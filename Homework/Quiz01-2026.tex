@@ -1,0 +1,142 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+
+\begin{document}
+
+
+\title{CE 488/5588 Class Quiz\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+
+\doublespacing
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\section*{Quiz: Prediction and Loss in Binary Classification}
+
+\subsection*{Model Setup and Engineering Context}
+
+Consider a binary classification model
+\[
+f(u(x)\mid w),
+\]
+where:
+\begin{itemize}
+    \item $x \in \mathbb{R}^d$ is the feature vector,
+    \item $w \in \mathbb{R}^d$ is the weight vector,
+    \item $u(x) = w^\top x$,
+    \item $f(\cdot)$ is an activation function.
+\end{itemize}
+
+The task is post-earthquake structural rating of a damaged building with two labels:
+\[
+\textit{Safe}, \quad \textit{Unsafe}.
+\]
+
+\subsection*{Question 1: Label Encoding}
+
+You must encode the labels into binary values - choose 0 or 1. 
+
+\begin{enumerate}
+    \item[(a)] Assign a binary value to \textit{Safe}: $Safe \equiv\ \FillRule{1in}$
+    \item[(b)] Assign a binary value to \textit{Unsafe}: $Unafe \equiv\ \FillRule{1in}$
+    % \item[(c)] Briefly justify your encoding choice.
+\end{enumerate}
+
+\subsection*{Question 2: Prediction from Probability Output}
+
+Suppose the trained model outputs
+\[
+f(u(x)) = 0.25.
+\]
+
+Assume a decision threshold of $0.5$.
+
+\begin{enumerate}
+    \item[(a)] Write down the decision rule: \FillRule{2in}
+    \item[(b)] What is the predicted label: \FillRule{1in}
+\end{enumerate}
+
+\subsection*{Question 3: Log Loss (Ground Truth = Safe)}
+
+Assume the ground-truth label (voted by experts) is \textit{Safe}.
+
+Using the log-loss function
+\[
+\ell = -c \ln(f) - (1-c)\ln(1-f),
+\]
+compute the loss when
+\[
+f = 0.25.
+\]
+
+\FillRule{5in}
+
+\FillRule{5in}
+
+\subsection*{Question 4: Log Loss (Ground Truth = Unsafe)}
+
+Assume the ground-truth label (voted by experts) is \textit{Unsafe}.
+
+Using
+\[
+\ell = -c \ln(f) - (1-c)\ln(1-f),
+\]
+compute the loss when
+\[
+f = 0.25.
+\]
+
+\FillRule{5in}
+
+\FillRule{5in}
+
+\subsection*{Question 5: Hard-Activation Model}
+
+Now suppose the activation is a Heaviside function:
+\[
+f(u) =
+\begin{cases}
+1 & u \ge 0, \\
+0 & u < 0.
+\end{cases}
+\]
+
+The loss is defined as
+\[
+\ell(w) = |f(u\mid w) - c|^2.
+\]
+
+\begin{enumerate}
+    \item[(a)] List all possible combinations of $(f, c)$. 
+
+    \FillRule{5in}
+    \item[(b)] How many distinct loss values exist? \FillRule{1in}
+\end{enumerate}
+
+% \subsection*{Question 6: Gradient Derivation (Graduate Level)}
+
+% Assume
+% \[
+% u = w^\top x,
+% \]
+% and
+% \[
+% \ell(w) = (f(u) - c)^2.
+% \]
+
+% \begin{enumerate}
+%     \item[(a)] Expand $\ell(w)$ explicitly.
+%     \item[(b)] Using the chain rule, derive
+%     \[
+%     \frac{\partial \ell}{\partial w}.
+%     \]
+%     \item[(c)] Express your final answer in terms of $f(u)$, $f'(u)$, and $x$.
+% \end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,144 @@
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,setspace}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=cyan,
+}
+\begin{document}
+\doublespacing
+
+\title{Solutions to Homework 03 -- Quiz Questions}
+\author{}
+\date{}
+\maketitle
+
+\section*{Question 1}
+
+The problem provides a labeled data set
+\[
+\mathcal{D} = \{(\bm{x}_i, c_i) \mid i = 1, 2, \ldots, N\},
+\]
+where each \(\bm{x}_i \in \mathbb{R}^D\) is a feature vector and \(c_i \in \{0,1\}\) is the class label (with \(0\) for no damage and \(1\) for damaged). The model is expressed as
+\[
+m(\bm{x}\mid \bm{w}),
+\]
+with parameters \(\bm{w}\).
+
+\textbf{Answer:} \textbf{A. Discriminative Machine Learning}
+
+\textbf{Explanation:} The model directly learns a mapping from \(\bm{x}\) to a score (and then a decision) without modeling the full joint distribution \(p(\bm{x}, c)\). This is typical of discriminative approaches (e.g., logistic regression, SVMs) where one estimates \(p(c \mid \bm{x})\) or the decision boundary directly.
+
+\bigskip
+
+\section*{Question 2}
+
+The decision function is given by
+\[
+\text{if } f(\bm{x}\mid \bm{w}) \geq 1 \text{ then } c = 1,\quad \text{otherwise, } c = 0.
+\]
+Geometrically, the function’s contour \(f(\bm{x}\mid \bm{w}) = 1\) defines a boundary. The text explains that if a data point lies inside the contour, the structure is intact (i.e., no damage), and if outside, it is damaged.
+
+For the testing data with computed values \((0.1,\; 1.5,\; 0.2,\; 2)\):
+- A score of \(0.1\) is \textbf{inside} the contour (\(0.1 < 1\)) \(\rightarrow\) \textbf{no damage} (\(c=0\)).
+- A score of \(1.5\) is \textbf{outside} the contour (\(1.5 \ge 1\)) \(\rightarrow\) \textbf{damaged} (\(c=1\)).
+- A score of \(0.2\) is \textbf{inside} the contour (\(0.2 < 1\)) \(\rightarrow\) \textbf{no damage} (\(c=0\)).
+- A score of \(2\) is \textbf{outside} the contour (\(2 \ge 1\)) \(\rightarrow\) \textbf{damaged} (\(c=1\)).
+
+\textbf{Answer:} The predicted states are:
+\[
+\text{no damage},\quad \text{damaged},\quad \text{no damage},\quad \text{damaged}.
+\]
+
+\bigskip
+
+\section*{Question 3}
+
+There are two parts here:
+
+\begin{enumerate}[label=(\alph*)]
+    \item If the decision function is defined by a fixed number of parameters, here \(\bm{w}\) is a \(10\times 1\) vector, then the model has a fixed (finite) number of parameters.
+    
+    \textbf{Answer (a):} \underline{parametric} model.
+    
+    \item If instead the engineer develops a model where the number of parameters scales with the number of training samples (e.g., using a kernel-based method), then the model adapts its complexity to the data size.
+    
+    \textbf{Answer (b):} \underline{non-parametric} model.
+\end{enumerate}
+
+\bigskip
+
+\section*{Question 4}
+
+The engineer splits the data into
+\[
+D_0 = \{(x_i, c_i = 0) \mid i = 1, 2, \ldots, N_0\} \quad \text{and} \quad D_1 = \{(x_i, c_i = 1) \mid i = 1, 2, \ldots, N_1\},
+\]
+and then uses a Gaussian mixture model to model \(p(x\mid c=0)\) and \(p(x\mid c=1)\) separately. The priors \(P(c=0)\) and \(P(c=1)\) are also estimated from the data.
+
+\textbf{Answer:} \textbf{A. Generative machine learning}
+
+\textbf{Explanation:} In this approach the engineer is modeling the class-conditional densities \(p(x\mid c)\) and the priors, which is the hallmark of generative methods.
+
+\bigskip
+
+\section*{Question 5}
+
+We are given:
+\[
+P(c=0)=0.99,\quad P(c=1)=0.01.
+\]
+And for the two feature vectors, the likelihoods are:
+\[
+P(x_1\mid c=0)=0.5,\quad P(x_1\mid c=1)=0.99,
+\]
+\[
+P(x_2\mid c=0)=0.001,\quad P(x_2\mid c=1)=0.99.
+\]
+
+Using Bayes' theorem, we compute the unnormalized posterior probabilities.
+
+\textbf{For \(\bm{x}_1\):}
+\[
+P(c=0 \mid x_1) \propto P(x_1 \mid c=0)P(c=0)=0.5 \times 0.99=0.495,
+\]
+\[
+P(c=1 \mid x_1) \propto P(x_1 \mid c=1)P(c=1)=0.99 \times 0.01=0.0099.
+\]
+Since \(0.495 \gg 0.0099\), the posterior probability favors \(c=0\).
+
+\textbf{Answer:} \(\bm{x}_1\) belongs to the \underline{no damage} class.
+
+\bigskip
+
+\textbf{For \(\bm{x}_2\):}
+\[
+P(c=0 \mid x_2) \propto P(x_2 \mid c=0)P(c=0)=0.001 \times 0.99=0.00099,
+\]
+\[
+P(c=1 \mid x_2) \propto P(x_2 \mid c=1)P(c=1)=0.99 \times 0.01=0.0099.
+\]
+Here, \(0.0099 \gg 0.00099\), so the posterior probability favors \(c=1\).
+
+\textbf{Answer:} \(\bm{x}_2\) belongs to the \underline{damaged} class.
+
+\bigskip
+
+\section*{Summary of Answers}
+
+\begin{itemize}
+    \item \textbf{Q1:} A. Discriminative Machine Learning.
+    \item \textbf{Q2:} The predicted states for scores \((0.1,\,1.5,\,0.2,\,2)\) are: no damage, damaged, no damage, damaged.
+    \item \textbf{Q3:} (a) \underline{parametric} model; (b) \underline{non-parametric} model.
+    \item \textbf{Q4:} A. Generative machine learning.
+    \item \textbf{Q5:} \(\bm{x}_1\) is \underline{no damage} and \(\bm{x}_2\) is \underline{damaged}.
+\end{itemize}
+
+\end{document}

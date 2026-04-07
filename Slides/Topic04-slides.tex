@@ -1,0 +1,471 @@
+\documentclass[10pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e}
+\usepackage{subcaption}
+
+\title{CE 488/5588: Applied AI for Engineering\\ \large Topic 4: Logistic Regression}
+\author{}
+\institute{}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \justifying
+  \tableofcontents
+\end{frame}
+
+\begin{frame}{Learning Objectives}
+  \justifying
+  \begin{itemize}
+    \item Explain why logistic regression remains a foundational discriminative model for binary classification.
+    \item Derive the sigmoid-logit relationship, binary cross-entropy loss, and gradient expressions used in learning.
+    \item Connect model outputs, threshold-based decisions, and optimization behavior on a toy dataset.
+  \end{itemize}
+\end{frame}
+
+\section{Introduction and Positioning}
+
+\begin{frame}{Two Core Goals of This Topic}
+  \justifying
+  \begin{itemize}
+    \item First, we study logistic regression as a simple, supervised, and discriminative classifier with strong practical value.
+    \item Second, we use logistic regression as a prototype for understanding the structure of discriminative classifiers in general.
+    \item This model is intentionally simple enough to derive fully while still being widely useful in engineering practice.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Logistic Regression Still Matters}
+  \justifying
+  \begin{itemize}
+    \item It is interpretable because linear effects in log-odds directly map to feature influence.
+    \item It is computationally efficient and serves as a strong baseline before more complex models.
+    \item It outputs calibrated probabilities that support risk-aware decisions, not only hard labels.
+  \end{itemize}
+  \vspace{0.5em}
+  {\footnotesize Sources: \url{https://online.stat.psu.edu/stat462/node/207/}; \url{https://scikit-learn.org/stable/modules/linear_model.html}}
+\end{frame}
+
+\begin{frame}{Historical Context and Modern Relevance}
+  \justifying
+  \begin{itemize}
+    \item Logistic regression was developed in statistics to model dichotomous outcomes with probabilistic interpretation.
+    \item It remains central in healthcare, finance, reliability, and policy analytics where explainability is required.
+    \item In modern ML pipelines, it is also used for fast baselines and as a final probabilistic layer.
+  \end{itemize}
+  \vspace{0.5em}
+  {\footnotesize Sources: \url{https://en.wikipedia.org/wiki/Logistic_regression}; \url{https://www.statlearning.com/}}
+\end{frame}
+
+\begin{frame}{Model vs. Classifier}
+  \justifying
+  \begin{conceptbox}{Distinction}
+    A \textbf{discriminative probabilistic model} outputs a probability estimate, e.g.,
+    \[
+      f[u(x)] \approx p(c=1 \mid x),
+    \]
+    while a \textbf{classifier} adds a decision rule to convert that probability into a label.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Discriminative vs. Generative Perspectives}
+  \justifying
+  \begin{itemize}
+    \item Discriminative learning models the conditional probability $p(c\mid x)$ directly.
+    \item Generative learning models $p(x\mid c)$ and $p(c)$, then applies Bayes' rule.
+    \item Logistic regression is a canonical discriminative learner because it parameterizes $p(c=1\mid x)$ directly.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bayes Rule as a Contrastive Reference}
+  \justifying
+  \begin{conceptbox}{Reference Formula}
+    \[
+      p(c \mid x) = \frac{p(x \mid c)\,p(c)}{\sum_{c'} p(x \mid c')\,p(c')}.
+    \]
+    Logistic regression bypasses explicit density modeling and learns the conditional probability map directly.
+  \end{conceptbox}
+\end{frame}
+
+\section{Sigmoid, Odds, and Logit}
+
+\begin{frame}{The Standard Sigmoid Function}
+  \justifying
+  \begin{conceptbox}{Definition}
+    \[
+      f(x)=\frac{1}{1+\exp(-x)}.
+    \]
+    This function maps any real input to the open interval $(0,1)$.
+  \end{conceptbox}
+  \vspace{0.5em}
+  {\footnotesize Sources: \url{https://developers.google.com/machine-learning/crash-course/logistic-regression/sigmoid-function}; \url{https://online.stat.psu.edu/stat462/node/207/}}
+\end{frame}
+
+\begin{frame}{Generalized Logistic Form}
+  \justifying
+  \begin{equation*}
+    f(x)=L\,\frac{1}{1+\exp[-u(x)]}
+  \end{equation*}
+  \begin{itemize}
+    \item $L$ scales the upper asymptote; in standard logistic regression we use $L=1$.
+    \item $u(x)$ is typically linear in features and carries all model parameters.
+    \item In this lecture, ``sigmoid'' and ``logistic'' refer to the standard $L=1$ case.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Sigmoid Properties Used in Classification}
+  \justifying
+  \begin{itemize}
+    \item The function is continuous and strictly increasing on $\mathbb{R}$.
+    \item It satisfies $f(0)=\tfrac{1}{2}$, which aligns naturally with a binary decision threshold.
+    \item Limits are $\lim_{x\to -\infty}f(x)=0$ and $\lim_{x\to \infty}f(x)=1$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Visualizing the Sigmoid (Figure Placeholder)}
+  \centering
+  % \LARGE \textbf{[Figure Placeholder]}
+  \begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Topic04fig01.png}
+    % \caption{Sigmoid function.}
+    \label{t04fig01}
+  \end{figure}
+  \vspace{1em}
+  \normalsize
+  \textit{Plot of $f(x)=1/(1+e^{-x})$ showing the S-shape, midpoint at $(0,0.5)$, and asymptotes near 0 and 1.}
+\end{frame}
+
+\begin{frame}{Odds and Logit Transformations}
+  \justifying
+  \begin{conceptbox}{Definitions}
+    \[
+      \text{odds} = \frac{p}{1-p},
+      \qquad
+      \mathrm{logit}(p)=\log\!\left(\frac{p}{1-p}\right).
+    \]
+    For $p\in(0,1)$, odds are positive and logit spans the full real line.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Key Modeling Insight: Linear Logit}
+  \justifying
+  \begin{itemize}
+    \item Logistic regression assumes $\mathrm{logit}(p)=u(x)$ where $u(x)$ is linear or feature-engineered linear.
+    \item Equivalently, $p=f[u(x)]$, so the sigmoid is the inverse map from log-odds to probability.
+    \item This connection gives both interpretability (linear effects in log-odds) and bounded probabilities.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Derivative Identity of the Sigmoid}
+  \justifying
+  \begin{equation*}
+    \frac{\mathrm{d}f(x)}{\mathrm{d}x}
+    = \frac{\exp(-x)}{\left[1+\exp(-x)\right]^2}
+    = f(x)\left[1-f(x)\right].
+  \end{equation*}
+  \begin{itemize}
+    \item This closed form makes gradient derivations compact and computationally stable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Gradient Through a Linear Discriminant}
+  \justifying
+  For $u(x)=w_0+w_1x$ and $f(x,\bm{w})=f[u(x)]$, chain rule gives:
+  \begin{equation*}
+    \frac{\partial f[u(x)]}{\partial w}
+    = f[u(x)]\left[1-f[u(x)]\right]\frac{\mathrm{d}u(x)}{\mathrm{d}w}.
+  \end{equation*}
+  \begin{equation*}
+    \nabla_{\bm{w}}f(x,\bm{w}) = f(u)[1-f(u)]
+    \begin{bmatrix}1\\x
+    \end{bmatrix}.
+  \end{equation*}
+\end{frame}
+
+\section{Learning From Data}
+
+\begin{frame}{Dataset and Learning Objective}
+  \justifying
+  \begin{conceptbox}{Training Data}
+    \[
+      \mathbf{D}=\{(x_k,c_k)\mid k=1,2,\ldots,N\},\qquad c_k\in\{0,1\}.
+    \]
+    We learn parameters that map each input to an estimated class probability.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Toy Water-Quality Dataset}
+  \justifying
+  \begin{examplebox}{Example Data}
+    \[
+      \mathbf{D}_s=\{(3.0,0),(5.0,0),(7.0,1)\}.
+    \]
+    The task is to infer a boundary that separates low-risk and high-risk outcomes from scalar measurements.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{From Probability Model to Hard Decision}
+  \justifying
+  \begin{itemize}
+    \item Model output: $f[u(x)]\in(0,1)$ interpreted as $p(c=1\mid x)$.
+    \item Decision rule: assign class $1$ when $f[u(x)]\geq 0.5$, else class $0$.
+    \item Equivalent boundary in transformed space: $u(x)=0$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Equivalent Decision Rules}
+  \justifying
+  \begin{equation*}
+    m(x\mid\bm{w})=
+    \begin{cases}
+      1, & \text{if } u(x)\ge 0,\\
+      0, & \text{if } u(x)<0,
+    \end{cases}
+  \end{equation*}
+  and equivalently,
+  \begin{equation*}
+    m(x\mid\bm{w})=
+    \begin{cases}
+      1, & \text{if } f[u(x)]\ge \tfrac{1}{2},\\
+      0, & \text{if } f[u(x)]< \tfrac{1}{2}.
+    \end{cases}
+  \end{equation*}
+\end{frame}
+
+\begin{frame}{Why Introduce a Linear Transformation?}
+  \justifying
+  \begin{itemize}
+    \item Real features often live in bounded domains and need shifting/scaling.
+    \item A linear discriminant $u(x)=w_0+w_1x$ re-centers the boundary in a learnable way.
+    \item The model can then express class transitions at data-driven operating points.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Beyond the Simplest Decision Function}
+  \justifying
+  \begin{itemize}
+    \item Nonlinear transforms: $u(x)=w_0+w_1x+\beta_2x^2+\cdots$ for curved boundaries.
+    \item Vector inputs: for $\bm{x}\in\mathbb{R}^d$, use
+      \[
+        u(\bm{x})=\langle\bm{w},\bm{x}\rangle+w_0=\sum_{i=1}^{d}w_ix_i+w_0.
+      \]
+    \item Kernelized ideas extend this principle when linear features are insufficient.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Decision Function in Three Spaces (Figure Placeholder)}
+  \centering
+  % \LARGE \textbf{[Figure Placeholder]}
+  \begin{figure}[ht]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+      \centering
+      \includegraphics[width=1\textwidth]{Topic04fig04a.png}
+      \caption{}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.45\textwidth}
+      \centering
+      \includegraphics[width=1\textwidth]{Topic04fig04b.png}
+      \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{1\textwidth}
+      \centering
+      \includegraphics[width=0.7\textwidth]{Topic04fig04c.png}
+      \caption{}
+    \end{subfigure}
+    % \caption{Decision boundary functions at different levels: (a) in the original $x$ space; (b) as $u(x)=0$ in a transformed space; and (c) via the sigmoid function $f[u(x)]$, interpreted as a probability score.}
+    \label{t04fig04}
+  \end{figure}
+  \vspace{-1em}
+  \normalsize
+  \textit{Three aligned panels: (a) boundary in input $x$ space, (b) equivalent boundary at $u(x)=0$, and (c) probabilistic view using $f[u(x)]$ with threshold 0.5.}
+\end{frame}
+
+\section{Loss Design and Optimization}
+
+\begin{frame}{From 0-1 Error to Logarithmic Loss}
+  \justifying
+  \begin{itemize}
+    \item A hard classification error does not reflect confidence of wrong predictions.
+    \item \textcolor{red}{False negatives} should be penalized more when predicted probability $f_k$ is very small.
+    \item \textcolor{red}{False positives} should be penalized more when predicted probability $f_k$ is very large.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Binary Cross-Entropy (Per Sample)}
+  \justifying
+  \begin{conceptbox}{Loss Function}
+    For $c_k\in\{0,1\}$ and $f_k=f(u_k)$:
+    \[
+      l(f_k)=-c_k\ln(f_k)-(1-c_k)\ln(1-f_k).
+    \]
+    This is also called negative log-likelihood for a Bernoulli output model.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Maximum Likelihood Interpretation}
+  \justifying
+  \begin{itemize}
+    \item Assume $c_k\sim\mathrm{Bernoulli}(f_k)$ with
+      \[
+        p(c_k\mid x_k,\bm{w})=f_k^{c_k}(1-f_k)^{1-c_k}.
+      \]
+    \item Taking $-\ln(\cdot)$ of this likelihood yields exactly the cross-entropy form.
+    \item This provides a principled statistical basis for the loss, not a heuristic choice.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Total Objective Over the Dataset}
+  \justifying
+  \begin{equation*}
+    L(\bm{w}) = -\sum_k\left[c_k\ln(f_k)+(1-c_k)\ln(1-f_k)\right].
+  \end{equation*}
+  \begin{itemize}
+    \item Even correct predictions incur small loss unless confidence is near certainty.
+    \item This encourages both correctness and calibration.
+  \end{itemize}
+  \vspace{0.5em}
+  {\footnotesize Source: \url{https://online.stat.psu.edu/stat462/node/207/}}
+\end{frame}
+
+\begin{frame}{Single-Sample Gradient Derivation}
+  \justifying
+  \begin{equation*}
+    \nabla_{\bm{w}} l(\bm{w})
+    = -\frac{c-f}{f(1-f)}\nabla_{\bm{w}}f(u)
+    = -(c-f)
+    \begin{bmatrix}1\\x
+    \end{bmatrix},
+  \end{equation*}
+  where $f=f(u)$. The sigmoid derivative cancels the denominator, yielding a compact update direction.
+\end{frame}
+
+\begin{frame}{Dataset-Level Gradient and Numerical Training}
+  \justifying
+  \begin{equation*}
+    \nabla_{\bm{w}}L=
+    \begin{bmatrix}
+      \sum_k -(c_k-f_k)\\
+      \sum_k -(c_k-f_k)x_k
+    \end{bmatrix}.
+  \end{equation*}
+  \begin{itemize}
+    \item There is no closed-form parameter solution in general.
+    \item Gradient descent or second-order methods (e.g., Newton-type methods) are used.
+    \item For standard logistic regression, the objective is convex and has a unique global minimum.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Practical Warning: Numerical Stability}
+  \justifying
+  \begin{warningbox}{Implementation Note}
+    Directly computing $\ln(f_k)$ and $\ln(1-f_k)$ can be unstable when $f_k$ is near 0 or 1.
+    Robust implementations use stable forms (for example, log-sum-exp style formulations).
+  \end{warningbox}
+  \vspace{0.5em}
+  {\footnotesize Source: \url{https://scikit-learn.org/stable/modules/linear_model.html}}
+\end{frame}
+
+\section{Toy Example Walkthrough}
+
+\begin{frame}{Toy Model Setup}
+  \justifying
+  \begin{examplebox}{Model and Data}
+    \[
+      \mathcal{D}=\{(3.0,0),(5.0,0),(7.0,1)\},
+      \qquad
+      f(x,\bm{w})=\frac{1}{1+\exp(-w_0-w_1x)}.
+    \]
+    The goal is to estimate $(w_0,w_1)$ by minimizing total cross-entropy.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{Expanded Loss for Three Samples}
+  \justifying
+  \begin{equation*}
+    L = -\Big[\ln(1-f_1)+\ln(1-f_2)+\ln(f_3)\Big]
+    = -\ln\!\Big[(1-f_1)(1-f_2)f_3\Big],
+  \end{equation*}
+  with
+  \[
+    f_1=\frac{1}{1+e^{-w_0-3w_1}},\;
+    f_2=\frac{1}{1+e^{-w_0-5w_1}},\;
+    f_3=\frac{1}{1+e^{-w_0-7w_1}}.
+  \]
+\end{frame}
+
+\begin{frame}{Loss Surface Interpretation (Figure Placeholder)}
+  \centering
+  \begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Topic04fig07.png}
+    % \caption{The total loss function surface in terms of the model parameters $w_0$ and $w_1$.}
+    \label{t04fig07}
+\end{figure}% \LARGE \textbf{[Figure Placeholder]}
+
+  \vspace{-1em}
+  \normalsize
+  \textit{3D surface or contour plot of $L(w_0,w_1)$ showing a convex bowl and the global minimizer.}
+\end{frame}
+
+\begin{frame}{Estimated Parameters and Decision Boundary}
+  \justifying
+  \begin{itemize}
+    \item For this toy example, numerical optimization yields approximately
+      \[
+        w_0=-5.07184177,\qquad w_1=0.81855117.
+      \]
+    \item The boundary is defined by $u(x)=w_0+w_1x=0$.
+    \item Solving gives $x^*\approx 6.1961$, consistent with the three labeled observations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Training Procedure in Practice}
+  \justifying
+  \begin{itemize}
+    \item Initialize parameters, compute predictions, evaluate loss and gradient.
+    \item Update $\bm{w}$ iteratively using a selected optimizer and learning rate strategy.
+    \item Stop when objective improvement is negligible or gradient norm is sufficiently small.
+  \end{itemize}
+\end{frame}
+
+\section{Conclusion and References}
+
+\begin{frame}{Key Takeaways}
+  \justifying
+  \begin{itemize}
+    \item Logistic regression is a transparent and strong baseline for binary classification.
+    \item The sigmoid-logit relationship connects linear predictors to probabilistic outputs.
+    \item Cross-entropy plus gradient-based optimization provides a principled and practical learning pipeline.
+    \item The model-classifier distinction helps generalize these ideas to neural networks and other discriminative methods.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Where This Leads Next}
+  \justifying
+  \begin{itemize}
+    \item Add regularization (L1/L2) to control variance and improve generalization.
+    \item Extend to multidimensional features and richer feature engineering.
+    \item Compare logistic regression with SVMs and shallow neural models under identical datasets.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Key References}
+  \justifying
+  \begin{itemize}
+    \item Penn State STAT 462 Logistic Regression: \url{https://online.stat.psu.edu/stat462/node/207/}
+    \item scikit-learn User Guide (Logistic Regression): \url{https://scikit-learn.org/stable/modules/linear_model.html}
+    \item Google ML Crash Course (Sigmoid and Logit): \url{https://developers.google.com/machine-learning/crash-course/logistic-regression/sigmoid-function}
+    \item An Introduction to Statistical Learning: \url{https://www.statlearning.com/}
+    \item The Elements of Statistical Learning: \url{https://hastie.su.domains/ElemStatLearn/}
+    \item Logistic Regression Background (general reference): \url{https://en.wikipedia.org/wiki/Logistic_regression}
+  \end{itemize}
+\end{frame}
+
+\end{document}

@@ -1,45 +1,19 @@
 %% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
 
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath,amssymb,graphics,setspace}
-\usepackage{graphicx} 
-\graphicspath{{./figs/}}
-\usepackage{bm}
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-\newcommand{\mathsym}[1]{{}}
-\newcommand{\unicode}[1]{{}}
-
-\usepackage[english]{babel}
-\newtheorem{theorem}{Theorem}
-
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-}
-
-\def\mathbi#1{\textbf{\em #1}}
+\usepackage{ceai} % Style file is in the project root.
+\graphicspath{{../figs/}}
 
 \begin{document}
 \doublespacing	
 
-\title{CE 401/5501: Applied Machine Learning\\ \large Topic 09 (optional): Gaussian Classifier and Naive Bayes Classifier}
-\author{Dr. ZhiQiang Chen}
+\title{CE 488/5588: Applied Machine Learning\\ \large Topic 09 (optional): Gaussian Classifier and Naive Bayes Classifier}
+\author{}
 \date{}
 \maketitle
+
+
+This optional topic introduces two generative classification frameworks: Gaussian classifiers and Naive Bayes classifiers. We first derive classification rules from class-conditional densities and class priors, then discuss parameter estimation through Maximum Likelihood Estimation (MLE). We also summarize key Naive Bayes variants (Gaussian, Multinomial, and Bernoulli) and close with practical considerations such as smoothing and model assumptions.
 
 \section{Introduction}
 In the previous topic, we discussed two common parametric modeling techniques for dealing with \(p(\bm{x}|c_i)\):
@@ -53,7 +27,7 @@ In the previous topic, we discussed two common parametric modeling techniques fo
     \item Introducing more complex causal relations among the components of \(\bm{x}\), which generally gives rise to Bayesian networks.
 \end{itemize}
 
-In this topic, we cover the basics for modeling \(p(\bm{x}|c_i)\) using both multivariate Gaussian and Naive Bayes models. We will leave `Bayesian Networks' alone, but we may say that the Naive Bayes, as the simplest Bayesian Network, belongs to the Bayesian Network families.  
+In this topic, we review the fundamentals of modeling \(p(\bm{x}|c_i)\) using multivariate Gaussian and Naive Bayes models. We do not cover Bayesian networks in detail; however, Naive Bayes can be viewed as one of the simplest Bayesian network models.
 
 \section{Multi-class Gaussian Classification}
 \subsection{Formulation}
@@ -65,7 +39,7 @@ where \(d\) is the dimensionality of the input features, \(\bm{\mu}_i\) is the m
 
 Given these Gaussian class-conditional densities, we can compute the posterior probabilities using Bayes' rule and classify an input sample by selecting the class with the highest posterior probability. For simplicity, we assume a binary classification problem so that we can understand, in a parametric sense, how the underlying decision boundary is formed.
 
-In the case of Gaussian-distribution based binary classification, we consider two classes, \(c_1\) and \(c_2\). The class-conditional densities \(p(\bm{x} | c_1)\) and \(p(\bm{x} | c_2)\) follow Gaussian distributions. We now discuss the role of covariance matrices and how to evaluate the posterior probabilities for binary classification.
+In Gaussian-distribution-based binary classification, we consider two classes, \(c_1\) and \(c_2\). The class-conditional densities \(p(\bm{x} | c_1)\) and \(p(\bm{x} | c_2)\) follow Gaussian distributions. We now discuss the role of covariance matrices and how to evaluate posterior probabilities for binary classification.
 
 \textbf{I. Covariance Matrix:} \\
 For each class \(c_i\), the Gaussian distribution is defined by a mean vector \(\bm{\mu}_i\) and a covariance matrix \(\bm{\Sigma}_i\). The covariance matrix is symmetric and positive-definite, capturing the relationships between the dimensions of the feature vector \(\bm{x}\). Its diagonal elements represent the variances of each feature, while the off-diagonal elements represent the covariances between pairs of features.
@@ -91,7 +65,7 @@ Plugging in the Gaussian density function for both classes, we arrive at:
 \]
 We then define a decision function \(g(\bm{x})\):
 \begin{equation}
-g(\bm{x}) = -\frac{1}{2}(\bm{x} - \bm{\mu}_1)^T \bm{\Sigma}_1^{-1} (\bm{x} - \bm{\mu}_1) + \frac{1}{2}(\bm{x} - \bm{\mu}_2)^T \bm{\Sigma}_2^{-1} (\bm{x} - \bm{\mu}_2) + \frac{1}{2}\log \frac{|\bm{\Sigma}_1|}{|\bm{\Sigma}_2|} + \log \frac{p(c_1)}{p(c_2)}
+g(\bm{x}) = -\frac{1}{2}(\bm{x} - \bm{\mu}_1)^T \bm{\Sigma}_1^{-1} (\bm{x} - \bm{\mu}_1) + \frac{1}{2}(\bm{x} - \bm{\mu}_2)^T \bm{\Sigma}_2^{-1} (\bm{x} - \bm{\mu}_2) + \frac{1}{2}\log \frac{|\bm{\Sigma}_2|}{|\bm{\Sigma}_1|} + \log \frac{p(c_1)}{p(c_2)}
 \end{equation}
 The decision function \(g(\bm{x})\) classifies a sample as follows:
 \begin{itemize}
@@ -100,7 +74,7 @@ The decision function \(g(\bm{x})\) classifies a sample as follows:
     \item If \(g(\bm{x}) = 0\), \(\bm{x}\) lies exactly on the decision boundary.
 \end{itemize}
 
-In summary, for Gaussian-based binary classification we use the covariance matrices \(\bm{\Sigma}_1\) and \(\bm{\Sigma}_2\) along with the Gaussian densities to compute the (log-)posterior probabilities and classify new inputs accordingly.
+In summary, for Gaussian-based binary classification, we use the covariance matrices \(\bm{\Sigma}_1\) and \(\bm{\Sigma}_2\) together with Gaussian densities to compute (log-)posterior probabilities and classify new inputs.
 
 \subsection{Model Fitting}
 To perform the parametric inference discussed above, the learning task is to fit the models to the dataset \(\mathcal{D}\). As mentioned in the previous topic, one can theoretically use the MAP estimation procedure (which incorporates a hyperprior). In the binary Gaussian classification case, we must estimate the parameter sets
@@ -116,15 +90,15 @@ Nonetheless, a simpler approach is to invoke the i.i.d. assumption and ignore th
 since a symmetric \(d \times d\) covariance matrix has \(\frac{d(d+1)}{2}\) parameters.
 
 \subsection{Theoretical Bayes Error}
-If \(P(\bm{x}|c_1)\) and \(P(\bm{x}|c_2)\) are Gaussian with known means and covariances, and the class priors \(P(c_1)\) and \(P(c_2)\) are known, we can formulate the theoretical Bayes error. This error represents the minimum possible misclassification rate, determined by the true underlying distributions.
+If \(p(\bm{x}|c_1)\) and \(p(\bm{x}|c_2)\) are Gaussian with known means and covariances, and the class priors \(P(c_1)\) and \(P(c_2)\) are known, we can define the theoretical Bayes error. This error represents the minimum possible misclassification rate determined by the true underlying distributions.
 
 Using the Gaussian density
 \begin{equation}
-P(\bm{x} | c_i) = \frac{1}{(2\pi)^{D/2} |\bm{\Sigma}_i|^{1/2}} \exp\left(-\frac{1}{2}(\bm{x} - \bm{\mu}_i)^T \bm{\Sigma}_i^{-1} (\bm{x} - \bm{\mu}_i)\right), \quad i = 1,2
+p(\bm{x} | c_i) = \frac{1}{(2\pi)^{D/2} |\bm{\Sigma}_i|^{1/2}} \exp\left(-\frac{1}{2}(\bm{x} - \bm{\mu}_i)^T \bm{\Sigma}_i^{-1} (\bm{x} - \bm{\mu}_i)\right), \quad i = 1,2
 \end{equation}
 and applying Bayes' rule,
 \begin{equation}
-P(c_i | \bm{x}) = \frac{P(\bm{x} | c_i) P(c_i)}{P(\bm{x})},
+P(c_i | \bm{x}) = \frac{p(\bm{x} | c_i) P(c_i)}{p(\bm{x})},
 \end{equation}
 the optimal Bayes classifier assigns \(\bm{x}\) to class \(c_1\) if \(P(c_1|\bm{x}) > P(c_2|\bm{x})\) and to class \(c_2\) otherwise.
 
@@ -135,7 +109,7 @@ The Bayes error is then computed by integrating the joint probability over the r
 where \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are the regions where the classifier assigns points to class 1 and class 2, respectively. In many practical cases, numerical integration techniques may be used to estimate the Bayes error.
 
 \section{Naive Bayes Classification}
-Naive Bayes is a popular probabilistic classifier based on Bayes' theorem. The term "naive" refers to the assumption that the features are conditionally independent given the class label—a simplification that rarely holds perfectly in real applications but often yields competitive performance.
+Naive Bayes is a popular probabilistic classifier based on Bayes' theorem. The term "naive" refers to the assumption that features are conditionally independent given the class label---a simplification that rarely holds perfectly in practice but often yields competitive performance.
 
 The advantages of Naive Bayes include:
 \begin{itemize}
@@ -231,7 +205,7 @@ save on gas bills & ham \\
 \hline
 \end{tabular}
 \end{center}
-To classify a new message such as “win a vacation now”:
+To classify a new message such as ``win a vacation now'':
 \begin{enumerate}
     \item Preprocess the data and convert the messages into a bag-of-words representation.
     \item Compute the prior probabilities, e.g., \(P(\text{spam}) = 0.5\) and \(P(\text{ham}) = 0.5\).
@@ -245,14 +219,14 @@ To classify a new message such as “win a vacation now”:
 
 \subsection{Practical Considerations}
 \begin{enumerate}
-    \item \textbf{Smoothing (Handling Missing Data):} \\
+    \item \textbf{Smoothing (Handling Unseen Features):} \\
     When a feature value has not been observed for a particular class, smoothing (e.g., Laplace smoothing) is applied to avoid zero probabilities:
     $$
     P(x_i|c_k) = \frac{N_{ki} + \alpha}{N_k + \alpha d},
     $$
     where \(N_{ki}\) is the count of feature \(x_i\) in class \(c_k\), \(d\) is the number of distinct feature values, and \(\alpha\) is the smoothing parameter.
     \item \textbf{Feature Scaling:} \\
-    For continuous features, applying normalization or scaling is crucial, especially for Gaussian Naive Bayes, to ensure all features contribute equally.
+    For continuous features, normalization or scaling can improve numerical stability and make feature magnitudes easier to interpret.
     \item \textbf{Limitations:} \\
     The main limitation of Naive Bayes is the assumption of feature independence, which may not hold in real-world data. Despite this, Naive Bayes often performs competitively and serves as a useful baseline classifier.
 \end{enumerate}

@@ -6,10 +6,38 @@
 \begin{document}
 \doublespacing	
 
-\title{CE 488/5588: Applied AI for Engineering\ \large Topic 2: Data types and Revisiting Linear Algebra}
+\title{CE 488/5588: Applied AI for Engineering \\\\ \\large Topic 2: Data types and Revisiting Linear Algebra}
 \author{}
 \date{}
+
 \maketitle
+
+This topic introduces common data types encountered in engineering and machine learning, and connects them to the notation used to represent data sets in ML. It then revisits core linear algebra concepts (vectors, matrices, norms, linear systems, and least-squares solutions) that underlie many learning algorithms, concluding with a brief appendix on tensors as the primary data structure in modern ML/DL frameworks.
+
+\paragraph{Learning Objectives}
+After completing this topic, you should be able to:
+\begin{itemize}
+    \item Distinguish categorical (nominal/ordinal) data from numeric (interval/ratio; discrete/continuous) data, and describe implications for encoding and modeling.
+    \item Identify labels, features, and data sets in standard ML notation (e.g., $\mathcal{D}=\{(\bm{x}_i,y_i)\}_{i=1}^n$ and $\bm{X}\in\mathbb{R}^{n\times d}$).
+    \item Explain how common preprocessing steps (e.g., standardization, normalization, and log/exp transforms) change data representation and scale.
+    \item Use basic linear algebra operations and notation (transpose, inner products, norms, matrix multiplication) to reason about data and models.
+    \item Formulate and interpret linear systems and least-squares problems, including the role of invertibility and the Moore--Penrose pseudo-inverse.
+    \item Recognize tensors as generalizations of scalars, vectors, and matrices, and relate tensor rank/dimensions to typical sensor and ML data structures.
+\end{itemize}
+
+\section*{Introduction}
+This topic introduces common data types encountered in engineering and machine learning, and connects them to the notation used to represent data sets in ML. It then revisits core linear algebra concepts (vectors, matrices, norms, linear systems, and least-squares solutions) that underlie many learning algorithms, concluding with a brief appendix on tensors as the primary data structure in modern ML/DL frameworks.
+
+\section*{Learning Objectives}
+After completing this topic, you should be able to:
+\begin{itemize}
+    \item Distinguish categorical (nominal/ordinal) data from numeric (interval/ratio; discrete/continuous) data, and describe implications for encoding and modeling.
+    \item Identify labels, features, and data sets in standard ML notation (e.g., $\mathcal{D}=\{(\bm{x}_i,y_i)\}_{i=1}^n$ and $\bm{X}\in\mathbb{R}^{n\times d}$).
+    \item Explain how common preprocessing steps (e.g., standardization, normalization, and log/exp transforms) change data representation and scale.
+    \item Use basic linear algebra operations and notation (transpose, inner products, norms, matrix multiplication) to reason about data and models.
+    \item Formulate and interpret linear systems and least-squares problems, including the role of invertibility and the Moore--Penrose pseudo-inverse.
+    \item Recognize tensors as generalizations of scalars, vectors, and matrices, and relate tensor rank/dimensions to typical sensor and ML data structures.
+\end{itemize}
 
 
 

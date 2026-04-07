@@ -1,0 +1,98 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 09\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\noindent Please review lecture notes \href{https://umsystem.instructure.com/courses/280496/files/33335361?module_item_id=9867784}{Topic 7} and complete the following ML model design problems. 
+
+\section*{Problem 1: Multi-class Classification}
+
+Consider the task of designing a Machine Learning (ML) model to evaluate the health of bridge structures. Based on collected inspection data, the model is expected to classify the health of a bridge into three levels: Excellent Condition, Safe Condition, and Unsafe Condition.
+
+\begin{enumerate}
+    \item The ML engineer decides to use a one-hot encoding scheme to represent the three health levels. Assign an exclusive one-hot vector to each of the three conditions. Write down these one-hot vectors.
+    
+    \item A softmax function as the last layer of the model is implemented. Assume that the model’s decision function outputs three scores: \(z_1 = 10\), \(z_2 = 5\), and \(z_3 = -5\). Calculate the softmax output for these scores. The softmax function for a score \(z_i\) from a vector of scores is given by
+    \[
+    \text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j} e^{z_j}},
+    \]
+    where the sum in the denominator is over all the scores in \(Z\).
+    
+    \item Based on the softmax output, determine the predicted class label for the bridge's health.
+\end{enumerate}
+
+\textbf{Note:} Ensure your solutions include clear calculations and reasoning for each part of the problem.
+
+\newpage
+
+\section*{Problem 2: Analysis of Model Performance}
+
+Given a Machine Learning (ML) model aimed to categorize the condition of bridge structures into three levels: Excellent Condition (level 1), Safe Condition (level 2), and Unsafe Condition (level 3), you are tasked to test the model on a dataset of 100 data points. However, the distribution of the testing dataset is heavily skewed, with 70 data points labeled as Excellent Condition, 25 as Safe Condition, and 5 as Unsafe Condition. 
+
+Additionally, for comparison, a random guessing model is designed, which ignores input data and randomly assigns one of the three labels to each data point.
+
+Two confusion matrices are obtained from evaluating the two models based on the imbalanced testing dataset. Note that for the matrix indices (i.e., Row 1, 2, and 3; Colum 1, 2, and 3), they correspond to the damage levels, level 1, 2, and 3, respettively. 
+
+\begin{enumerate}
+    \item The ML model's confusion matrix is given by:
+    \[
+    \begin{bmatrix}
+    60 & 8 & 2 \\
+    10 & 14 & 1 \\
+    0 & 3 & 2 \\
+    \end{bmatrix}
+    \]
+    
+    \item The random model's confusion matrix is given by:
+    \[
+    \begin{bmatrix}
+    24 & 8 & 0 \\
+    23 & 9 & 1 \\
+    23 & 8 & 4 \\
+    \end{bmatrix}
+    \]
+\end{enumerate}
+
+Please answer the following questions:
+
+\begin{itemize}
+    \item [(1)] Verify the validity of the two confusion matrices. Do they correctly reflect the distribution of the testing data?
+    \item [(2)] Calculate the Overall Accuracy (OA) from the two confusion matrices. Which model, if only based on the OA measurements, appears better?
+    \item [(3)] For the class label 'Excellent Condition', calculate the performance measures of Precision and Recall.
+    \item [(4)] For the class label 'Unsafe Condition', calculate the performance measures of Precision and Recall.
+    \item [(5)] Can we categorically label the random-guess model as poor? Does it achieve a higher recall for the 'Unsafe Condition' class, and if so, what might be the cause?
+\end{itemize}
+
+\end{document}

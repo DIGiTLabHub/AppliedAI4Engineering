@@ -1,0 +1,182 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+
+\title{CE 488/5588 Homework 04\\[2in]
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\date{}
+\maketitle
+
+\newpage
+\doublespacing
+
+% ============================================================
+\section*{Problem 1: Perceptron Model and Decision Geometry}
+
+Consider a perceptron model for binary classification.
+The input is a two-dimensional feature vector
+\[
+  \bm{x} =
+  \begin{bmatrix}
+    x_1 \\
+    x_2
+  \end{bmatrix}.
+\]
+
+After training, the learned parameters are
+\[
+  [w_1, w_2, b]^T = [-4, -3, 10]^T.
+\]
+
+Assume the binary class labels are \( c \in \{0,1\} \).
+When using the Heaviside activation, define
+\[
+  H(u) =
+  \begin{cases}
+    1, & u \ge 0, \\
+    0, & u < 0.
+  \end{cases}
+\]
+
+\begin{enumerate}
+  \item Write down the linear decision function \( u(\bm{x}) \).
+
+  \item Derive the equation of the decision boundary \( u(\bm{x}) = 0 \).
+    Express the boundary in the form \( x_2 = f(x_1) \).
+    Sketch the line in the \( x_1\text{-}x_2 \) plane and clearly indicate the two half-spaces.
+
+  \item Using the Heaviside activation defined above, write the full perceptron model \( m(\bm{x}) \).
+
+  \item For the following two data points:
+    \[
+      \text{A: } [1,4]^T,
+      \qquad
+      \text{B: } [-2,2]^T,
+    \]
+    compute \( u(\bm{x}) \) and determine the predicted class label for each point.
+
+  \item Now suppose the activation function is replaced by a ReLU:
+    \[
+      \mathrm{ReLU}(u) = \max(0,u).
+    \]
+    For each of the two points above, compute the scalar output
+    \[
+      m(\bm{x}) = \max(0, u(\bm{x})).
+    \]
+    (Report the numerical output value; do not convert it to a class label.)
+\end{enumerate}
+
+\newpage
+% ============================================================
+\section*{Problem 2: Multilayer Perceptron Architecture and Parameter Counting}
+
+A civil engineer constructs a supervised learning exercise with the following setup:
+
+\begin{itemize}
+  \item Each input data point is a \( 3 \times 1 \) vector.
+  \item The output is binary classification with labels \( \{0,1\} \).
+  \item The dataset contains 1000 labeled data points.
+  \item The neural network is a fully connected multilayer perceptron (MLP).
+\end{itemize}
+
+The network architecture is defined as:
+
+\begin{itemize}
+  \item Input layer: dimension 3.
+  \item Hidden layer 1: 5 neurons.
+  \item Hidden layer 2: 5 neurons.
+  \item Output layer: 1 neuron (binary logit).
+\end{itemize}
+
+Bias parameters are included at every non-input layer.
+
+\begin{enumerate}
+  \item Determine the total number of trainable parameters in this MLP, including all weights and biases. Clearly show how you compute the count layer by layer.
+
+  \item Draw a clear diagram of the network architecture, indicating:
+    \begin{itemize}
+      \item Number of neurons in each layer,
+      \item Fully connected structure between layers,
+      \item Bias connections.
+    \end{itemize}
+\end{enumerate}
+
+\newpage
+% ============================================================
+\section*{Problem 3: Perceptron vs. Linear SVM}
+
+Recall that both a perceptron (with hard sign activation) and a linear Support Vector Machine (SVM) produce a decision function of the form
+
+\[
+  m(\bm{x}) = \mathrm{sign}\bigl(u(\bm{x})\bigr),
+  \qquad
+  u(\bm{x}) = \langle \bm{w}, \bm{x} \rangle + w_0.
+\]
+
+Despite sharing the same functional form at inference time, their learning principles differ.
+
+List and briefly explain several key differences between a perceptron and a linear SVM in the binary classification setting.
+You may consider discussing:
+
+\begin{itemize}
+  \item The learning objective,
+  \item Margin definition and margin width,
+  \item Loss functions,
+  \item Behavior under non-separable data,
+  \item Optimization properties.
+\end{itemize}
+
+Provide concise but conceptually clear explanations.
+
+\newpage
+% ============================================================
+\section*{Problem 4: Polynomial Kernel and Feature Lifting}
+
+\textbf{Required for Graduate Students; and self-learning ot Topic07 - Section 4 maybe needed for a mathematical exploration.}
+
+Consider a polynomial kernel SVM defined by
+\begin{align*}
+  K(\bm{x}, \bm{x}')
+  &= \langle \Phi(\bm{x}), \Phi(\bm{x}') \rangle \\
+  &= \bigl(\langle \bm{x}, \bm{x}' \rangle + 1 \bigr)^d,
+\end{align*}
+where \( d \) is the degree of the polynomial.
+
+If the original input space has dimension \( D \), then the transformed feature space has dimension
+
+\[
+  D_k = \binom{D + d}{d}.
+\]
+
+\begin{enumerate}
+  \item Suppose \( D = 2 \) and \( d = 2 \).
+    Compute \( D_k \).
+    What is the dimension of the transformed feature space?
+
+  \item For the specific case
+    \[
+      \bm{x} = [x_1, x_2]^T,
+      \qquad
+      K(\bm{x}, \bm{x}') = (\langle \bm{x}, \bm{x}' \rangle + 1)^2,
+    \]
+    derive an explicit feature mapping \( \Phi(\bm{x}) \).
+
+    Your answer must satisfy
+    \[
+      \Phi(\bm{x})^T \Phi(\bm{x}')
+      =
+      (\langle \bm{x}, \bm{x}' \rangle + 1)^2.
+    \]
+
+    Show your expansion and verify that your mapping is correct.
+    (Any valid equivalent feature map that satisfies the identity is acceptable.)
+
+    You may consult external tools for brainstorming, but you must verify all mathematical steps \footnote{ For example, you may prompt in Gemini or Chatgpt:
+      \begin{quote}
+        ``In a polynomial kernel SVM, if the input feature is $\bm{x} = [x_1, x_2]^T$, and the kernel is $k(\bm{x}, \bm{x}') = (\langle \bm{x}, \bm{x}'\rangle + 1)^2$, i.e., using a 2nd-order polynomial kernel, what does the transformation mapping look like?''
+    \end{quote}}
+\end{enumerate}
+
+\end{document}

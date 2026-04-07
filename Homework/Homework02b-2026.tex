@@ -1,0 +1,121 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+
+\begin{document}
+
+\title{CE 488/5588 Homework 03\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+
+\newpage 
+
+\doublespacing
+
+\section{Multiple Choice / Fill-in-the-blank Questions}
+
+\subsection*{Question 1}
+
+A high-dimensional data set is measured from a structural health monitoring experiment for a bridge over a long period (e.g., 10 years), which is denoted as
+\[
+\mathcal{D} = \{(\bm{x}_i, c_i) \mid i = 1, 2, \ldots, N\},
+\]
+where \(\bm{x}_i \in \mathbb{R}^D\) is a feature vector implying the degree of damage and \(c_i\) is the damage level (with \(c_i=0\) for no damage and \(c_i=1\) for damaged) collected at the \(i\)th incident event.
+
+An ML/structural engineer constructs a model with a set of parameters as in a vector \(\bm{w}\) that computes a score value based on an input feature vector \(\bm{x}\), which is expressed as \(m(\bm{x}\mid \bm{w})\).
+
+The engineer is conducting (choose the best answer):
+\begin{itemize}
+    \item [A.] Discriminative Machine Learning
+    \item [B.]Generative Learning
+    \item [C.]Unsupervised Learning
+    \item [D.] Machine Learning
+\end{itemize}
+Your answers and explain: \rule{1in}{0.15mm}\\
+\fullunderline 
+
+\newpage
+\subsection*{Question 2} 
+
+Following the statement in Question 1 above, the ML model \(m(\bm{x}\mid \bm{w})\) is learned from the data. In this model, the decision function is formulated, $f(\bm{x}\mid \bm{w})$. The function defines a nonlinear decision boundary in the space of $\mathbb{R}^D$,  which (by chance) forms a contour (or hyper-plane contour) with $f(\bm{x}\mid \bm{w}) = 1$. It turns out that 
+
+\[
+\text{if } f(\bm{x}\mid \bm{w}) \geq 1 \text{ then } c = 1,
+\]
+\[
+\text{otherwise, } c = 0.
+\]
+Or geometrically, if a data point $\bm{x}$ lies inside the contour, it indicates the structured is intact (no-damage); if outside, it is damaged. 
+
+A set of newly measured data points are provided for testing the model; the computed values are \((0.1, 1.5, 0.2, 2)\). The predicted states based on this model are then:\\
+\rule{1in}{0.15mm}\\
+\rule{1in}{0.15mm}\\
+\rule{1in}{0.15mm}\\
+\rule{1in}{0.15mm}
+
+\bigskip
+
+\subsection*{Question 3} 
+Read Chapter 3 and Section 4.2, then answer two conceptual questions below. 
+\begin{itemize}
+
+    \item If the decision function developed by the structural engineer has 10 parameters (namely, $\bm{w}$ is a $10\times 1$ vector), the resulting function is called a {\rule{1in}{0.15mm}} model. 
+
+
+    \item With the testing underway, the engineer believes that the model is deficient because it cannot capture the complex decision boundary in the \(d\)-dimensional space (where \(d\) is the dimension of a feature vector \(\bm{x}\)). The engineer hence develops a model where the dimension of the model parameter vector $\bm{w}$ scales with the size of the training data $\mathcal{D}$ (namely, if there are 100 data points for training the model, the engineers uses 100 model parameters to construct the model). Such an ML model is called a {\rule{1in}{0.15mm}} model.
+    \end{itemize}
+\bigskip
+
+\subsection*{Question 4} 
+
+Similar to the setting in Question 1, a high-dimensional data set is measured from a structural health monitoring experiment for a bridge over a long period (e.g., 10 years), which is denoted as
+\[
+\mathcal{D} = \{(x_i, c_i) \mid i = 1, 2, \ldots, N\}.
+\]
+The engineer splits the data into
+\[
+D_0 = \{(x_i, c_i = 0) \mid i = 1, 2, \ldots, N_0\} \quad \text{and} \quad D_1 = \{(x_i, c_i = 1) \mid i = 1, 2, \ldots, N_1\}.
+\]
+A probabilistic approach is then adopted in this classification problem; first, a Gaussian mixture model is used to model \(p(x\mid c=0)\) and \(p(x\mid c=1)\) separately. Then the prior probabilities \(P(c=0)\) and \(P(c=1)\) are learned from the data.
+
+This engineer is conducting a pattern classification that is an instance of (choose the best description):
+\begin{itemize}
+    \item [A.] Generative machine learning
+    \item [B.] Discriminative learning
+    \item [C.] Supervised learning
+    \item [C.] Deep learning
+\end{itemize}
+Your answers and explain: \rule{1in}{0.15mm}\\
+\fullunderline 
+
+\bigskip
+
+\subsection*{Question 5} 
+
+Given the learning problem and the ML formalism, suppose that
+\[
+P(c=0)=0.99, \quad P(c=1)=0.01.
+\]
+Given two new feature vectors \(\bm{x}_1\) and \(\bm{x}_2\), the likelihoods are modeled and computed as:
+\[
+P(x_1\mid c=0)=0.5, \quad P(x_2\mid c=0)=0.001,
+\]
+\[
+P(x_1\mid c=1)=0.99, \quad P(x_2\mid c=1)=0.99.
+\]
+Using Bayes' theorem, answer (Fill in "damaged" or "no damage")
+\begin{itemize}
+
+    \item \(\bm{x}_1\) belongs to the \rule{1in}{0.15mm} class; 
+    \item \(\bm{x}_2\) belongs to the \rule{1in}{0.15mm} class. 
+ \end{itemize}
+
+
+
+% \section{Programming Practice and Data Operation}
+
+
+\end{document}

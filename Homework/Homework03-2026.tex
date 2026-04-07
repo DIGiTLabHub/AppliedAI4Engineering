@@ -1,0 +1,91 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+
+\begin{document}
+\title{CE 488/5588 Homework 03\\[2in]
+\textbf{Name: \rule{2in}{0.15mm}}}
+% \textbf{Name: \FillRule{2in} }
+\author{}
+\date{}
+\maketitle
+
+
+
+\newpage
+\doublespacing
+
+\section*{Multiple Choice / Fill-in-the-blank Questions}
+
+\subsection*{Question 1} 
+\textbf{1a}. Given a logistic regression (binary) classification model, which is expressed as $f[u(\bm{x})]$, the function $u(\bm{x}) = 0$ defines (choose the correct statement below):
+\begin{itemize}
+    \item [$\square$] the decision boundary function in the space of the input feature vectors.
+    \item [$\square$] a linear function (all the time).
+    \item [$\square$] a sigmoid function for classification.
+    \item [$\square$] the classification model itself.
+\end{itemize}
+
+% Your explanation: \FillRule{5in}
+
+
+
+\textbf{1b\\}. (Graduate Student) In the above expression, when the discriminative model $f[u(\bm{x})]$ is learned from data, the value of $u(\bm{x})$ measures the probability of a membership (i.e., $P(c|\bm{x})$. Why? 
+
+\FillRule{6.5in}
+
+\FillRule{6.5in}
+
+\FillRule{6.5in}
+
+\FillRule{6.5in}
+\newpage
+
+
+
+\bigskip
+
+\textbf{Question 2} \\
+When learning a logistic regression model $f[u(\bm{x}|\bm{w})]$ from data (each data point $x_k$ has a label 0 or 1, denoted by $c_k$), given that $u(\bm{x}|\bm{w})$ is a linear function, its total loss function is written as:
+\[
+\mathcal{L}(\bm{w}) = -\sum_k \Big( c_k\ln(f_k) + (1-c_k)\ln(1-f_k) \Big)
+\]
+What statements below are correct?
+\begin{itemize}
+    \item [$\square$] $\mathcal{L}$ depicts a surface of $\bm{w}$ that is globally convex with respect to $\bm{w}$.
+    \item [$\square$] The total loss function is based on the notion of logarithmic loss.
+    \item [$\square$] The gradient of $\mathcal{L}$ with respect to the parameter vector $\bm{w}$ has an analytical closed form.
+    \item [$\square$] $c_k = 1$ or $c_k = 0$ acts like a switch, turning off one of the two terms in the loss function.
+\end{itemize}
+
+\bigskip
+
+\textbf{Question 3} \\
+Consider the binary logistic regression loss for a single data point:
+\[
+\ell = -c \ln(f) - (1-c)\ln(1-f)
+\]
+where $f = f[u(x)]$ is the score computed by the binary classifier defined as
+\[
+c =
+\begin{cases}
+1, & \text{if } f > \frac{1}{2},\\[1ex]
+0, & \text{if } f \leq \frac{1}{2}.
+\end{cases}
+\]
+Perform the following loss calculations (round your answers to two decimal places):
+\begin{enumerate}[label=(\arabic*)]
+    \item Given $c_k = 1$ and the prob. score $f_k = 0.2$, then:
+    \begin{itemize}
+           \item The prediction of class label $c^* =$ \FillRule{1in}. 
+           \item The loss is \FillRule{1in}.
+    \end{itemize}
+    \item Given $c_k = 0$ and the prob. score $f_k = 0.8$, then 
+        \begin{itemize}
+           \item The prediction of class label $c^* =$ \FillRule{1in}. 
+           \item The loss is \FillRule{1in}.
+    \end{itemize}
+\end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,144 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,setspace}
+\usepackage{graphicx}
+\usepackage{bm}
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[cal=boondox]{mathalfa}
+
+% Define colors for lstlisting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\normalsize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,  
+    columns=flexible,         
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    literate={'}{{\textquotesingle}}1 {''}{{\textquotedbl}}2
+}
+\lstset{style=mystyle}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Your Document Title},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+\newcommand{\fullunderline}{\noindent\makebox[\linewidth]{\rule{\linewidth}{0.1pt}}\\[-2em]}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 06\\[2in]
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\date{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+
+\section{Multiple Choice / Fill-in-the-blank Questions}
+
+\textbf{Question 1} \\
+
+A perceptron is the simplest artificial neural network, and its mathematical expression can be written as 
+\[
+y = f\big[u(\bm{x})\big],
+\]
+where \( u(\bm{x}) = \bm{w}^T \bm{x} + b \). Which of the following statements describes its architecture? 
+
+\begin{itemize}
+    \item [$\square$] The functional model describes a computing flow: Input features \(\bm{x}\) \(\rightarrow\) aggregation through \(u(\cdot)\) \(\rightarrow\) activation through \(f(\cdot)\) \(\rightarrow\) outputting a class label or score \(y\).
+    \item [$\square$] \(f(\cdot)\) is called an activation function, which is often a simple nonlinear function.
+    \item [$\square$] The perceptron model is equivalent to a logistic regression model.
+    \item [$\square$] The output \(y\) must be binary.
+\end{itemize}
+
+\bigskip
+
+\newpage 
+
+\textbf{Question 2} \\
+
+Given a perceptron model for binary classification, its input is a two-dimensional data point denoted by 
+\[
+\bm{x} = \begin{bmatrix} x_1 \\ x_2 \end{bmatrix}.
+\]
+After learning from the data, the resulting learned weights and bias are 
+\[
+[w_1, w_2, b]^T = [-4, -3, 10]^T.
+\]
+Answer the following analysis questions:
+
+\begin{itemize}
+    \item Write down the decision function \( u(\bm{x}) \).
+    \item In the \(x_1\text{-}x_2\) plane, plot the decision boundary \( u(\bm{x}) = 0 \) (hint: write it as \(x_2\) as a function of \(x_1\)).
+    \item Given that the activation is a \textit{Heaviside} function, write out the resulting perceptron model.
+    \item Given two data points:
+    \begin{itemize}
+        \item A: \([1, 4]^T\)
+        \item B: \([-2, 2]^T\)
+    \end{itemize}
+    Using the perceptron model, Point A will be labeled as \((\ \ \ \ \ \ )\); and Point B will be labeled as \((\ \ \ \ \ \ )\).
+    \item If the activation is a \textit{ReLU} function:
+    \begin{itemize}
+        \item For Point A: \([1, 4]^T\), the predicted score is \((\ \ \ \ \ \ )\).
+        \item For Point B: \([-2, 2]^T\), the predicted score is \((\ \ \ \ \ \ )\).
+    \end{itemize}
+\end{itemize}
+
+\bigskip
+
+\newpage
+
+\textbf{Question 3} \\
+
+Suppose that a civil engineer is constructing an ML exercise. The input data point is 3-dimensional; namely, each data point is expressed as a \(3\times 1\) vector. There are two class labels, 0 and 1. The engineer has collected 1000 data points and manually labeled them.
+
+The engineer starts with an initial neural network and configures it as follows:
+\begin{itemize}
+    \item The neural network has two hidden layers. Each hidden layer contains 5 neurons.
+    \item The engineer's next task is to determine how many parameters (weights) the NN model has, assuming it is a fully connected multilayer perceptron. Here, we consider bias (intercept) parameters at each layer. Effectively, there is an additional input of 1 at each layer (the input layer and the two hidden layers).
+\end{itemize}
+Now you are tasked to answer:
+\begin{itemize}
+    \item How many weight parameters are in the model?
+    \item Graph the MLP neural network.
+\end{itemize}
+
+\newpage
+
+% \section{Programming Practice and Data Operation}
+
+\end{document}

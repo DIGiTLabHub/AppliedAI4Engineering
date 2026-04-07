@@ -1,54 +1,190 @@
 %% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
 
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath, amssymb, graphics, setspace}
-\usepackage{graphicx} 
-\graphicspath{{./figs/}}
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-\newcommand{\mathsym}[1]{{}}
-\newcommand{\unicode}[1]{{}}
-\usepackage{bm}
-
-\usepackage[english]{babel}
-\newtheorem{theorem}{Theorem}
-
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-}
-
-\def\bm#1{\textbf{\em #1}}
+\usepackage{ceai} % Style file is in the project root.
+\graphicspath{{../figs/}}
 
 \begin{document}
-\doublespacing	
-
-\title{CE 401/5501: Applied Machine Learning\\ \large Topic 7: Multi-class Classification and Performance Measures}
-\author{Dr. ZhiQiang Chen}
+\doublespacing
+\title{CE 488/5588: Applied Machine Learning\\ \large Topic 7: Performance Measures and Multi-class Classification}
+\author{}
 \date{}
 \maketitle
 
+
+In this chapter, we formalize how to measure the performance of a classification model. We have already covered supervised (discriminative) modeling, especially training. What about prediction, i.e., inference? It may seem straightforward to deploy the trained model and make predictions, but a critical question remains: do we need to test it? The answer is yes, and the criteria must be quantitative rather than subjective. You may have heard of splitting data into training and testing sets, but meaningful evaluation requires well-defined performance measures that quantify accuracy and its limitations. More granular questions arise too: is accuracy alone sufficient? And since evaluation on a held-out set still uses data at hand, how do we reason about unseen data? That is the notion of generalization. Advanced performance measures are essential for this practical goal, especially when we treat ML as a production system.
+
+With these measures in place, we can address practical demands beyond binary classification. In real applications, we often need to classify multiple types, sometimes hundreds or thousands of classes. This motivates a formal treatment of multi-class classification.
+
+ After this topic, you should be able to:
+  \begin{itemize}
+    \item Compute and interpret precision, recall, specificity, F1, and OA in binary classification.
+    \item Explain one-hot encoding and softmax for multi-class outputs.
+    \item Compare OvA and OvR decomposition strategies for binary learners.
+    \item Construct and interpret ROC and PR curves, including random-guess baselines.
+    \item Compute class-wise and averaged metrics from a $K\times K$ confusion matrix.
+  \end{itemize}
+  
 \section{Introduction}
+
+
+It is instructive to return to the binary classification framework, reviewing the definitions and implications of performance metrics such as precision, recall, specificity, and the F1 score. A Venn diagram helps visualize these relationships and reinforces the basic measures, setting the stage for their extension to multi-class settings. With this foundation, we introduce advanced visual analytics tools, including Receiver Operating Characteristic (ROC) and precision--recall curves, which summarize model performance across decision thresholds.
+
 Multi-class classification is a natural extension of binary classification, yet it introduces several layers of complexity that demand a deeper understanding of the underlying models and performance metrics. In our previous work with binary classifiers such as multilayer perceptrons (MLPs), logistic regression, and support vector machines (SVMs), we have seen how these models effectively separate data into two distinct classes using well-defined measures such as true positives, false negatives, and overall accuracy.
 
 In transitioning to multi-class problems, one might initially consider a direct generalization by assigning integer labels (e.g., 1, 2, 3, \dots). However, such an approach risks imposing an artificial order among the classes and misinterpreting the distance between them. To overcome these limitations, we adopt one-hot encoding, which maintains the categorical nature of the labels without introducing unintended relationships.
 
 Once the labels are appropriately encoded, the extension from binary to multi-class classification is achieved through techniques such as the softmax activation function and strategic schemes like One-vs-All (OvA) and One-vs-Rest (OvR). In this framework, the confusion matrix is also generalized; rather than a 2 by 2 table as in binary classification, it becomes a \(K \times K\) matrix that captures the classification performance for each of the \(K\) classes.
 
-It is instructive at this point to return to the binary classification framework, reviewing the definitions and implications of performance metrics such as precision, recall, specificity, and the F1 score. Using a Venn diagram to illustrate the relationships reinforces our understanding of these basic measures and sets the stage for their adaptation to multi-class settings. With these foundations in place, we then introduce advanced visual analytics tools, including Receiver Operating Characteristic (ROC) and precision-recall curves, which provide a comprehensive visualization of model performance across different decision thresholds.
+
+
+\section{Binary Classification Measures}
+In a binary classification problem, we are interested in predicting one of two possible outcomes, which we denote as positive (\(+\)) and negative (\(-\)) (in practice, these might be labeled as 0 and 1 or as two distinct objects). Suppose we have a dataset with \(N\) instances, each labeled as either positive or negative. When the model makes a prediction, four outcomes are possible:
+\begin{itemize}
+    \item \textbf{True Positive (TP)}: The model predicts positive, and the instance is actually positive.
+    \item \textbf{False Positive (FP)}: The model predicts positive, but the instance is actually negative.
+    \item \textbf{True Negative (TN)}: The model predicts negative, and the instance is actually negative.
+    \item \textbf{False Negative (FN)}: The model predicts negative, but the instance is actually positive.
+\end{itemize}
+
+\subsection{Confusion Matrix}
+Based on the four outcomes above, we can construct a \textit{confusion matrix}. For binary classification, the confusion matrix is a \(2 \times 2\) table summarizing the number of TP, FP, FN, and TN instances. An example confusion matrix is shown below:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+                   & Actual Positive & Actual Negative \\ \hline
+Predicted Positive & TP              & FP              \\ \hline
+Predicted Negative & FN              & TN              \\ \hline
+\end{tabular}
+\caption{Confusion matrix: TP, FP, FN, and TN represent the counts (or number of instances) of each prediction outcome.}
+\end{table}
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Topic07fig01.png}
+    \caption{Venn diagram illustration of binary classification results.}
+    \label{t07fig01}
+    
+\end{figure}
+
+
+
+Fig.~\ref{t07fig01} illustrates the four prediction consequences using a Venn diagram. The relationships depicted in the diagram reinforce the definitions of the key performance measures.
+
+Given the confusion matrix, the overall accuracy (OA) of the model is calculated as:
+\begin{equation}
+OA = \frac{TP + TN}{TP + TN + FP + FN}.
+\end{equation}
+In practice, many machine learning libraries, such as \textit{scikit-learn}, provide a function (e.g., \verb|cm.score(X_test, y_test)|) to compute this metric.
+
+\subsection{Precision and Recall}
+While OA is a useful metric, it does not always provide a complete picture of a model's performance. Precision and recall focus on the model's ability to correctly identify positive instances.
+
+\textbf{Precision} measures the proportion of true positives among all predicted positives:
+\[
+\text{Precision} = \frac{TP}{TP + FP}.
+\]
+A high precision indicates that the model rarely misclassifies negative examples as positive.
+
+\textbf{Recall} (or sensitivity) measures the proportion of true positives among all actual positives:
+\[
+Recall = \frac{TP}{TP + FN}.
+\]
+A high recall indicates that the model successfully identifies most positive instances.
+
+These two metrics can be combined into the F1 score, which is the harmonic mean of precision and recall:
+\begin{equation}
+F1 = 2 \cdot \frac{\text{Precision} \cdot Recall}{\text{Precision} + Recall}.
+\end{equation}
+A high F1 score indicates that the model performs well in both correctly predicting positives and identifying all actual positives.
+
+\begin{tcolorbox}
+\pmb{Example}
+
+A common application in machine learning is detecting spam emails. Suppose that in a test set:
+\begin{enumerate}
+    \item The model predicts 100 emails as spam, of which 80 are true positives and 20 are false positives.
+    \item The model misses 80 spam emails (i.e., 80 false negatives).
+\end{enumerate}
+Then:
+\[
+Precision = \frac{80}{80+20} = 0.8,
+\]
+\[
+Recall = \frac{80}{80+80} = 0.5.
+\]
+The F1 score is:
+\[
+F1 = 2 \cdot \frac{0.8 \cdot 0.5}{0.8 + 0.5} \approx 0.62.
+\]
+Thus, the model has moderate performance in detecting spam.
+\end{tcolorbox}
+
+\subsection{Specificity}
+If we are equally concerned with both positive and negative predictions, another important metric is \textbf{Specificity}, which measures the proportion of true negatives among all actual negatives:
+\begin{equation}
+Specificity = \frac{TN}{TN + FP}.
+\end{equation}
+In practice, \(1 - \text{Specificity}\) is often used, especially in ROC analysis:
+\begin{equation}
+1 - \text{Specificity} = \frac{FP}{TN + FP}.
+\end{equation}
+
+\begin{tcolorbox}
+\pmb{Example}
+
+Continuing the spam detection example:
+\begin{enumerate}
+    \item There are 100 positive predictions (80 TP and 20 FP).
+    \item The model misses 80 spam emails (80 FN).
+    \item There are a total of 200 non-spam emails, so \(TN + FP = 200\).
+\end{enumerate}
+Thus, \(TN = 200 - 20 = 180\) and
+\[
+Specificity = \frac{180}{180+20} = 0.9.
+\]
+This indicates that the model is very effective at correctly identifying non-spam emails.
+\end{tcolorbox}
+
+We summarize these points as follows:
+\begin{itemize}
+    \item In a detection problem modeled as a classification problem, precision, recall, and the F1 score are key metrics.
+    \item In a no-preference classification problem, specificity is also important.
+    \item Overall accuracy (OA) provides a general measure of a model's performance.
+    \item Together, precision, recall, specificity, and OA provide a complete picture of a classifier's performance based on the underlying TP, FP, TN, and FN counts.
+\end{itemize}
+
+\section{Random-guess Classifier}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Topic07fig02.png}
+    \caption{Venn diagram for the instance of a random classifier.}
+    \label{topic0702}
+    
+\end{figure}
+
+It is instructive to study a scenario where a classifier makes predictions entirely by random guessing, referred to as a random-guess classifier (RGC). Fig.~\ref{topic0702} illustrates the theoretical behavior of an RGC using again the Venn diagram.
+
+
+Suppose there are \(N_1\) actual positive instances and \(N_0\) actual negative instances. By random guessing, the classifier randomly picks an instance and assigns it a positive or negative label. If we denote \(m_1\) as the number of correct positive guesses (TP) and \(m_0\) as the number of incorrect positive guesses (FP), then the ratio of \(m_1\) to \(m_0\) should be the same as the ratio of \(N_1\) to \(N_0\):
+\[
+\frac{m_1}{m_0} = \frac{N_1}{N_0}.
+\]
+Defining \(\beta = \frac{m_1}{N_1} = \frac{m_0}{N_0}\), where \(\beta\) depends on the number of positive predictions (which, in turn, depends on the decision threshold), and letting \(\alpha = \frac{N_1}{N_1+N_0}\) (a constant for a given dataset), we obtain the following accuracy measures for a random-guess classifier:
+\[
+Precision = \frac{TP}{TP+FP} = \alpha,
+\]
+\[
+Recall = \frac{TP}{TP+FN} = \beta,
+\]
+\[
+1 - \text{Specificity} = \frac{FP}{FP+TN} = \beta.
+\]
+Thus, for a random-guess classifier, precision remains constant (reflecting the class distribution), while recall and \(1 - \text{Specificity}\) vary with \(\beta \in [0, 1]\) (with \(\beta = 0\) when \(TP = 0\) and \(\beta = 1\) when \(FN = 0\)).
+
 
 \section{One-hot Encoding}
 One-hot encoding is a technique used to represent categorical data in a binary format. Given a set of \(K\) class labels, one-hot encoding transforms each label into a binary vector of length \(K\), where the position corresponding to the class label is set to 1, and all other positions are set to 0.
@@ -205,134 +341,6 @@ The meanings of precision and recall are as follows:
 
 For example, consider a model designed to identify spam emails. If the model marks 80 out of 100 emails as spam and only 60 of these are truly spam, the precision is \(60/80 = 75\%\). Similarly, if there are 100 actual spam emails and the model correctly identifies 70, the recall is \(70/100 = 70\%\).
 
-\section{Model Accuracy Measures: Visual Understanding}
-
-\subsection{Binary Classification Consequences}
-In a binary classification problem, we are interested in predicting one of two possible outcomes, which we denote as positive (\(+\)) and negative (\(-\)) (in practice, these might be labeled as 0 and 1 or as two distinct objects). Suppose we have a dataset with \(N\) instances, each labeled as either positive or negative. When the model makes a prediction, four outcomes are possible:
-\begin{itemize}
-    \item \textbf{True Positive (TP)}: The model predicts positive, and the instance is actually positive.
-    \item \textbf{False Positive (FP)}: The model predicts positive, but the instance is actually negative.
-    \item \textbf{True Negative (TN)}: The model predicts negative, and the instance is actually negative.
-    \item \textbf{False Negative (FN)}: The model predicts negative, but the instance is actually positive.
-\end{itemize}
-
-\subsection{Confusion Matrix}
-Based on the four outcomes above, we can construct a \textit{confusion matrix}. For binary classification, the confusion matrix is a \(2 \times 2\) table summarizing the number of TP, FP, FN, and TN instances. An example confusion matrix is shown below:
-\begin{table}[ht]
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-                   & Actual Positive & Actual Negative \\ \hline
-Predicted Positive & TP              & FP              \\ \hline
-Predicted Negative & FN              & TN              \\ \hline
-\end{tabular}
-\caption{Confusion matrix: TP, FP, FN, and TN represent the counts (or number of instances) of each prediction outcome.}
-\end{table}
-
-Fig.~\ref{t07fig01} illustrates the four prediction consequences using a Venn diagram. The relationships depicted in the diagram reinforce the definitions of the key performance measures.
-
-Given the confusion matrix, the overall accuracy (OA) of the model is calculated as:
-\begin{equation}
-OA = \frac{TP + TN}{TP + TN + FP + FN}.
-\end{equation}
-In practice, many machine learning libraries, such as \textit{scikit-learn}, provide a function (e.g., \verb|cm.score(X_test, y_test)|) to compute this metric.
-
-\subsection{Precision and Recall}
-While OA is a useful metric, it does not always provide a complete picture of a model's performance. Precision and recall focus on the model's ability to correctly identify positive instances.
-
-\textbf{Precision} measures the proportion of true positives among all predicted positives:
-\[
-\text{Precision} = \frac{TP}{TP + FP}.
-\]
-A high precision indicates that the model rarely misclassifies negative examples as positive.
-
-\textbf{Recall} (or sensitivity) measures the proportion of true positives among all actual positives:
-\[
-Recall = \frac{TP}{TP + FN}.
-\]
-A high recall indicates that the model successfully identifies most positive instances.
-
-These two metrics can be combined into the F1 score, which is the harmonic mean of precision and recall:
-\begin{equation}
-F1 = 2 \cdot \frac{\text{Precision} \cdot Recall}{\text{Precision} + Recall}.
-\end{equation}
-A high F1 score indicates that the model performs well in both correctly predicting positives and identifying all actual positives.
-
-\begin{tcolorbox}
-\pmb{Example}
-
-A common application in machine learning is detecting spam emails. Suppose that in a test set:
-\begin{enumerate}
-    \item The model predicts 100 emails as spam, of which 80 are true positives and 20 are false positives.
-    \item The model misses 80 spam emails (i.e., 80 false negatives).
-\end{enumerate}
-Then:
-\[
-Precision = \frac{80}{80+20} = 0.8,
-\]
-\[
-Recall = \frac{80}{80+80} = 0.5.
-\]
-The F1 score is:
-\[
-F1 = 2 \cdot \frac{0.8 \cdot 0.5}{0.8 + 0.5} \approx 0.62.
-\]
-Thus, the model has moderate performance in detecting spam.
-\end{tcolorbox}
-
-\subsection{Specificity}
-If we are equally concerned with both positive and negative predictions, another important metric is \textbf{Specificity}, which measures the proportion of true negatives among all actual negatives:
-\begin{equation}
-Specificity = \frac{TN}{TN + FP}.
-\end{equation}
-In practice, \(1 - \text{Specificity}\) is often used, especially in ROC analysis:
-\begin{equation}
-1 - \text{Specificity} = \frac{FP}{TN + FP}.
-\end{equation}
-
-\begin{tcolorbox}
-\pmb{Example}
-
-Continuing the spam detection example:
-\begin{enumerate}
-    \item There are 100 positive predictions (80 TP and 20 FP).
-    \item The model misses 80 spam emails (80 FN).
-    \item There are a total of 200 non-spam emails, so \(TN + FP = 200\).
-\end{enumerate}
-Thus, \(TN = 200 - 20 = 180\) and
-\[
-Specificity = \frac{180}{180+20} = 0.9.
-\]
-This indicates that the model is very effective at correctly identifying non-spam emails.
-\end{tcolorbox}
-
-We summarize these points as follows:
-\begin{itemize}
-    \item In a detection problem modeled as a classification problem, precision, recall, and the F1 score are key metrics.
-    \item In a no-preference classification problem, specificity is also important.
-    \item Overall accuracy (OA) provides a general measure of a model's performance.
-    \item Together, precision, recall, specificity, and OA provide a complete picture of a classifier's performance based on the underlying TP, FP, TN, and FN counts.
-\end{itemize}
-
-\section{Random-guess Classifier}
-It is instructive to study a scenario where a classifier makes predictions entirely by random guessing, referred to as a random-guess classifier (RGC). Fig.~\ref{t07fig02} illustrates the theoretical behavior of an RGC.
-
-Suppose there are \(N_1\) actual positive instances and \(N_0\) actual negative instances. By random guessing, the classifier randomly picks an instance and assigns it a positive or negative label. If we denote \(m_1\) as the number of correct positive guesses (TP) and \(m_0\) as the number of incorrect positive guesses (FP), then the ratio of \(m_1\) to \(m_0\) should be the same as the ratio of \(N_1\) to \(N_0\):
-\[
-\frac{m_1}{m_0} = \frac{N_1}{N_0}.
-\]
-Defining \(\beta = \frac{m_1}{N_1} = \frac{m_0}{N_0}\), where \(\beta\) depends on the number of positive predictions (which, in turn, depends on the decision threshold), and letting \(\alpha = \frac{N_1}{N_1+N_0}\) (a constant for a given dataset), we obtain the following accuracy measures for a random-guess classifier:
-\[
-Precision = \frac{TP}{TP+FP} = \alpha,
-\]
-\[
-Recall = \frac{TP}{TP+FN} = \beta,
-\]
-\[
-1 - \text{Specificity} = \frac{FP}{FP+TN} = \beta.
-\]
-Thus, for a random-guess classifier, precision remains constant (reflecting the class distribution), while recall and \(1 - \text{Specificity}\) vary with \(\beta \in [0, 1]\) (with \(\beta = 0\) when \(TP = 0\) and \(\beta = 1\) when \(FN = 0\)).
-
 \section{Advanced Visual Analytics}
 
 \subsection{Receiver Operating Characteristic}
@@ -342,7 +350,7 @@ Intuitively, as the false positive rate increases, the true positive rate should
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width = 0.7\textwidth]{figs/Topic08fig01.png}
+\includegraphics[width = 0.7\textwidth]{Topic08fig01.png}
 \caption{ROC curve illustrating the capacity of a classification model.}
 \label{t07fig02}
 \end{figure}
@@ -360,9 +368,9 @@ It is also important to note that while ROC curves are powerful tools, their use
 \subsection{Precision-Recall Curves}
 The precision-recall (PR) curve is another valuable visual tool in machine learning, illustrating the trade-off between precision and recall as the classification threshold is varied. As defined earlier, precision is the fraction of true positive predictions among all positive predictions, while recall is the fraction of true positives among all actual positives. The PR curve plots precision against recall for different thresholds.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
-\includegraphics[width=0.6\textwidth]{figs/Topic08fig02.png}
+\includegraphics[width=0.6\textwidth]{Topic08fig02.png}
 \caption{An example of a precision-recall curve.}
 \label{Topic08fig02}
 \end{figure}

@@ -1,0 +1,223 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+
+\title{CE 488/5588 Homework 07\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+\newpage
+
+\section*{Topics 11--12: Regression, Clustering, and PCA}
+
+\begin{ch-box}
+This homework is based on the lecture content on regression, clustering, and principal
+component analysis in Topics 11 and 12. Answer all five questions. Please review the lecture notes or slides while completing the homework.
+\end{ch-box}
+
+%\section*{Conceptual Questions and Short Calculations}
+
+\subsection*{Problem 1: Regression versus classification}
+Answer the following short questions.
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item In one or two sentences, explain the main difference between a classification problem and a regression problem.
+
+    \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+
+    \item In classification, a confusion matrix is a standard evaluation tool. Why does this idea usually disappear in regression?
+
+   \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+
+    \item Give one reason why regression error is often easier to express mathematically than classification error.
+
+   \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+
+    \item Let the regression model be \(\hat{y} = f(\bm{x})\) for samples \((\bm{x}_i,y_i)\), \(i=1,2,\ldots,N\). Write the definitions of the sum of absolute errors (SAE) and the sum of squared errors (SSE).
+
+   \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+\end{enumerate}
+
+\newpage 
+
+\subsection*{Problem 2: Linear regression with three data points}
+Consider the one-dimensional linear regression model
+\[
+\hat{y} = a_0 + a_1 x.
+\]
+Use the three data points
+\[
+(x_1,y_1)=(-1,1), \qquad (x_2,y_2)=(2,2), \qquad (x_3,y_3)=(3,3).
+\]
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item Write the SAE objective \(E_1(a_0,a_1)\) and the SSE objective \(E_2(a_0,a_1)\) explicitly for these three points.
+
+   \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+
+    \item Compute the first-order partial derivatives \(\partial E_2/\partial a_0\) and \(\partial E_2/\partial a_1\).
+
+   \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+
+    \item (Gradudate Student only) Form the least-squares system using the conventional augmented design matrix
+    \[
+    \bm{X}=
+    \begin{bmatrix}
+    1 & x_1\\
+    1 & x_2\\
+    1 & x_3
+    \end{bmatrix},
+    \qquad
+    \bm{a}=
+    \begin{bmatrix}
+    a_0\\
+    a_1
+    \end{bmatrix},
+    \qquad
+    \bm{y}=
+    \begin{bmatrix}
+    y_1\\
+    y_2\\
+    y_3
+    \end{bmatrix}.
+    \]
+    Substitute the three given points, then compute the least-squares estimate using the pseudo left inverse
+    \[
+    \bm{X}^{-L}=(\bm{X}^T\bm{X})^{-1}\bm{X}^T,
+    \qquad
+    \hat{\bm{a}}=\bm{X}^{-L}\bm{y}.
+    \]
+    Report the numerical values of \(\hat{a}_0\) and \(\hat{a}_1\).
+
+   \vspace{18pt}
+    \fullunderline
+    
+    \vspace{18pt} 
+    \fullunderline
+\end{enumerate}
+
+\newpage
+
+\subsection*{Problem 3: Practical fitting of a noisy harmonic relation}
+Suppose field measurements \((x_i,y_i)\), \(i=1,2,\ldots,N\), are believed to follow the model
+\[
+y = A\sin(a_0x+b_0) + B\cos(a_1x+b_1) + \varepsilon,
+\]
+where \(\varepsilon\) represents measurement noise.
+
+Design a practical regression procedure for fitting this model from field data. Your answer should address the following points:
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item what data preprocessing or visualization you would perform first;
+    \item what objective function you would minimize;
+    \item what model (linear, neural network, or support vector regression) would you use to fit the data?
+    % \item how you would reduce the risk of overfitting noisy data; and
+    \item how you would judge whether the fitted model is satisfactory.
+\end{enumerate}
+
+Write your answer as a short, ordered plan rather than as a full essay.
+
+\vspace{24pt}
+\fullunderline
+
+\vspace{20pt}
+\fullunderline
+
+\vspace{20pt}
+\fullunderline
+
+\newpage 
+
+\subsection*{Problem 4: K-means clustering objective and choice of \(K\)}
+Let \(\mathcal{D}=\{\bm{x}_1,\bm{x}_2,\ldots,\bm{x}_N\}\) be an unlabeled dataset in \(\mathbb{R}^d\).
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item Write the k-means objective function using cluster sets \(S_k\) and centroids \(\bm{\mu}_k\), for \(k=1,2,\ldots,K\).
+
+    \vspace{22pt}
+    \fullunderline
+
+    \item State the two alternating steps of the basic k-means algorithm.
+
+    \vspace{20pt}
+    \fullunderline
+
+    \item Briefly explain how you would choose \(K\) in each of the following situations:
+    \begin{enumerate}
+        \renewcommand{\labelenumii}{(\roman{enumii})}
+        \item the number of physically meaningful operating regimes is already known from engineering knowledge;
+        \item the number of groups is not known in advance.
+    \end{enumerate}
+
+    \vspace{20pt}
+    \fullunderline
+\end{enumerate}
+
+\newpage 
+
+
+\subsection*{Problem 5: PCA for dimensionality reduction and visualization}
+Suppose a dataset is saved in an Excel spreadsheet. Each row corresponds to one instance, and each column corresponds to one measured attribute. Let the data matrix be
+\[
+\bm{X} \in \mathbb{R}^{N\times d},
+\]
+where \(N\) is the number of instances and \(d\) is the number of attributes. In this homework, assume \(N=100\) and \(d=1000\).
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item Define a centered data matrix \(\bm{X}_c\), and then write the PCA projection from \(\bm{X}_c\) to a reduced three-dimensional representation
+    \[
+    \bm{Z} \in \mathbb{R}^{100\times 3}.
+    \]
+    Use a projection matrix \(\bm{W}_3\), and clearly state the dimensions of \(\bm{W}_3\) and \(\bm{Z}\).
+    
+    \vspace{24pt}
+    \fullunderline
+    
+    \item Briefly explain why PCA can be useful when the spreadsheet contains many attributes, some of which may be noisy, redundant, or not very informative.
+    
+    \vspace{20pt}
+    \fullunderline
+    
+    \vspace{20pt}
+    \fullunderline
+    
+    \item After computing the first three principal components, imagine a \(3\times 3\) plot grid built from these three coordinates. Describe what should appear in the diagonal panels and what should appear in the off-diagonal panels. Then state one pattern in this plot grid that would suggest meaningful low-dimensional structure in the data.
+    
+    \vspace{20pt}
+    \fullunderline
+    
+    \vspace{20pt}
+    \fullunderline
+\end{enumerate}
+\end{document}

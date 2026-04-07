@@ -1,0 +1,168 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 12\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\doublespacing
+\section*{ML for Regression}
+Review the \href{https://umsystem.instructure.com/courses/280496/files/34117291?module_item_id=9971137}{Topic 14 class slides} carefully. Answer the following conceptual questions (which are either multiple-choice,  fill-in-the-blank, or short-answer questions).
+
+\subsection*{Q1}
+\textbf{(Multiple Choice)} Comparing supervised classification and machine learning for regression, which statements are correct? (Select all that apply)
+
+\begin{itemize}
+  \item[(A)] Both map input variables $\bm{x}$ to outputs $y$.
+  \item[(B)] Classification outputs are continuous, regression outputs are categorical.
+  \item[(C)] Regression outputs are continuous, classification outputs are categorical.
+  \item[(D)] Both can use machine learning models like neural networks.
+  \item[(E)] Only regression requires minimizing a loss function.
+\end{itemize}
+
+\vspace{1em}
+\subsection*{Q2}
+\textbf{(Short Answer)} In fluid mechanics, the Manning equation is given by:
+
+\[
+V = \frac{1}{n} R^{2/3} S^{1/2}
+\]
+where:
+\begin{itemize}
+  \item $V$: velocity (m/s)
+  \item $R$: hydraulic radius (m)
+  \item $S$: slope of the energy grade line (unitless)
+  \item $n$: Manning roughness coefficient (unitless)
+\end{itemize}
+
+Discuss how this nonlinear equation can be transformed into a linear regression problem using a suitable transformation.
+
+\vspace{1em}
+\subsection*{Q3}
+\textbf{(Short Answer)} If you have a very complex nonlinear relationship to fit due to the underlying different scenarios (e.g., the bearing capacity of a shallow foundation, for which many scenarios exist, e.g., for a square foundation, a strip foundation, etc.). Under each scenario, there is a design tradition that engineers desire a simple empirical equation. 
+
+
+In the meantime, only a small dataset is available.
+
+You are choosing between a neural network (MLP) and a support vector machine (SVR), which strategy would you suggest? Briefly explain your reasoning.
+
+\vspace{1em}
+\subsection*{Q4}
+\textbf{(Fill-in-the-Blank)} A decision tree is a model that splits data based on feature values.
+
+Complete the sentence below:
+
+\begin{quote}
+A decision tree is good for problems where interpretability and handling both \underline{\hspace{2cm}} and \underline{\hspace{2cm}} variables are important, and where the underlying relationship between inputs and outputs is \underline{\hspace{2cm}}.
+\end{quote}
+
+
+\newpage
+\section*{Deep Neural Networks - Convolutional Neural Networks}
+
+
+Review class materials on \href{https://umsystem.instructure.com/courses/280496/files/34117289?module_item_id=9971136}{convolutional neural networks (CNNs)}. Answer the following conceptual and calculation questions carefully.
+
+
+\subsection*{Q1}
+\textbf{(Multiple Choice)} Why do Convolutional Neural Networks (CNNs) generally work well for processing images?
+
+\begin{itemize}
+  \item[(A)] CNNs use very large fully connected layers.
+  \item[(B)] CNNs are inspired by the structure of the visual cortex in the brain, which processes images in a hierarchical manner.
+  \item[(C)] CNNs memorize every pixel individually.
+  \item[(D)] CNNs are designed to ignore spatial relationships in data.
+\end{itemize}
+
+\vspace{1em}
+\subsection*{Q2}
+\textbf{(Fill-in-the-Blank)}
+
+Besides fully connected layers, CNNs include specialized layers to process images. Fill in the blanks:
+
+\begin{quote}
+CNNs commonly use \underline{\hspace{2cm}} layers and \underline{\hspace{2cm}} layers to extract and reduce spatial features.
+\end{quote}
+
+\vspace{1em}
+\subsection*{Q3}
+\textbf{(Calculation)}
+
+\textit{Note: In convolution, the stride refers to how many pixels the filter moves each time. A stride of 1 means the filter `walks' 1 pixel at a time horizontally or vertically.}
+
+Given the following $5 \times 5$ input image matrix:
+
+\[
+\begin{bmatrix}
+1 & 2 & 3 & 0 & 1 \\
+4 & 5 & 6 & 1 & 0 \\
+7 & 8 & 9 & 2 & 1 \\
+1 & 3 & 5 & 2 & 0 \\
+2 & 4 & 6 & 1 & 1 \\
+\end{bmatrix}
+\]
+
+and the following $3 \times 3$ kernel:
+
+\[
+\begin{bmatrix}
+1 & 0 & -1 \\
+1 & 0 & -1 \\
+1 & 0 & -1 \\
+\end{bmatrix}
+\]
+
+Assume stride = 1, no padding. Calculate the resulting feature map (\textit{hint: it will lead to a $3\times 3$ feature map}).
+
+\vspace{1em}
+\subsection*{Q4}
+\textbf{(Max Pooling)}
+
+\textit{Note: In max pooling, the stride determines how far the pooling window moves each time.}
+
+Given the following $5 \times 5$ feature map:
+
+\[
+\begin{bmatrix}
+1 & 3 & 2 & 1 & 5 \\
+4 & 6 & 5 & 0 & 2 \\
+7 & 2 & 8 & 3 & 1 \\
+2 & 9 & 1 & 4 & 7 \\
+0 & 6 & 2 & 8 & 3 \\
+\end{bmatrix}
+\]
+
+Apply $3 \times 3$ max pooling with stride = 1. Write down the resulting pooled feature map.
+
+\end{document}

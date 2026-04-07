@@ -1,0 +1,633 @@
+\documentclass[10pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{hyperref}
+
+\graphicspath{{../figs/}{./figs/}}
+
+\title[Topic 8]{CE 488/5588: Applied AI\\\large Topic 8: Generative Learning for Supervised Classification}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \justifying
+  \tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}{Why Generative Classification Matters}
+  \justifying
+  \begin{itemize}
+    \item Discriminative learning emphasizes decision boundaries or the posterior directly, while generative learning models how observations arise together with their labels.
+    \item The core objects are the joint model $p(\bm{x},c_i)$ or the factorization $p(\bm{x}\mid c_i)p(c_i)$.
+    \item This view supports probabilistic reasoning under uncertainty, imbalance, missing prior information, and limited data.
+    \item It also gives a direct path to Bayes-optimal decision rules and theoretical error analysis.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize Source: \href{https://cs229.stanford.edu/notes2020fall/cs229-notes2.pdf}{Stanford CS229 Notes on Generative Learning}}
+\end{frame}
+
+\begin{frame}{Discriminative vs. Generative Formalisms}
+  \justifying
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{conceptbox}{Discriminative View}
+      \begin{itemize}
+        \item Learns $p(c_i\mid\bm{x})$ or a decision function directly.
+        \item Focuses on separation between classes.
+        \item Often optimized for prediction accuracy alone.
+      \end{itemize}
+    \end{conceptbox}
+    \column{0.48\textwidth}
+    \begin{examplebox}{Generative View}
+      \begin{itemize}
+        \item Learns $p(\bm{x},c_i)$ or $p(\bm{x}\mid c_i)$ with $p(c_i)$.
+        \item Explains both data generation and class assignment.
+        \item Supports inference, simulation, and uncertainty analysis.
+      \end{itemize}
+    \end{examplebox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Learning Objectives}
+  \justifying
+  After this topic, you should be able to:
+  \begin{itemize}
+    \item Distinguish discriminative and generative formalisms in supervised learning.
+    \item Explain the distinctive feature of generative models using $p(\bm{x},c_i)$, $p(\bm{x}\mid c_i)$, and $p(c_i)$.
+    \item Apply Bayes' rule to MAP and ML inference for classification.
+    \item Formulate MAP and MLE parameter estimation under the i.i.d. assumption.
+    \item Interpret Bayes error and connect classical generative models to modern generative AI.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Training Set Notation and Class Counts}
+  \justifying
+  We assume a supervised dataset
+  \[
+    \mathcal{D} = \{(\bm{x}_n,y_n) \mid n=1,2,\ldots,N\},
+    \qquad
+    \bm{x}_n \in \mathbb{R}^d,
+    \qquad
+    y_n \in \{c_1,c_2,\ldots,c_K\}.
+  \]
+  \begin{itemize}
+    \item $d$ is the feature dimension, $K$ is the number of classes, and $N$ is the dataset size.
+    \item With one-of-$K$ encoding $C(n,i)$, the sample count of class $c_i$ is
+    \[
+      N_c(i) = \sum_n C(n,i).
+    \]
+    \item These class counts later support prior estimation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Generative Classification Workflow}
+  \justifying
+  \begin{conceptbox}{Two Connected Tasks}
+    \begin{itemize}
+      \item \textbf{Inference:} Given a new feature vector $\bm{x}$, determine which class is most probable.
+      \item \textbf{Learning:} Estimate the parameters that define $p(\bm{x}\mid c_i)$ and $p(c_i)$ from data.
+    \end{itemize}
+  \end{conceptbox}
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Bayes' rule ties these tasks together because it converts a generative model into a posterior classifier.
+    \item The same probabilistic logic also drives MAP and MLE parameter estimation.
+  \end{itemize}
+\end{frame}
+
+\section{Bayes' Rule}
+
+\begin{frame}{From the Joint Rule to Bayes' Rule}
+  \justifying
+  Start from the joint probability identity:
+  \[
+    P(A,B) = P(A\mid B)P(B) = P(B\mid A)P(A).
+  \]
+  Rearranging gives Bayes' rule:
+  \[
+    P(A\mid B) = \frac{P(B\mid A)P(A)}{P(B)}.
+  \]
+  \begin{itemize}
+    \item The rule is algebraically simple, but it is foundational because it converts prior beliefs and data likelihoods into posterior beliefs.
+    \item In machine learning, that posterior becomes the object used for classification and estimation.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize Source: \href{https://en.wikipedia.org/wiki/Bayes\%27_theorem}{Bayes' theorem overview}}
+\end{frame}
+
+\begin{frame}{Bayes' Rule for Classification}
+  \justifying
+  For class label $c_i$ and feature vector $\bm{x}$,
+  \[
+    p(c_i\mid\bm{x}) = \frac{p(\bm{x}\mid c_i)\,p(c_i)}{p(\bm{x})}.
+  \]
+  \begin{itemize}
+    \item $p(\bm{x}\mid c_i)$ is the class-conditional density, or likelihood.
+    \item $p(c_i)$ is the prior probability of class $c_i$.
+    \item $p(\bm{x})$ is the marginal density of the observation.
+    \item $p(c_i\mid\bm{x})$ is the posterior probability used for decision making.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interpreting Posterior, Likelihood, Prior, and Marginal}
+  \justifying
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \begin{conceptbox}{Before Seeing $\bm{x}$}
+      \begin{itemize}
+        \item The prior $p(c_i)$ encodes what is plausible before the new observation arrives.
+        \item It may reflect sample frequency or domain knowledge.
+      \end{itemize}
+    \end{conceptbox}
+    \column{0.48\textwidth}
+    \begin{examplebox}{After Seeing $\bm{x}$}
+      \begin{itemize}
+        \item The likelihood rewards classes that explain the observed feature vector well.
+        \item The posterior combines that evidence with the prior and normalizes across classes.
+      \end{itemize}
+    \end{examplebox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Why Bayes' Rule Is the Backbone}
+  \justifying
+  \begin{itemize}
+    \item Once we can evaluate $p(\bm{x}\mid c_i)$ and $p(c_i)$ for each class, we can rank posterior probabilities and predict the most probable label.
+    \item The same update mechanism appears in monitoring, robotics, control, and broader probabilistic AI.
+    \item In classical generative classification, Bayes' rule transforms a learned data-generation model into a classifier.
+    \item In modern generative AI, the same probabilistic thinking motivates likelihood-based modeling and Bayesian reasoning.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize Source: \href{https://cs229.stanford.edu/notes2020fall/cs229-notes2.pdf}{Stanford CS229 Notes on Generative Learning}}
+\end{frame}
+
+\section{Probabilistic Inference}
+
+\begin{frame}{Maximum A Posteriori (MAP) Inference}
+  \justifying
+  In MAP inference, we predict the class with the largest posterior:
+  \[
+    \hat{c} = \arg\max_{c_i} \, p(c_i\mid\bm{x})
+    = \arg\max_{c_i} \, \frac{p(\bm{x}\mid c_i)p(c_i)}{p(\bm{x})}.
+  \]
+  Since $p(\bm{x})$ does not depend on the class label,
+  \[
+    \hat{c} = \arg\max_{c_i} \, p(\bm{x}\mid c_i)p(c_i).
+  \]
+  \begin{itemize}
+    \item MAP keeps prior information in the decision rule.
+    \item This is especially useful when class imbalance or prior knowledge matters.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Maximum Likelihood (ML) Inference}
+  \justifying
+  ML inference removes class priors from the decision and keeps only the class-conditional density:
+  \[
+    \hat{c} = \arg\max_{c_i} \, p(\bm{x}\mid c_i).
+  \]
+  \begin{itemize}
+    \item ML is simpler because it uses only how well each class explains the observation.
+    \item It can be reasonable when priors are equal or unavailable.
+    \item It can also be misleading when one class is much rarer or domain knowledge strongly favors one class over another.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MAP vs. ML Inference}
+  \justifying
+  \begin{table}[ht]
+    \centering
+    \begin{tabular}{p{0.24\textwidth}p{0.31\textwidth}p{0.31\textwidth}}
+      \toprule
+      Criterion & MAP & ML \\
+      \midrule
+      Decision quantity & $p(\bm{x}\mid c_i)p(c_i)$ & $p(\bm{x}\mid c_i)$ \\
+      Uses prior? & Yes & No \\
+      Robust to imbalance? & More often yes & Often no \\
+      Typical use & Prior knowledge available & Neutral baseline \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \begin{warningbox}{Operational Note}
+    If priors are not equal, MAP and ML can produce different class predictions even when the same likelihood model is used.
+  \end{warningbox}
+\end{frame}
+
+\section{Probabilistic Learning}
+
+\begin{frame}{Estimating and Adjusting Class Priors}
+  \justifying
+  A common empirical estimate is
+  \[
+    p(c_i) \approx \frac{N_c(i)}{N}.
+  \]
+  \begin{itemize}
+    \item This estimate is easy to compute from class frequencies.
+    \item It is often a good starting point when the dataset is large and representative.
+    \item In small datasets, frequency-based priors can be fragile and may assign zero probability to a class that is still possible in reality.
+  \end{itemize}
+  \begin{warningbox}{Why Adjustment May Be Needed}
+    A zero empirical prior would force the posterior for that class to zero, which is usually too strong a conclusion.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Why Learning $p(\bm{x}\mid c_i)$ Is Hard}
+  \justifying
+  \begin{itemize}
+    \item The feature vector $\bm{x}$ is multivariate, so each class-conditional model lives in a potentially high-dimensional space.
+    \item We must decide what distribution family to use for each class and whether feature components depend on each other.
+    \item As dimension grows, both analytic derivation and numerical estimation become more difficult.
+    \item Practical generative learning therefore depends on modeling assumptions that keep the problem tractable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Approach 1: Strong Distributional Assumptions}
+  \justifying
+  \begin{conceptbox}{Parametric Simplification}
+    \begin{itemize}
+      \item Assume a multivariate Gaussian density for each class.
+      \item Use a Gaussian mixture when one Gaussian is too restrictive.
+      \item Assume conditional independence to obtain the Naive Bayes model.
+    \end{itemize}
+  \end{conceptbox}
+  \vspace{0.4em}
+  \begin{itemize}
+    \item These assumptions make inference and parameter estimation much easier.
+    \item The price is modeling bias if the true data-generation mechanism is more complex.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize Sources: \href{https://scikit-learn.org/stable/modules/naive_bayes.html}{scikit-learn Naive Bayes}, \href{https://scikit-learn.org/stable/modules/mixture.html}{scikit-learn Gaussian Mixture Models}}
+\end{frame}
+
+\begin{frame}{Approach 2: Causal and Graphical Structure}
+  \justifying
+  \begin{itemize}
+    \item Instead of assuming one simple joint density form, we can encode dependencies among variables with a graphical model.
+    \item Bayesian networks, Bayesian trees, and hidden Markov models are examples of this approach.
+    \item The graph represents conditional dependence structure, which can make modeling more interpretable and more modular.
+  \end{itemize}
+  \begin{examplebox}{Big Idea}
+    Rather than saying every component is independent or jointly Gaussian, we explicitly model which variables influence which others.
+  \end{examplebox}
+  \vspace{0.3em}
+  {\footnotesize Sources: \href{https://en.wikipedia.org/wiki/Bayesian_network}{Bayesian networks}, \href{https://en.wikipedia.org/wiki/Hidden_Markov_model}{Hidden Markov models}}
+\end{frame}
+
+\begin{frame}{The i.i.d. Assumption for Datasets}
+  \justifying
+  If we focus on observations alone,
+  \[
+    \mathcal{D} = \{\bm{x}_1,\bm{x}_2,\ldots,\bm{x}_N\}.
+  \]
+  The i.i.d. assumption says that all samples are:
+  \begin{itemize}
+    \item \textbf{Identically distributed:} each $\bm{x}_n$ comes from the same underlying model, and
+    \item \textbf{Independently distributed:} observing one sample does not change the density of another sample.
+  \end{itemize}
+  Under this assumption,
+  \[
+    p(\mathcal{D}\mid\bm{\theta}) = \prod_{n=1}^{N} p(\bm{x}_n\mid\bm{\theta}).
+  \]
+\end{frame}
+
+\begin{frame}{MAP Parameter Estimation}
+  \justifying
+  MAP learning estimates parameters by maximizing the posterior over the parameter vector:
+  \[
+    p(\bm{\theta}\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid\bm{\theta})p(\bm{\theta})}{p(\mathcal{D})},
+  \]
+  so
+  \[
+    \hat{\bm{\theta}}_{\mathrm{MAP}} = \arg\max_{\bm{\theta}} \, p(\mathcal{D}\mid\bm{\theta})p(\bm{\theta}).
+  \]
+  \begin{itemize}
+    \item The prior $p(\bm{\theta})$ regularizes estimation and injects prior beliefs.
+    \item In hierarchical Bayesian models, that prior itself can be controlled by a hyperprior.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Maximum Likelihood Estimation (MLE)}
+  \justifying
+  MLE removes the parameter prior and optimizes only the likelihood:
+  \[
+    \hat{\bm{\theta}}_{\mathrm{MLE}} = \arg\max_{\bm{\theta}} \, p(\mathcal{D}\mid\bm{\theta})
+    = \arg\max_{\bm{\theta}} \, \prod_{n=1}^{N} p(\bm{x}_n\mid\bm{\theta}).
+  \]
+  \begin{itemize}
+    \item MLE is often easier to derive and compute.
+    \item It can be less robust because it ignores prior information about reasonable parameter values.
+    \item In practice, MAP and MLE often differ most when data are scarce or noisy.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Two Nested Decisions in Generative Learning}
+  \justifying
+  \begin{conceptbox}{Decision Layer 1: Classification}
+    Choose MAP or ML inference for predicting the class label once the generative model is available.
+  \end{conceptbox}
+  \vspace{0.4em}
+  \begin{conceptbox}{Decision Layer 2: Parameter Fitting}
+    Choose MAP estimation or MLE for learning the parameters that define the class-conditional distributions.
+  \end{conceptbox}
+  \vspace{0.4em}
+  \begin{itemize}
+    \item The first decision acts on classes.
+    \item The second decision acts on model parameters.
+  \end{itemize}
+\end{frame}
+
+\section{Bayes Error}
+
+\begin{frame}{Why Bayes Error Matters}
+  \justifying
+  \begin{itemize}
+    \item Bayes error is the minimum achievable classification error for a fixed problem setup.
+    \item It reflects irreducible uncertainty caused by overlap among class distributions.
+    \item This gives a theoretical ceiling on classification accuracy even before training a particular algorithm.
+    \item Generative models are attractive because they can express that limit analytically in some settings.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bayes Error Illustration}
+  \justifying
+  \begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.62\textwidth]{figs/bayes-error-plot.png}
+    \caption{Bayes error illustration with two conditional distributions for a binary classification problem.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Bayes Error Formula and Interpretation}
+  \justifying
+  The Bayes error can be written as
+  \[
+    P_{\text{error}} = \int_{-\infty}^{\infty} \min\{p(c_1\mid\bm{x}),\ldots,p(c_K\mid\bm{x})\}\,p(\bm{x})\,d\bm{x},
+  \]
+  or equivalently,
+  \[
+    P_{\text{error}} = \int_{-\infty}^{\infty} \min\{p(\bm{x},c_1),\ldots,p(\bm{x},c_K)\}\,d\bm{x}.
+  \]
+  \begin{itemize}
+    \item The integrand keeps only the probability mass assigned to the wrong side of the optimal decision.
+    \item Computing this quantity is easy only for simple, low-dimensional models.
+  \end{itemize}
+\end{frame}
+
+\section{Practice Example}
+
+\begin{frame}{Practice Example: Bridge Load Classification}
+  \justifying
+  We model vertical bridge loads from two vehicle classes with uniform distributions:
+  \[
+    X\mid c_0 \sim U(a,2a+1),
+    \qquad
+    X\mid c_1 \sim U(2a,3a+2).
+  \]
+  Observed labeled data are
+  \[
+    \{(2,0),(3,0),(4,0),(4,1),(5,1)\}.
+  \]
+  \begin{itemize}
+    \item The first value is the measured load.
+    \item The second value is the class label: car ($0$) or pickup truck ($1$).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Step 1: Class-conditional Likelihood Models}
+  \justifying
+  For cars,
+  \[
+    f_{\text{car}}(x;a) = \frac{1}{(2a+1)-a} = \frac{1}{a+1},
+    \qquad
+    x \in [a,2a+1].
+  \]
+  For pickup trucks,
+  \[
+    f_{\text{pickup}}(x;a) = \frac{1}{(3a+2)-2a} = \frac{1}{a+2},
+    \qquad
+    x \in [2a,3a+2].
+  \]
+  \begin{itemize}
+    \item Each density is constant on its support because the model is uniform.
+    \item The unknown parameter $a$ controls both interval endpoints.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Step 2: Constraints from Car Observations}
+  \justifying
+  Each car observation must lie in $[a,2a+1]$:
+  \begin{itemize}
+    \item For $x=2$: $a \leq 2$ and $2 \leq 2a+1$, so $a \geq 0.5$.
+    \item For $x=3$: $a \leq 3$ and $3 \leq 2a+1$, so $a \geq 1$.
+    \item For $x=4$: $a \leq 4$ and $4 \leq 2a+1$, so $a \geq 1.5$.
+  \end{itemize}
+  \begin{conceptbox}{Most Restrictive Car Constraint}
+    The car data imply $a \geq 1.5$.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Step 2: Constraints from Pickup Observations}
+  \justifying
+  Each pickup observation must lie in $[2a,3a+2]$:
+  \begin{itemize}
+    \item For $x=4$: $2a \leq 4$ gives $a \leq 2$, and $4 \leq 3a+2$ gives $a \geq 2/3$.
+    \item For $x=5$: $2a \leq 5$ gives $a \leq 2.5$, and $5 \leq 3a+2$ gives $a \geq 1$.
+  \end{itemize}
+  \begin{conceptbox}{Most Restrictive Pickup Constraint}
+    The pickup data imply $1 \leq a \leq 2$.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Feasible Parameter Interval}
+  \justifying
+  Combine the support constraints from both classes:
+  \[
+    a \geq 1.5 \quad \text{from cars},
+    \qquad
+    1 \leq a \leq 2 \quad \text{from pickups}.
+  \]
+  Therefore,
+  \[
+    a \in [1.5,2].
+  \]
+  \begin{itemize}
+    \item This interval is the feasible set for the likelihood maximization problem.
+    \item Any value outside it would make at least one observed data point impossible under the model.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Step 3: Total Likelihood Under the i.i.d. Assumption}
+  \justifying
+  Assuming the observations are i.i.d., the total likelihood is the product of the densities for all five labeled samples.
+  \[
+    L_{\text{car}}(a) = \left(\frac{1}{a+1}\right)^3,
+    \qquad
+    L_{\text{pickup}}(a) = \left(\frac{1}{a+2}\right)^2.
+  \]
+  Hence,
+  \[
+    L(a) = \left(\frac{1}{a+1}\right)^3\left(\frac{1}{a+2}\right)^2,
+    \qquad
+    a \in [1.5,2].
+  \]
+\end{frame}
+
+\begin{frame}{Step 4: Maximizing the Likelihood}
+  \justifying
+  \begin{itemize}
+    \item Both $(a+1)$ and $(a+2)$ increase as $a$ increases.
+    \item Therefore the reciprocals decrease as $a$ increases.
+    \item The total likelihood $L(a)$ is a decreasing function on the feasible interval $[1.5,2]$.
+  \end{itemize}
+  So the MLE is obtained at the smallest feasible value:
+  \[
+    \hat{a} = 1.5.
+  \]
+\end{frame}
+
+\begin{frame}{Fitted Generative Models After Estimation}
+  \justifying
+  Substituting $\hat{a}=1.5$ gives
+  \[
+    X\mid c_0 \sim U(1.5,4),
+    \qquad
+    X\mid c_1 \sim U(3,6.5).
+  \]
+  With equal priors $\pi_0=\pi_1=0.5$, the class densities become
+  \[
+    f_{\text{car}}(x)=0.4 \text{ on } [1.5,4],
+    \qquad
+    f_{\text{pickup}}(x)\approx 0.2857 \text{ on } [3,6.5].
+  \]
+  \begin{itemize}
+    \item The supports overlap only on $[3,4]$.
+    \item Outside that overlap, the correct class is unambiguous.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Decision Rule in the Overlap Region}
+  \justifying
+  On $[3,4]$, both classes have nonzero density, so the Bayes classifier compares
+  \[
+    \pi_0 f_{\text{car}}(x) = 0.5 \times 0.4 = 0.2,
+    \qquad
+    \pi_1 f_{\text{pickup}}(x) \approx 0.5 \times 0.2857 = 0.1429.
+  \]
+  \begin{itemize}
+    \item Because $0.2 > 0.1429$, the classifier predicts class $0$ throughout the overlap.
+    \item Errors occur only when a pickup truck produces a load in that same interval.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bayes Error for the Worked Example}
+  \justifying
+  The overlap region is the only place where the minimum joint mass is nonzero, so
+  \[
+    P_{\text{error}} = \int_{-\infty}^{\infty} \min\{\pi_0f_{\text{car}}(x),\pi_1f_{\text{pickup}}(x)\}\,dx
+    = \int_3^4 0.1429\,dx.
+  \]
+  Since the interval length is $1$,
+  \[
+    P_{\text{error}} \approx 0.1429 \approx 14.3\%.
+  \]
+  \begin{itemize}
+    \item This is the minimum possible error under the assumed model and equal priors.
+    \item No classifier can do better unless the model assumptions change.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{What the Worked Example Teaches}
+  \justifying
+  \begin{examplebox}{Main Lessons}
+    \begin{itemize}
+      \item Support constraints can determine the feasible parameter region before any optimization occurs.
+      \item Under i.i.d. assumptions, the overall likelihood becomes a simple product of class-conditional terms.
+      \item The MLE can sit on a boundary when the likelihood decreases throughout the feasible interval.
+      \item Bayes error depends on overlap in the fitted class distributions, not only on the training labels.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\section{Classical and Modern Generative Models}
+
+\begin{frame}{Classical Generative Models}
+  \justifying
+  \begin{itemize}
+    \item Traditional models such as Naive Bayes, Gaussian mixture models, and hidden Markov models were designed for smaller-scale problems.
+    \item They rely on strong assumptions that support tractable parameter estimation and clear interpretation.
+    \item These models have been effective in text classification, speech recognition, and medical diagnosis.
+    \item Their strengths are transparency, efficiency, and probabilistic interpretability.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize Sources: \href{https://scikit-learn.org/stable/modules/naive_bayes.html}{scikit-learn Naive Bayes}, \href{https://scikit-learn.org/stable/modules/mixture.html}{scikit-learn Gaussian Mixture Models}}
+\end{frame}
+
+\begin{frame}{Modern Generative AI Models}
+  \justifying
+  \begin{itemize}
+    \item Modern generative AI uses deep architectures such as variational autoencoders, generative adversarial networks, and transformer-based models.
+    \item These methods can learn highly complex, high-dimensional data distributions and generate realistic outputs across text, image, audio, and multimodal domains.
+    \item They usually require much larger datasets and more computation than classical generative classifiers.
+    \item Their notion of ``generative'' is broader: the model produces outputs that behave like samples from a learned distribution.
+  \end{itemize}
+  \vspace{0.3em}
+  {\footnotesize Sources: \href{https://arxiv.org/abs/1312.6114}{VAE (2013)}, \href{https://arxiv.org/abs/1406.2661}{GAN (2014)}, \href{https://arxiv.org/abs/1706.03762}{Transformer (2017)}}
+\end{frame}
+
+\begin{frame}{Classical vs. Modern Generative Thinking}
+  \justifying
+  \begin{table}[ht]
+    \centering
+    \begin{tabular}{p{0.21\textwidth}p{0.30\textwidth}p{0.35\textwidth}}
+      \toprule
+      Aspect & Classical models & Modern GenAI \\
+      \midrule
+      Scale & Small or medium data & Large-scale data and compute \\
+      Assumptions & Explicit and interpretable & Distributed and learned \\
+      Goal & Classification and inference & Realistic generation and rich representations \\
+      Strength & Transparency and tractability & Expressiveness and flexibility \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \begin{warningbox}{Important Distinction}
+    Modern generative AI is conceptually related to classical generative modeling, but it is not simply a larger Naive Bayes or Gaussian model.
+  \end{warningbox}
+\end{frame}
+
+\section{Summary}
+
+\begin{frame}{Key Takeaways}
+  \justifying
+  \begin{itemize}
+    \item Generative classification models how data arise together with labels through $p(\bm{x},c_i)$ or $p(\bm{x}\mid c_i)p(c_i)$.
+    \item Bayes' rule turns that generative model into a posterior classifier and motivates both MAP and ML inference.
+    \item Learning requires assumptions about $p(\bm{x}\mid c_i)$ and usually relies on the i.i.d. factorization of the dataset likelihood.
+    \item MAP and MLE differ in whether parameter priors are included.
+    \item Bayes error describes the irreducible uncertainty caused by overlapping class distributions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{What to Practice Next}
+  \justifying
+  \begin{itemize}
+    \item Derive MAP and ML decisions for a binary classifier with unequal priors.
+    \item Repeat the bridge-load example with unequal priors and compare the Bayes error.
+    \item Write the log-likelihood version of the MLE objective for a Gaussian class-conditional model.
+    \item Prepare for the next topic by connecting conditional independence assumptions to Naive Bayes.
+  \end{itemize}
+  \vspace{0.4em}
+  {\footnotesize Selected references: \href{https://cs229.stanford.edu/notes2020fall/cs229-notes2.pdf}{Stanford CS229 Notes}, \href{https://scikit-learn.org/stable/modules/naive_bayes.html}{scikit-learn Naive Bayes}, \href{https://arxiv.org/abs/1312.6114}{VAE}, \href{https://arxiv.org/abs/1406.2661}{GAN}, \href{https://arxiv.org/abs/1706.03762}{Transformer}}
+\end{frame}
+
+\end{document}

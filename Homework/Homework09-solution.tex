@@ -1,0 +1,199 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 09\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+\noindent Please review lecture notes \href{https://umsystem.instructure.com/courses/280496/files/33335361?module_item_id=9867784}{Topic 7} and complete the following ML model design problems. 
+
+\section*{Problem 1: Multi-class Classification}
+
+\begin{enumerate}
+    \item \textbf{One-Hot Encoding:}\\
+    We assign each bridge health condition an exclusive one-hot vector:
+    \[
+    \text{Excellent Condition: } [1, 0, 0], \quad \text{Safe Condition: } [0, 1, 0], \quad \text{Unsafe Condition: } [0, 0, 1].
+    \]
+    
+    \item \textbf{Softmax Calculation:}\\
+    Suppose the model outputs scores:
+    \[
+    z_1 = 10, \quad z_2 = 5, \quad z_3 = -5.
+    \]
+    The softmax function is defined as:
+    \[
+    \text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{3} e^{z_j}}.
+    \]
+    We compute:
+    \[
+    e^{10} \approx 22026.47,\quad e^{5} \approx 148.41,\quad e^{-5} \approx 0.0067.
+    \]
+    Therefore, the denominator is:
+    \[
+    22026.47 + 148.41 + 0.0067 \approx 22174.89.
+    \]
+    The softmax outputs are:
+    \[
+    \text{softmax}(z_1) \approx \frac{22026.47}{22174.89} \approx 0.9933,
+    \]
+    \[
+    \text{softmax}(z_2) \approx \frac{148.41}{22174.89} \approx 0.0067,
+    \]
+    \[
+    \text{softmax}(z_3) \approx \frac{0.0067}{22174.89} \approx 3.0\times10^{-7}.
+    \]
+    
+    \item \textbf{Predicted Class:}\\
+    Since the highest softmax value is for \(z_1\), the model predicts the bridge is in ``Excellent Condition.''
+\end{enumerate}
+
+\newpage
+
+\section*{Problem 2: Analysis of Model Performance}
+
+We test a model on a dataset of 100 data points with the following true distribution:
+\[
+\text{Excellent Condition (Level 1): }70,\quad \text{Safe Condition (Level 2): }25,\quad \text{Unsafe Condition (Level 3): }5.
+\]
+Note that in the provided confusion matrices the \textbf{true labels are arranged in the columns} and the predicted labels in the rows.
+
+\subsection*{(1) Validity Check of the Confusion Matrices}
+
+\textbf{ML Model's Confusion Matrix:}
+\[
+\begin{bmatrix}
+60 & 8 & 2 \\
+10 & 14 & 1 \\
+0 & 3 & 2 \\
+\end{bmatrix}
+\]
+\textbf{Random Model's Confusion Matrix:}
+\[
+\begin{bmatrix}
+24 & 8 & 0 \\
+23 & 9 & 1 \\
+23 & 8 & 4 \\
+\end{bmatrix}
+\]
+
+Since the true labels are placed in the columns, we check the column sums:
+\begin{itemize}
+    \item For the ML model:
+    \begin{itemize}
+        \item Column 1 (True Excellent): \(60+10+0 = 70\)
+        \item Column 2 (True Safe): \(8+14+3 = 25\)
+        \item Column 3 (True Unsafe): \(2+1+2 = 5\)
+    \end{itemize}
+    \item For the random model:
+    \begin{itemize}
+        \item Column 1 (True Excellent): \(24+23+23 = 70\)
+        \item Column 2 (True Safe): \(8+9+8 = 25\)
+        \item Column 3 (True Unsafe): \(0+1+4 = 5\)
+    \end{itemize}
+\end{itemize}
+Both confusion matrices correctly reflect the true label distribution.
+
+\subsection*{(2) Overall Accuracy (OA)}
+
+Overall Accuracy is calculated as the ratio of correct predictions (diagonal elements) to the total number of data points.
+\[
+\text{OA} = \frac{\text{Diagonal Sum}}{100}.
+\]
+\begin{itemize}
+    \item \textbf{ML Model:} Diagonal sum \(= 60 + 14 + 2 = 76\), so
+    \[
+    \text{OA}_{\text{ML}} = \frac{76}{100} = 76\%.
+    \]
+    \item \textbf{Random Model:} Diagonal sum \(= 24 + 9 + 4 = 37\), so
+    \[
+    \text{OA}_{\text{Random}} = \frac{37}{100} = 37\%.
+    \]
+\end{itemize}
+Thus, based solely on overall accuracy, the ML model outperforms the random model.
+
+\subsection*{(3) Performance for \textit{Excellent Condition} (Level 1)}
+
+For class Excellent (Level 1):
+\begin{itemize}
+    \item \textbf{True Positives (TP)}: Instances predicted as Excellent that are truly Excellent: \(TP = 60\).
+    \item \textbf{False Positives (FP)}: Instances predicted as Excellent but whose true label is not Excellent. These are the other entries in row 1:
+    \[
+    FP = 8+2 = 10.
+    \]
+    \item \textbf{False Negatives (FN)}: True Excellent instances that were predicted as another class. These are the other entries in column 1:
+    \[
+    FN = 10+0 = 10.
+    \]
+\end{itemize}
+Therefore,
+\[
+\text{Precision}_{\text{Excellent}} = \frac{60}{60+10} \approx 0.857 \quad (85.7\%)
+\]
+\[
+\text{Recall}_{\text{Excellent}} = \frac{60}{60+10} \approx 0.857 \quad (85.7\%)
+\]
+
+\subsection*{(4) Performance for \textit{Unsafe Condition} (Level 3)}
+
+For class Unsafe (Level 3):
+\begin{itemize}
+    \item \textbf{True Positives (TP)}: Instances predicted as Unsafe that are truly Unsafe: \(TP = 2\).
+    \item \textbf{False Positives (FP)}: Instances predicted as Unsafe when the true label is not Unsafe. These are the other entries in row 3:
+    \[
+    FP = 0+3 = 3.
+    \]
+    \item \textbf{False Negatives (FN)}: True Unsafe instances that were predicted as another class. These are the other entries in column 3:
+    \[
+    FN = 2+1 = 3.
+    \]
+\end{itemize}
+Thus,
+\[
+\text{Precision}_{\text{Unsafe}} = \frac{2}{2+3} = 0.4 \quad (40\%)
+\]
+\[
+\text{Recall}_{\text{Unsafe}} = \frac{2}{2+3} = 0.4 \quad (40\%)
+\]
+
+\subsection*{(5) Evaluation of the Random-Guess Model}
+
+Even though a random-guess model might occasionally show higher recall for a particular class due to chance, note the following:
+\begin{itemize}
+    \item The confusion matrix for the random model is correctly constructed (true labels in columns), and its column sums match the true label distribution.
+    \item The overall accuracy is very low (37\% compared to 76\% for the ML model).
+    \item For a uniform random guess among three classes, one would expect similar performance across classes; any anomalously high recall in a minority class (e.g., Unsafe with only 5 instances) would be due to statistical fluctuations given the small sample size.
+\end{itemize}
+Thus, the random model is not competitive overall, and any seemingly higher recall for a minority class is likely a result of chance rather than superior performance.
+
+\end{document}

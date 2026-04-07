@@ -1,0 +1,607 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+\title{Tutorial 04:  ML Production in Action - 02}
+\author{}
+\date{}
+
+\maketitle
+
+\section{Part B: Nonlinear Classification Models}
+
+In Part A, we formulated a binary classification problem using the UCI concrete dataset and evaluated linear classifiers such as logistic regression and perceptron models.  
+
+In this part, we extend the study to more expressive machine learning models capable of learning nonlinear decision boundaries.
+
+The objectives of this tutorial are:
+
+\begin{itemize}
+\item Train a Multi-Layer Perceptron (MLP) classifier
+\item Understand regularization in neural networks
+\item Train Support Vector Machine (SVM) classifiers
+\item Study the role of kernel functions
+\item Evaluate classifier capability using ROC and Precision–Recall curves
+\item Introduce the concept of model selection and hyperparameters
+\end{itemize}
+
+All experiments will be implemented using Python in a Google Colab environment with the \texttt{scikit-learn} library.
+
+\section{Dataset and Problem Definition}
+
+We continue using the UCI Concrete Compressive Strength dataset introduced in Part A.
+
+The classification labels are defined based on the estimated 28-day compressive strength:
+
+\[
+y =
+\begin{cases}
+1 & f'_c(28) \le 40 \text{ MPa (NSC)} \\
+0 & f'_c(28) > 40 \text{ MPa (HSC)}
+\end{cases}
+\]
+
+The dataset contains mixture composition features such as cement, water, slag, fly ash, and age.
+
+\subsection{Data Preparation}
+
+\begin{py-box}
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+df = pd.read_excel("Concrete_Data.xlsx")
+
+X = df.iloc[:,0:8]
+strength = df.iloc[:,8]
+
+y = (strength <= 40).astype(int)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42)
+
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+\end{py-box}
+
+Feature standardization is important for both neural networks and SVM models because these algorithms rely on geometric distances in feature space.
+
+\section{Multi-Layer Perceptron (MLP)}
+
+\subsection{Model Structure}
+
+A Multi-Layer Perceptron is a feedforward neural network composed of stacked layers of neurons.
+
+A simple one-hidden-layer network can be written as
+
+\[
+h = \sigma(W_1 x + b_1)
+\]
+
+\[
+\hat{y} = \sigma(W_2 h + b_2)
+\]
+
+where
+
+\begin{itemize}
+\item $x$ is the feature vector
+\item $W_1, W_2$ are weight matrices
+\item $\sigma(\cdot)$ is a nonlinear activation function
+\end{itemize}
+
+Common activation functions include:
+
+\begin{itemize}
+\item ReLU
+\item Sigmoid
+\item Hyperbolic tangent
+\end{itemize}
+
+\subsection{Training an MLP Classifier}
+
+\begin{py-box}
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+
+mlp = MLPClassifier(
+    hidden_layer_sizes=(20,10),
+    activation='relu',
+    max_iter=2000,
+    random_state=0
+)
+
+mlp.fit(X_train, y_train)
+
+y_pred = mlp.predict(X_test)
+
+print("Test accuracy:", accuracy_score(y_test, y_pred))
+\end{py-box}
+
+\subsection{Regularization in Neural Networks}
+
+Neural networks often contain many parameters and can easily overfit the training data.
+
+Regularization introduces a penalty term to the optimization objective:
+
+\[
+L = L_{data} + \lambda ||W||^2
+\]
+
+where
+
+\begin{itemize}
+\item $L_{data}$ is the classification loss
+\item $||W||^2$ penalizes large weights
+\item $\lambda$ controls regularization strength
+\end{itemize}
+
+In \texttt{scikit-learn}, this parameter is called \texttt{alpha}.
+
+\begin{py-box}
+mlp_reg = MLPClassifier(
+    hidden_layer_sizes=(20,10),
+    activation='relu',
+    alpha=0.01,
+    max_iter=2000
+)
+
+mlp_reg.fit(X_train, y_train)
+
+print("Regularized accuracy:", mlp_reg.score(X_test, y_test))
+\end{py-box}
+
+\subsection{Decision Boundary of an MLP}
+
+The trained network defines a decision function
+
+\[
+g(x) = f(u(x)|w)
+\]
+
+where $w$ denotes all trained weights.
+
+For binary classification, the last layer often uses the sigmoid function
+
+\[
+\sigma(z)=\frac{1}{1+e^{-z}}
+\]
+
+which outputs a probability estimate.
+
+The decision boundary corresponds to
+
+\[
+\sigma(z)=0.5
+\]
+
+or equivalently
+
+\[
+z=0
+\]
+
+Because the dataset has multiple dimensions, we visualize the decision boundary using two selected features.
+
+\subsection{Training a 2D Visualization Model}
+
+\begin{py-box}
+import matplotlib.pyplot as plt
+
+X2 = X[['Cement (component 1)(kg in a m^3 mixture)',
+        'Water  (component 4)(kg in a m^3 mixture)']]
+
+y = (strength <= 40).astype(int)
+
+scaler2 = StandardScaler()
+X2_scaled = scaler2.fit_transform(X2)
+
+mlp2 = MLPClassifier(
+    hidden_layer_sizes=(10,10),
+    activation='relu',
+    max_iter=2000
+)
+
+mlp2.fit(X2_scaled, y)
+\end{py-box}
+
+\subsection{Plotting the Decision Boundary}
+
+\begin{py-box}
+x_min, x_max = X2_scaled[:,0].min()-1, X2_scaled[:,0].max()+1
+y_min, y_max = X2_scaled[:,1].min()-1, X2_scaled[:,1].max()+1
+
+xx, yy = np.meshgrid(
+    np.linspace(x_min,x_max,200),
+    np.linspace(y_min,y_max,200)
+)
+
+grid = np.c_[xx.ravel(),yy.ravel()]
+
+prob = mlp2.predict_proba(grid)[:,1]
+
+Z = prob.reshape(xx.shape)
+
+plt.contourf(xx,yy,Z,levels=20,cmap='coolwarm',alpha=0.6)
+
+plt.scatter(X2_scaled[:,0],X2_scaled[:,1],c=y,cmap='coolwarm')
+
+plt.title("MLP Decision Boundary")
+plt.show()
+\end{py-box}
+
+\section{Comparing Decision Boundaries}
+
+To understand the capability of different models, we compare the decision boundaries of three classifiers:
+
+\begin{itemize}
+\item Logistic regression
+\item Multi-layer perceptron
+\item Kernel SVM
+\end{itemize}
+
+\begin{py-box}
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
+log_model = LogisticRegression()
+log_model.fit(X2_scaled,y)
+
+svm_rbf = SVC(kernel='rbf',probability=True)
+svm_rbf.fit(X2_scaled,y)
+\end{py-box}
+
+\begin{py-box}
+models = [log_model, mlp2, svm_rbf]
+
+titles = [
+"Logistic Regression",
+"MLP",
+"Kernel SVM"
+]
+
+plt.figure(figsize=(12,4))
+
+for i,model in enumerate(models):
+
+    plt.subplot(1,3,i+1)
+
+    prob = model.predict_proba(grid)[:,1]
+    Z = prob.reshape(xx.shape)
+
+    plt.contourf(xx,yy,Z,levels=20,cmap='coolwarm',alpha=0.6)
+    plt.scatter(X2_scaled[:,0],X2_scaled[:,1],c=y,cmap='coolwarm')
+
+    plt.title(titles[i])
+
+plt.show()
+\end{py-box}
+
+This comparison illustrates how model complexity affects the geometry of the decision boundary.
+
+\section{Support Vector Machines}
+
+\subsection{Linear Support Vector Machine}
+
+A Support Vector Machine (SVM) seeks a separating hyperplane that maximizes the geometric margin between two classes.
+
+A linear decision function has the form
+
+\[
+f(x) = w^T x + b
+\]
+
+where
+
+\begin{itemize}
+\item $w$ is the weight vector
+\item $b$ is the bias
+\end{itemize}
+
+The classification rule is
+
+\[
+\hat{y} =
+\begin{cases}
+1 & f(x) \ge 0 \\
+0 & f(x) < 0
+\end{cases}
+\]
+
+The decision boundary corresponds to
+
+\[
+w^T x + b = 0
+\]
+
+\paragraph{Margin Definition}
+
+The margin is the distance between the decision boundary and the closest training samples.
+
+For a linear classifier, the margin width is
+
+\[
+\text{margin width} = \frac{2}{||w||}
+\]
+
+Thus maximizing the margin is equivalent to minimizing the norm of the weight vector.
+
+\paragraph{Soft-Margin Optimization}
+
+In practice, perfect separation is rarely possible.  
+The \emph{soft-margin SVM} introduces slack variables $\xi_i$ that allow some misclassification.
+
+The optimization problem becomes
+
+\[
+\min_{w,b,\xi}
+\quad
+\frac{1}{2}||w||^2
++
+C\sum_{i=1}^{n}\xi_i
+\]
+
+subject to
+
+\[
+y_i(w^T x_i + b) \ge 1 - \xi_i
+\]
+
+\[
+\xi_i \ge 0
+\]
+
+The parameter $C$ controls the trade-off between
+
+\begin{itemize}
+\item maximizing the margin (small $||w||$)
+\item penalizing classification errors
+\end{itemize}
+
+\paragraph{Interpretation of $C$}
+
+\begin{itemize}
+\item Small $C$  
+      \begin{itemize}
+      \item larger margin
+      \item more tolerance for classification errors
+      \item stronger regularization
+      \end{itemize}
+
+\item Large $C$  
+      \begin{itemize}
+      \item narrower margin
+      \item fewer training errors
+      \item weaker regularization
+      \end{itemize}
+\end{itemize}
+
+\subsection*{Training a Linear SVM}
+
+\begin{py-box}
+from sklearn.svm import SVC
+
+svm_linear = SVC(kernel='linear', C=1)
+
+svm_linear.fit(X_train, y_train)
+
+print("Linear SVM accuracy:",
+      svm_linear.score(X_test, y_test))
+\end{py-box}
+
+
+\subsection{Effect of the Parameter C}
+
+The parameter $C$ controls the trade-off between margin width and training errors.
+
+\begin{py-box}
+for C in [0.01,0.1,1,10,100]:
+
+    svm = SVC(kernel='linear',C=C)
+
+    svm.fit(X_train,y_train)
+
+    acc = svm.score(X_test,y_test)
+
+    print("C =",C,"accuracy =",acc)
+\end{py-box}
+
+\section{Kernel Functions}
+
+\subsection{Polynomial Kernel}
+
+\[
+K(x_i,x_j)=(x_i^Tx_j+c)^d
+\]
+
+\begin{py-box}
+svm_poly = SVC(kernel='poly',degree=2)
+
+svm_poly.fit(X_train,y_train)
+
+print("Polynomial kernel accuracy:",
+svm_poly.score(X_test,y_test))
+\end{py-box}
+
+\subsection{Radial Basis Function Kernel}
+
+\[
+K(x_i,x_j)=
+\exp(-\gamma||x_i-x_j||^2)
+\]
+
+\begin{py-box}
+svm_rbf = SVC(kernel='rbf')
+
+svm_rbf.fit(X_train,y_train)
+
+print("RBF kernel accuracy:",
+svm_rbf.score(X_test,y_test))
+\end{py-box}
+
+
+\subsection{Remark: Relation Between MLP Regularization and the SVM Margin}
+
+Earlier in this tutorial we introduced regularization for neural networks.
+
+The regularized training objective for a neural network can be written as
+
+\[
+L = L_{\text{data}} + \lambda ||W||^2
+\]
+
+where
+
+\begin{itemize}
+\item $L_{\text{data}}$ is the classification loss
+\item $||W||^2$ penalizes large weights
+\item $\lambda$ controls the strength of regularization
+\end{itemize}
+
+This formulation is conceptually similar to the SVM objective:
+
+\[
+\min
+\quad
+\frac12 ||w||^2
++
+C \sum \xi_i
+\]
+
+Both formulations contain two competing objectives:
+
+\begin{itemize}
+\item fitting the training data
+\item controlling model complexity
+\end{itemize}
+
+However, the mechanisms differ.
+
+\paragraph{Neural Network Regularization}
+
+\begin{itemize}
+\item penalizes large network weights
+\item encourages smoother decision surfaces
+\item reduces overfitting
+\end{itemize}
+
+\paragraph{SVM Regularization}
+
+\begin{itemize}
+\item explicitly maximizes the margin between classes
+\item the parameter $C$ controls how strictly training points must satisfy the margin constraint
+\end{itemize}
+
+Thus we can interpret
+
+\[
+\lambda \quad \leftrightarrow \quad \frac{1}{C}
+\]
+
+as parameters that regulate the trade-off between
+
+\begin{itemize}
+\item data fitting
+\item model complexity
+\end{itemize}
+
+In geometric terms:
+
+\begin{itemize}
+\item neural network regularization restricts the magnitude of the weights that shape the decision surface
+\item SVM directly controls the width of the separating margin
+\end{itemize}
+
+Both approaches therefore serve a similar goal:  
+\emph{improving generalization by preventing overly complex decision boundaries.}
+\section{Evaluating Classifier Capability}
+
+Accuracy alone does not fully describe classifier performance.
+
+Two important evaluation tools are:
+
+\begin{itemize}
+\item ROC curve
+\item Precision–Recall curve
+\end{itemize}
+
+
+
+\subsection{ROC Curve}
+
+The ROC curve plots
+
+\begin{itemize}
+\item True Positive Rate
+\item False Positive Rate
+\end{itemize}
+
+across classification thresholds.
+
+\subsection{Precision–Recall Curve}
+
+The PR curve plots
+
+\begin{itemize}
+\item Precision
+\item Recall
+\end{itemize}
+
+which is particularly informative for imbalanced datasets.
+
+\subsection{Generating ROC and PR Curves}
+
+\begin{py-box}
+from sklearn.metrics import roc_curve
+from sklearn.metrics import precision_recall_curve
+
+scores = svm_rbf.decision_function(X_test)
+
+fpr,tpr,_ = roc_curve(y_test,scores)
+
+precision,recall,_ = precision_recall_curve(y_test,scores)
+
+plt.plot(fpr,tpr)
+plt.title("ROC Curve")
+plt.show()
+
+plt.plot(recall,precision)
+plt.title("Precision Recall Curve")
+plt.show()
+\end{py-box}
+
+\section{Model Selection}
+
+Throughout this tutorial we used default hyperparameters:
+
+\begin{itemize}
+\item number of hidden layers
+\item number of neurons
+\item activation functions
+\item SVM parameter $C$
+\item kernel type
+\end{itemize}
+
+Selecting these values appropriately is called the \textbf{model selection problem}.
+
+Model selection may involve:
+
+\begin{itemize}
+\item tuning hyperparameters within a model
+\item choosing between different model families
+\end{itemize}
+
+Typical techniques include:
+
+\begin{itemize}
+\item cross validation
+\item grid search
+\item automated hyperparameter optimization
+\end{itemize}
+
+These methods will be explored in later tutorials.
+\end{document}

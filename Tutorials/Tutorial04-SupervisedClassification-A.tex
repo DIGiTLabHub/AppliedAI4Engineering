@@ -1,0 +1,352 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+\title{Tutorial 04:  ML Production in Action - 01}
+\author{}
+\date{}
+
+\maketitle
+
+\section*{Engineering Motivation}
+
+In structural design practice, compressive strength is not merely a continuous variable to be predicted. Instead, it informs discrete engineering decisions such as:
+
+\begin{itemize}
+    \item Is this mix design acceptable under normal strength specifications?
+    \item Does this mix qualify as high-strength concrete (HSC)?
+    \item Can this batch be approved for structural placement?
+\end{itemize}
+
+In this tutorial, we formulate a supervised binary classification problem grounded in structural engineering standards.
+
+Rather than predicting compressive strength directly, we will classify concrete into:
+
+\begin{align*}
+y =
+\begin{cases}
+1 & \text{Normal Strength Concrete (NSC)} \\
+0 & \text{High Strength Concrete (HSC)}
+\end{cases}
+\end{align*}
+
+based on the standardized 28-day compressive strength.
+
+\vspace{0.5em}
+
+\noindent
+The classification threshold is defined as:
+
+\[
+f'_c(28) \le 40 \text{ MPa} \quad \Rightarrow \quad \text{NSC}
+\]
+\[
+f'_c(28) > 40 \text{ MPa} \quad \Rightarrow \quad \text{HSC}
+\]
+
+\section*{Dataset Description}
+
+We use the UCI Concrete Compressive Strength dataset (available for the class at 
+\href{https://umsystem.instructure.com/courses/407601/files/40676265?module_item_id=11763333}{this link}). 
+After downloading, unzip the files and use the data in \texttt{Concrete\_Data.xlsx}. Open the spreadsheet, we will see it is structured as: 
+
+\paragraph{Features}
+\begin{enumerate}
+    \item Cement (kg/m$^3$)
+    \item Blast Furnace Slag (kg/m$^3$)
+    \item Fly Ash (kg/m$^3$)
+    \item Water (kg/m$^3$)
+    \item Superplasticizer (kg/m$^3$)
+    \item Coarse Aggregate (kg/m$^3$)
+    \item Fine Aggregate (kg/m$^3$)
+    \item Age (days)
+\end{enumerate}
+
+\paragraph{Target variable}
+\begin{itemize}
+    \item Measured compressive strength (MPa)
+\end{itemize}
+
+This data set serves well for formulating a supervised \textit{regression} problem or a time-varying concrete strength forecasting problem, which will be explored later; yet, for the task at hand (i.e., classification), still with significant engineering meaningfulness, we need to conduct some `manual' processing. 
+
+\section*{Strength Standardization}
+\subsection*{Tech Spec}
+Concrete strength evolves with curing time. Since the dataset includes specimens tested at different ages, we must normalize strengths to the 28-day equivalent.
+
+According to ACI 209.2R-08, the compressive strength development function may be approximated as:
+
+\[
+f'_c(t) = f'_c(28) \cdot \frac{t}{a + bt}
+\]
+
+where:
+\begin{itemize}
+    \item $t$ = age (days),
+    \item $a, b$ = empirical constants.
+\end{itemize}
+
+For typical normal-weight concrete under standard curing:
+
+\[
+a = 4.0, \qquad b = 0.85
+\]
+
+Rearranging to compute standardized 28-day strength:
+
+\[
+f'_c(28) = f'_c(t) \cdot \frac{a + bt}{t}
+\]
+
+Thus, for each observation:
+
+\begin{enumerate}
+    \item Extract measured strength $f'_c(t)$,
+    \item Extract age $t$,
+    \item Compute equivalent $f'_c(28)$ using the above equation.
+\end{enumerate}
+
+\subsection*{Binary Label Construction}
+
+After computing the standardized 28-day strength:
+
+\[
+y =
+\begin{cases}
+1 & \text{if } f'_c(28) \le 40 \text{ MPa} \\
+0 & \text{if } f'_c(28) > 40 \text{ MPa}
+\end{cases}
+\]
+
+\subsection*{Processing and Visualization}
+At this moment, let's conduct some processing and visualization as a Civil Engineer - we wear our Machine Learning Production Engineer hat later. Let complete in Excel:
+
+\begin{itemize}
+    \item Calculate the 28-day concrete strength.
+    \item Assign binary labels (i.e., `1' - NSC; `0' - HSC). Or, if you like, you can use the labels `NSC' and `HSC' directly.
+    \item Select one feature, and plot the histogram of the feature for NSC and HSC in one plot.
+    \item Select any two features and plot scatter-plots for NSC and HSC in one plot. 
+    \end{itemize}
+    
+Discussion items:
+\begin{itemize}
+    \item Do you see \textit{patterns}?
+    \item How might changing the threshold affect class balance - going back to the binary scheme - what if we change the threshold \footnote{In modern concrete code, normally 42 MPa is the threshold}? 
+    \item Is this threshold universally accepted?
+\end{itemize}
+
+\section*{Exploratory Data Analysis in Colab}
+Now we will switch to Colab - we will `vibe' coding yet with a design in mind. Before embarking on ML production, let's perform data processing and visualization (as done above), considering the following tasks and keywords for the prompts. 
+
+First, place the updated \texttt{Concrete\_Data} data (with 28-day strength and label) in your Google Drive folder, specify its path, and request that it be mounted. Then practice loading it in (e.g., prompt: load the spreadsheet \texttt{Concrete\_Data} and create a data structure for it). Now - let's practice to achieve:
+
+\subsection*{Class Statistics}
+
+Compute:
+\begin{itemize}
+    \item Total number of samples
+    \item Number in NSC
+    \item Number in HSC
+    \item the mean and standard deviation of the NSC concrete;
+    \item the mean and standard deviation of the HSC concrete;
+\end{itemize}
+
+\begin{alert-box}{Python Programming Moment}
+\begin{itemize}
+    \item What Python packages are loaded and needed? 
+    \item Reading the code, does it make sense to you?
+\end{itemize}
+\end{alert-box}
+
+
+\subsection*{Histogram Visualization}
+
+For selected features (e.g., Cement, Water, Age):
+
+\begin{itemize}
+    \item Plot histogram of each feature
+    \item Overlay NSC and HSC distributions
+\end{itemize}
+
+\begin{alert-box}{\textbf{Questions to consider:}}
+\begin{itemize}
+    \item Do higher cement contents correlate with HSC?
+    \item Does water content show inverse relationship?
+    \item Does age significantly affect classification after standardization?
+\end{itemize}
+\end{alert-box}
+
+\subsection*{Scatter Plots}
+
+Plot two-feature combinations:
+
+\begin{itemize}
+    \item Cement vs Water
+    \item Cement vs Age
+    \item Water vs Superplasticizer
+\end{itemize}
+
+Color points by class label.
+
+\begin{alert-box}{\textbf{Discussion:}}
+\begin{itemize}
+    \item Does a linear separation appear plausible?
+    \item Are clusters evident?
+\end{itemize}
+\end{alert-box}
+
+\section*{ML Production}
+
+\subsection*{Train-Test Split}
+We simulate the deployment of an AI-assisted mix screening tool.
+
+\begin{itemize}
+    \item 70\% training data
+    \item 30\% testing data
+    \item Use \textit{random shuffling}
+\end{itemize}
+
+\textbf{Engineering analogy:}
+
+We do not certify safety using the same specimens used to calibrate predictive relationships.
+
+\subsection*{Model Selection}
+There are formal methods for model selection; at this moment, we will use a simple enumeration approach: use all the models we have learned so far. 
+
+\subsubsection*{Model 1: Logistic Regression}
+
+Logistic regression models probability as:
+
+\[
+P(y=1 \mid \mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + b)
+\]
+
+where:
+
+\[
+\sigma(z) = \frac{1}{1 + e^{-z}}
+\]
+
+\paragraph{Tasks}
+
+\begin{enumerate}
+    \item Train logistic regression on training set
+    \item Compute:
+    \begin{itemize}
+        \item Training accuracy
+        \item Testing accuracy
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection*{Model 2: Perceptron}
+
+The perceptron performs linear classification using:
+
+\[
+y = \text{sign}(\mathbf{w}^T \mathbf{x} + b)
+\]
+
+\paragraph{Tasks}
+
+\begin{enumerate}
+    \item Train perceptron classifier
+    \item Evaluate training and test accuracy
+\end{enumerate}
+
+\subsection*{Discussion}
+
+\begin{itemize}
+    \item Difference between logistic regression and perceptron?
+    \item What loss functions are implicitly used?
+\end{itemize}
+
+\subsection*{Model Evaluation Metrics}
+
+\subsection*{Accuracy}
+
+\[
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\]
+
+\subsection*{Confusion Matrix}
+
+\begin{center}
+\begin{tabular}{c|cc}
+ & Pred NSC & Pred HSC \\
+\hline
+Actual NSC & TP & FN \\
+Actual HSC & FP & TN
+\end{tabular}
+\end{center}
+
+\subsection*{Precision}
+
+\[
+\text{Precision} = \frac{TP}{TP + FP}
+\]
+
+\subsection*{Recall}
+
+\[
+\text{Recall} = \frac{TP}{TP + FN}
+\]
+
+\subsection*{Engineering Interpretation}
+
+\begin{itemize}
+    \item False Positive: HSC classified as NSC
+    \item False Negative: NSC classified as HSC
+\end{itemize}
+
+Do we have a case where we need to determine which error is more critical?
+
+\section*{Decision Boundary Visualization}
+
+Choose two selected/critical features (e.g., Cement and Water); and choose two `seemingly' less critical features, do the same as follows:
+
+\begin{enumerate}
+    \item Plot decision boundary
+    \item Overlay data points
+\end{enumerate}
+
+Do you observe or confirm your empirical knowledge (or engineering sense)?
+
+\subsection*{Discussion}
+
+\begin{itemize}
+    \item Is boundary linear?
+    \item Does it match engineering intuition?
+\end{itemize}
+
+\section*{Reflection Questions}
+
+\begin{enumerate}
+    \item How sensitive is classification to the 40 MPa threshold?
+    \item Does standardization using ACI equation affect separability?
+    \item Would adding regularization improve performance?
+    \item How would you validate this model before field deployment?
+\end{enumerate}
+
+\section*{Summary}
+
+In this tutorial we:
+
+\begin{itemize}
+    \item Standardized compressive strength to 28 days using ACI 209R-92
+    \item Converted regression data to binary engineering classification
+    \item Performed exploratory visualization
+    \item Trained logistic regression and perceptron models
+    \item Evaluated performance using accuracy, confusion matrix, precision, and recall
+    \item Visualized decision boundaries
+\end{itemize}
+
+In the next, we will introduce:
+
+\begin{itemize}
+    \item Multi-layer Perceptrons (MLP)
+    \item Linear SVM
+    \item Kernel SVM
+    \item Model selection and cross-validation; and advanced visual analytics.
+\end{itemize}
+
+
+\end{document}
