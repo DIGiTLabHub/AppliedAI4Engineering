@@ -1,0 +1,656 @@
+\documentclass[12pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e}
+\AtBeginEnvironment{frame}{\justifying}
+\AtBeginSection[]{}
+\AtBeginSubsection[]{}
+
+\title[Topic 13: Deep Neural Networks]{CE 488/5588: Applied AI\\Topic 13: Deep Neural Networks --- Foundations \& Architectures}
+\author{}
+\date{}
+
+\newcommand{\source}[1]{\vspace{0.4em}{\tiny\color{gray}Source: #1\par}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Lecture Roadmap}
+  \tableofcontents
+\end{frame}
+
+\section{Why Deep Learning Works Now}
+
+\begin{frame}{From Classical Machine Learning to Deep Learning}
+  Topics 1--12 emphasized classical machine learning: regression, classification, SVMs, Bayesian learning, clustering, and dimensionality reduction.
+
+  \begin{conceptbox}{What Changes Here?}
+    We now shift from models that depend heavily on hand-crafted features to models that learn internal representations directly from raw data.
+  \end{conceptbox}
+
+  This transition is the gateway to the post-2020 AI era: foundation models, generative models, and agentic systems.
+\end{frame}
+
+\begin{frame}{Why Was Deep Learning Not Dominant Earlier?}
+  Neural networks are not new.
+  \begin{itemize}
+    \item perceptrons date to the 1950s,
+    \item backpropagation was formalized in the 1980s,
+    \item multilayer perceptrons were already known before the current AI boom.
+  \end{itemize}
+
+  \begin{warningbox}{Historical Reality}
+    For decades, deep networks were often too hard to train reliably, too computationally expensive, and too data-hungry for routine engineering use.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{The 2012 Inflection Point}
+  The ImageNet 2012 result is often treated as the symbolic turning point.
+  \begin{itemize}
+    \item AlexNet dramatically improved visual recognition performance,
+    \item GPU-based training proved practical at scale,
+    \item deep architectures suddenly became hard to ignore.
+  \end{itemize}
+
+  \source{\href{https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html}{Krizhevsky, Sutskever, \& Hinton (NIPS 2012)}}
+\end{frame}
+
+\begin{frame}{Three Forces Converged}
+  \begin{conceptbox}{Why Now?}
+    Modern deep learning became practical because three forces converged: more data, more compute, and better training algorithms.
+  \end{conceptbox}
+
+  \begin{itemize}
+    \item \textbf{Data:} internet-scale corpora and benchmark datasets,
+    \item \textbf{Compute:} GPUs and parallel linear algebra,
+    \item \textbf{Algorithms:} activation, initialization, normalization, and optimization advances.
+  \end{itemize}
+\end{frame}
+
+\section{The Numerical Secrets of Training Deep Networks}
+
+\begin{frame}{Why Training Is the Real Story}
+  A deep network is not useful simply because it has many layers.
+
+  \begin{conceptbox}{Core Claim}
+    The real breakthrough was not the idea of stacking layers. The breakthrough was learning how to train deep stacks reliably.
+  \end{conceptbox}
+
+  This section explains the main numerical reasons that modern deep learning became practical.
+\end{frame}
+
+\begin{frame}{Backpropagation Through Many Layers}
+  For an early layer, the gradient depends on repeated application of the chain rule:
+  \[
+    \frac{\partial \mathcal{L}}{\partial \mathbf{W}^{(1)}}
+    =
+    \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{(L)}}
+    \cdot
+    \frac{\partial \mathbf{a}^{(L)}}{\partial \mathbf{a}^{(L-1)}}
+    \cdots
+    \frac{\partial \mathbf{a}^{(1)}}{\partial \mathbf{W}^{(1)}}.
+  \]
+
+  If many of these terms are small, the product becomes extremely small. If many are large, the product can explode.
+\end{frame}
+
+\begin{frame}{The Vanishing Gradient Problem}
+  The sigmoid derivative never exceeds $0.25$.
+
+  \begin{warningbox}{What Goes Wrong?}
+    If each layer contributes a factor smaller than 1, then gradients decay exponentially as we move backward. Early layers receive almost no learning signal.
+  \end{warningbox}
+
+  This explains why early neural networks were often shallow in practice.
+\end{frame}
+
+\begin{frame}{Activation Functions and Gradient Flow}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.72\textwidth]{Topic13fig01.pdf}
+    \caption{Activation functions commonly discussed in deep learning.}
+  \end{figure}
+
+  The engineering question is not only expressive power. It is also whether the activation supports stable gradient propagation.
+\end{frame}
+
+\begin{frame}{Why ReLU Was So Important}
+  ReLU is defined by
+  \[
+    \text{ReLU}(x)=\max(0,x).
+  \]
+
+  \begin{conceptbox}{Key Numerical Benefit}
+    For positive inputs, the derivative is exactly 1. That prevents the repeated shrinking behavior that destroys gradients in sigmoid-style networks.
+  \end{conceptbox}
+
+  ReLU is also computationally cheap, which matters on large GPU workloads.
+\end{frame}
+
+\begin{frame}{Initialization Matters from the First Step}
+  Training can fail before it really starts if weights are initialized poorly.
+
+  \begin{warningbox}{Two Failure Modes}
+    If initial weights are too large, activations and gradients explode. If they are too small, useful signals vanish before learning stabilizes.
+  \end{warningbox}
+
+  Good initialization tries to preserve variance across layers.
+\end{frame}
+
+\begin{frame}{Xavier and He Initialization}
+  Two classic initialization rules are:
+  \[
+    W_{ij}\sim \mathcal{N}\!\left(0,\frac{2}{n_{\text{in}}+n_{\text{out}}}\right)
+  \]
+  for Xavier/Glorot-style scaling, and
+  \[
+    W_{ij}\sim \mathcal{N}\!\left(0,\frac{2}{n_{\text{in}}}\right)
+  \]
+  for He initialization used with ReLU.
+
+  \begin{conceptbox}{Interpretation}
+    The network should start in a numerically reasonable operating regime before optimization even begins.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Batch Normalization: Why Normalization Helps}
+  As upstream weights change, the distribution seen by downstream layers shifts during training.
+
+  \begin{conceptbox}{Batch Normalization Idea}
+    Normalize activations within a mini-batch, then allow the network to learn a rescaling and shift. This keeps the training dynamics better conditioned.
+  \end{conceptbox}
+
+  \source{\href{https://proceedings.mlr.press/v37/ioffe15.html}{Ioffe \& Szegedy (ICML 2015)}}
+\end{frame}
+
+\begin{frame}{Batch Normalization Equation}
+  Batch normalization computes
+  \[
+    \hat{x}_i = \frac{x_i-\mu_B}{\sqrt{\sigma_B^2+\epsilon}},
+    \qquad
+    y_i = \gamma \hat{x}_i + \beta.
+  \]
+
+  The first step standardizes the mini-batch. The second step restores flexibility so the network is not forced into one fixed normalized representation.
+\end{frame}
+
+\begin{frame}{Practical Effects of Batch Normalization}
+  Batch normalization often:
+  \begin{itemize}
+    \item stabilizes optimization,
+    \item permits larger learning rates,
+    \item reduces sensitivity to initialization, and
+    \item introduces a mild regularizing effect through batch noise.
+  \end{itemize}
+
+  It was one of the main ingredients that made very deep networks routine rather than fragile.
+\end{frame}
+
+\begin{frame}{Optimization Before Adam}
+  Basic stochastic gradient descent uses
+  \[
+    \mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla_{\mathbf{w}}\mathcal{L}.
+  \]
+
+  That looks simple, but in practice a fixed learning rate can be difficult to tune.
+  \begin{itemize}
+    \item Too small: training is painfully slow.
+    \item Too large: optimization diverges or oscillates.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Momentum as a Physical Analogy}
+  Momentum introduces a velocity term:
+  \[
+    \mathbf{v}_t = \beta \mathbf{v}_{t-1} + (1-\beta)\nabla_{\mathbf{w}}\mathcal{L}.
+  \]
+
+  \begin{conceptbox}{Physical Intuition}
+    Momentum dampens noisy zig-zag motion and accelerates progress along directions where gradients keep pointing consistently downhill.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Adam and Adaptive Learning Rates}
+  Adam tracks both the first and second moments of the gradient and uses them to adapt the step size for each parameter.
+
+  \begin{itemize}
+    \item first moment: direction and trend,
+    \item second moment: gradient magnitude and variability,
+    \item practical result: a more forgiving optimizer in large models.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/1412.6980}{Kingma \& Ba (Adam)}}
+\end{frame}
+
+\begin{frame}{The Modern Training Recipe}
+  \begin{conceptbox}{The Numerical Secrets in One Slide}
+    ReLU improves gradient flow. He initialization starts in a stable range. Batch normalization keeps activations well behaved. Adam makes optimization easier to tune.
+  \end{conceptbox}
+
+  Together, these changes transformed deep learning from a temperamental idea into a robust engineering workflow.
+\end{frame}
+
+\section{Convolutional Neural Networks}
+
+\begin{frame}{Why Images Need a Different Bias}
+  Images are not generic vectors.
+  \begin{itemize}
+    \item nearby pixels are related,
+    \item edges and textures are local,
+    \item the same feature can appear in many locations.
+  \end{itemize}
+
+  \begin{conceptbox}{Inductive Bias}
+    CNNs encode locality and translation structure directly into the architecture.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{From Hand-Crafted Features to Learned Features}
+  Earlier computer vision relied on expert-designed descriptors such as:
+  \begin{itemize}
+    \item edges,
+    \item gradients,
+    \item corners,
+    \item texture statistics.
+  \end{itemize}
+
+  CNNs replace manual feature design with filters whose useful patterns are learned from data.
+\end{frame}
+
+\begin{frame}{The Convolution Operation}
+  A small kernel slides across an image and computes local weighted sums:
+  \[
+    (\mathbf{I}*\mathbf{K})_{i,j}
+    =
+    \sum_m\sum_n \mathbf{I}_{i+m,j+n}\mathbf{K}_{m,n}.
+  \]
+
+  The kernel entries are trainable parameters, so the network discovers which local patterns matter.
+\end{frame}
+
+\begin{frame}{Visualizing Convolution}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.74\textwidth]{Topic13fig02.pdf}
+    \caption{A convolution filter slides across the image and produces a feature map.}
+  \end{figure}
+
+  Instead of one massive fully connected weight matrix, CNNs reuse small local filters across the image.
+\end{frame}
+
+\begin{frame}{Key Hyperparameters in Convolutional Layers}
+  Three design choices matter immediately:
+  \begin{itemize}
+    \item \textbf{filter size:} how large the receptive field is,
+    \item \textbf{stride:} how far the filter moves each step,
+    \item \textbf{padding:} whether border information is preserved.
+  \end{itemize}
+
+  These choices control computational cost, feature resolution, and what structures can be represented.
+\end{frame}
+
+\begin{frame}{Pooling and Invariance}
+  Pooling summarizes nearby activations, often using max pooling.
+
+  \begin{conceptbox}{Why Pool?}
+    Pooling reduces spatial resolution, lowers computation, and makes the representation less sensitive to small input shifts.
+  \end{conceptbox}
+
+  This is one reason CNNs are so effective for robust image recognition.
+\end{frame}
+
+\begin{frame}{CNN Architecture Evolution}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.78\textwidth]{Topic13fig03.pdf}
+    \caption{Representative CNN progression from early to deep architectures.}
+  \end{figure}
+
+  The main historical story is increasing depth, better training, and stronger architectural regularization.
+\end{frame}
+
+\begin{frame}{LeNet to AlexNet to VGG}
+  \begin{itemize}
+    \item \textbf{LeNet:} early proof that CNNs worked for digit recognition.
+    \item \textbf{AlexNet:} GPU training, ReLU, and depth made CNNs dominant.
+    \item \textbf{VGG:} deeper stacks of small filters showed that depth itself is a major source of representational power.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why ResNet Was a Breakthrough}
+  Once networks became very deep, optimization again became difficult.
+
+  \begin{conceptbox}{Residual Learning}
+    Instead of forcing a block to learn a complete mapping, ResNet asks it to learn a residual correction on top of the identity.
+  \end{conceptbox}
+
+  This makes gradient flow far easier in very deep networks.
+\end{frame}
+
+\begin{frame}{Residual Block Visualization}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.52\textwidth]{Topic13fig04.pdf}
+    \caption{A residual block adds the input directly to the transformed signal.}
+  \end{figure}
+
+  The skip connection acts like a gradient highway through the network.
+\end{frame}
+
+\begin{frame}{Three Reasons CNNs Work So Well}
+  \begin{conceptbox}{Core CNN Advantages}
+    CNNs use translation equivariance, parameter sharing, and hierarchical feature learning.
+  \end{conceptbox}
+
+  \begin{itemize}
+    \item the same detector can work everywhere,
+    \item local filters are parameter-efficient,
+    \item depth builds edges into parts, and parts into objects.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Engineering Applications of CNNs}
+  \begin{examplebox}{Where CNNs Fit Naturally}
+    \begin{itemize}
+      \item crack detection in concrete surfaces,
+      \item construction progress monitoring from site images,
+      \item satellite imagery interpretation,
+      \item material and damage-state classification.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{What CNNs Do Not Solve Perfectly}
+  \begin{warningbox}{CNN Limitation}
+    CNNs are excellent at local spatial structure, but they are less naturally suited to modeling long-range global relationships across a whole image or sequence.
+  \end{warningbox}
+
+  That limitation helps motivate attention-based architectures.
+\end{frame}
+
+\section{Transformers}
+
+\begin{frame}{Why Sequence Models Needed a New Idea}
+  Before Transformers, sequence modeling was dominated by RNNs and LSTMs.
+
+  Those models process one element at a time, which creates a bottleneck for both computation and memory of long-range dependencies.
+\end{frame}
+
+\begin{frame}{RNNs and the Sequential Bottleneck}
+  RNNs update a hidden state recursively:
+  \[
+    \mathbf{h}_t = f(\mathbf{h}_{t-1},\mathbf{x}_t).
+  \]
+
+  \begin{warningbox}{Two Difficulties}
+    Sequential processing limits parallelism, and long-distance information tends to degrade as it must be carried through many time steps.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{The Transformer Idea}
+  The Transformer replaces recurrence with self-attention.
+
+  \begin{conceptbox}{Big Shift}
+    Every token can interact directly with every other token in the same layer. The model no longer has to pass information step by step through time.
+  \end{conceptbox}
+
+  This is why Transformers scale so well on modern hardware.
+\end{frame}
+
+\begin{frame}{Queries, Keys, and Values}
+  Given an input matrix $\mathbf{X}$, the model builds three learned projections:
+  \[
+    \mathbf{Q}=\mathbf{X}\mathbf{W}^{Q},\qquad
+    \mathbf{K}=\mathbf{X}\mathbf{W}^{K},\qquad
+    \mathbf{V}=\mathbf{X}\mathbf{W}^{V}.
+  \]
+
+  Queries ask what this token seeks. Keys describe what each token offers. Values carry the content to be aggregated.
+\end{frame}
+
+\begin{frame}{Visualizing Self-Attention}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.76\textwidth]{Topic13fig05.pdf}
+    \caption{Query-key-value flow inside a single attention head.}
+  \end{figure}
+
+  Self-attention converts pairwise relevance into weighted combination of values.
+\end{frame}
+
+\begin{frame}{The Attention Equation}
+  The central computation is
+  \[
+    \text{Attention}(\mathbf{Q},\mathbf{K},\mathbf{V})=
+    \text{softmax}\!\left(\frac{\mathbf{Q}\mathbf{K}^{\top}}{\sqrt{d_k}}\right)\mathbf{V}.
+  \]
+
+  The dot products score relevance, the softmax normalizes weights, and the values are blended according to those learned relationships.
+\end{frame}
+
+\begin{frame}{Why the Scaling Term Matters}
+  The factor $1/\sqrt{d_k}$ is not cosmetic.
+
+  \begin{conceptbox}{Numerical Role}
+    Without scaling, large dot products can push softmax into saturated regions with tiny gradients, making training less stable.
+  \end{conceptbox}
+
+  This is another example of a small numerical idea with a large practical impact.
+\end{frame}
+
+\begin{frame}{Multi-Head Attention}
+  A Transformer uses several attention heads in parallel.
+
+  \begin{itemize}
+    \item different heads can focus on different relationships,
+    \item one head may track position-like structure,
+    \item another may focus on semantic or syntactic dependency.
+  \end{itemize}
+
+  This is analogous to multiple learned filters in a CNN.
+\end{frame}
+
+\begin{frame}{Why Positional Encoding Is Necessary}
+  Pure attention has no built-in sense of order.
+
+  \begin{conceptbox}{Problem}
+    If we only compare content vectors, the model sees a set of tokens but not their arrangement in sequence.
+  \end{conceptbox}
+
+  Positional encoding restores sequence information without recurrence.
+\end{frame}
+
+\begin{frame}{The Transformer Block}
+  A standard Transformer block contains:
+  \begin{enumerate}
+    \item multi-head self-attention,
+    \item a feedforward network,
+    \item residual connections,
+    \item layer normalization.
+  \end{enumerate}
+
+  These blocks are stacked repeatedly to form modern language and multimodal models.
+\end{frame}
+
+\begin{frame}{Transformer Architecture at a Glance}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.56\textwidth]{Topic13fig06.pdf}
+    \caption{A representative Transformer architecture.}
+  \end{figure}
+
+  The exact implementation differs between BERT, GPT, T5, and later systems, but this stacked-attention design is the common backbone.
+\end{frame}
+
+\begin{frame}{Encoder-Only, Decoder-Only, Encoder--Decoder}
+  Three common architectural families are:
+  \begin{itemize}
+    \item \textbf{encoder-only:} strong for understanding and classification,
+    \item \textbf{decoder-only:} strong for autoregressive generation,
+    \item \textbf{encoder--decoder:} strong for input-to-output tasks such as translation.
+  \end{itemize}
+
+  Modern LLMs are primarily decoder-only Transformers.
+\end{frame}
+
+\begin{frame}{Why Transformers Replaced RNNs}
+  \begin{conceptbox}{Three Main Reasons}
+    Transformers parallelize better, preserve long-range interactions more effectively, and scale more smoothly with data and model size.
+  \end{conceptbox}
+
+  That combination made them the architecture behind the LLM era.
+\end{frame}
+
+\begin{frame}{The Main Transformer Trade-off}
+  \begin{warningbox}{Attention Cost}
+    Standard self-attention scales as $\mathcal{O}(T^2)$ with sequence length. Very long sequences can therefore become computationally expensive.
+  \end{warningbox}
+
+  This motivates work on sparse attention, linear attention, and related efficient-sequence methods.
+\end{frame}
+
+\begin{frame}{Engineering Applications of Transformers}
+  \begin{examplebox}{Where Transformers Help}
+    \begin{itemize}
+      \item time-series forecasting from structural sensors,
+      \item document understanding for reports and specifications,
+      \item code generation and automation support,
+      \item multimodal fusion of text and vision.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\section{Diffusion Models}
+
+\begin{frame}{The Intuition Behind Diffusion}
+  \begin{conceptbox}{Simple Story}
+    Start with real data, gradually add noise until it becomes almost pure randomness, then learn to reverse that process one step at a time.
+  \end{conceptbox}
+
+  Generation begins from noise and repeatedly denoises until a coherent sample emerges.
+\end{frame}
+
+\begin{frame}{Visualizing the Forward and Reverse Idea}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.86\textwidth]{Topic13fig07.pdf}
+    \caption{Forward noising and learned reverse denoising in diffusion models.}
+  \end{figure}
+
+  This diagram is one of the cleanest ways to understand why diffusion feels conceptually different from GANs.
+\end{frame}
+
+\begin{frame}{The Forward Process}
+  The forward diffusion process adds small Gaussian perturbations over many steps:
+  \[
+    q(\mathbf{x}_t\mid \mathbf{x}_{t-1})
+    =
+    \mathcal{N}(\mathbf{x}_t;\sqrt{1-\beta_t}\,\mathbf{x}_{t-1},\beta_t\mathbf{I}).
+  \]
+
+  Eventually the original structure is overwhelmed and the sample becomes almost indistinguishable from noise.
+\end{frame}
+
+\begin{frame}{The Reverse Process}
+  The model then learns a reverse transition
+  \[
+    p_{\theta}(\mathbf{x}_{t-1}\mid\mathbf{x}_t)
+  \]
+  that removes noise step by step.
+
+  \begin{conceptbox}{Operational Meaning}
+    The model is not directly memorizing images. It is learning how to iteratively refine random noise into structured samples.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Noise Prediction as the Learning Objective}
+  A common training loss is
+  \[
+    \mathcal{L} =
+    \mathbb{E}\left[\left\|\boldsymbol{\epsilon}-\boldsymbol{\epsilon}_{\theta}(\mathbf{x}_t,t)\right\|^2\right].
+  \]
+
+  Instead of directly reconstructing the whole data point in one leap, the model learns to estimate the noise component present at each step.
+\end{frame}
+
+\begin{frame}{Why Diffusion Models Beat GANs in Many Settings}
+  \begin{itemize}
+    \item training is usually more stable,
+    \item coverage of the data distribution is often better,
+    \item conditioning for text-to-image generation is very effective.
+  \end{itemize}
+
+  \begin{warningbox}{Trade-off}
+    The cost is slower generation because many denoising steps are required.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Engineering Applications of Diffusion Models}
+  \begin{examplebox}{Potential Uses in Engineering}
+    \begin{itemize}
+      \item synthetic image generation for rare damage cases,
+      \item concept rendering and design ideation,
+      \item scenario visualization for hazards or infrastructure planning,
+      \item data augmentation when labeled data are limited.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\section{Comparing Architectures and Looking Ahead}
+
+\begin{frame}{CNNs, Transformers, and Diffusion: Different Strengths}
+  These models are not interchangeable.
+
+  \begin{conceptbox}{High-Level Positioning}
+    CNNs are strongest when locality and spatial regularity dominate. Transformers are strongest when global relationships and sequences dominate. Diffusion models are strongest when high-quality generation is the priority.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Comparison by Inductive Bias}
+  \begin{itemize}
+    \item CNNs assume spatial locality matters.
+    \item Transformers assume flexible pairwise interaction matters.
+    \item Diffusion assumes generation can be learned as gradual refinement.
+  \end{itemize}
+
+  \begin{conceptbox}{Engineering Lesson}
+    Good models are not only powerful. They are well matched to the geometry and structure of the problem.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Modern Systems Often Combine These Ideas}
+  The current AI landscape is full of hybrids:
+  \begin{itemize}
+    \item vision Transformers treat image patches as tokens,
+    \item diffusion models often use U-Net-style CNN backbones,
+    \item multimodal systems combine visual encoders and language decoders.
+  \end{itemize}
+
+  The boundaries between architecture families are becoming increasingly porous.
+\end{frame}
+
+\begin{frame}{From Topic 13 to Topic 14}
+  This topic introduced diffusion at a high level, but generative modeling deserves a closer look.
+
+  In the next chapter we will move deeper into:
+  \begin{itemize}
+    \item GANs,
+    \item VAEs,
+    \item diffusion in more detail,
+    \item engineering uses of synthetic generation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Key Takeaways}
+  \begin{itemize}
+    \item Deep learning succeeded because training became numerically manageable.
+    \item CNNs are the natural choice for many vision problems.
+    \item Transformers are the backbone of modern language models.
+    \item Diffusion models are central to modern high-quality generation.
+    \item Engineering judgment still matters: architecture choice must follow problem structure.
+  \end{itemize}
+\end{frame}
+
+\end{document}

@@ -7,69 +7,55 @@
 \begin{document}
 \doublespacing	
 
-\title{CE 488/5588: Applied Artificial Intelligence\\ \large Topic 12: Unsupervised Learning: Clustering}
+\title{CE 488/5588: Applied Artificial Intelligence\\ \large Topic 12: Classic Unsupervised Learning}
 \author{}
 \date{}
 \maketitle
 
 \section{Introduction}
 
-Unsupervised learning is a branch of machine learning that deals with finding patterns or structures in data without explicit labels or guidance. Together with supervised learning, they form the two most common data-driven ML paradigms. 
+Having covered supervised discriminative learning, supervised generative learning, and supervised regression in the previous topics, we now turn to the other major paradigm of machine learning: \textbf{unsupervised learning}. In this setting, the data are given without class labels or regression targets. The objective is therefore not to predict a known output, but to uncover structure already present in the data.
 
-In other words, the algorithm learns from the data itself rather than being told what the correct output should be. This type of learning is particularly useful when we do not have labeled data or when we want to discover hidden patterns or relationships within the data.
-
-Given a dataset below:
+Given a dataset
 \[
- \mathcal{D} = \{ \bm{x}_n | n = 1, 2, \cdots, N\}
+ \mathcal{D} = \{ \bm{x}_n \mid n = 1, 2, \cdots, N\}
 \]
-where each data point $\bm{x}_n\in \mathbb{R}^d$. Compared with our previous supervised learning datasets, we see that now there are no `labels'.
+where each data point $\bm{x}_n\in \mathbb{R}^d$. Compared with the datasets used in supervised learning, there are now no labels attached to the samples. This changes the role of learning significantly. Instead of fitting a decision boundary or a regression function, we seek patterns such as groups, low-dimensional structure, redundancy, or abnormal behavior.
 
-In ML/AI, there are three common Unsupervised Learning techniques. In the following, we use the dataset $\mathcal{D}$ above and describe their characteristics.
+Two classical tasks dominate this topic. The first is \textbf{clustering}, in which similar samples are grouped together according to their geometry in feature space. The second is \textbf{dimensionality reduction}, in which the original variables are replaced by a smaller number of informative coordinates while preserving essential structure. In engineering applications, these tools are useful for exploratory analysis, operating-regime identification, anomaly screening, visualization, denoising, and preprocessing before later supervised learning.
+
+After this topic, you should be able to:
 
 \begin{itemize}
-    \item Clustering: Clustering algorithms attempt to group similar data points together based on their features, forming clusters. In the context of the dataset $\mathcal{D}$, clustering algorithms would analyze the $N$ data points in $\mathbb{R}^d$ and assign them to different groups, such that the data points within each group are more similar to each other than to those in other groups. 
-    \item Dimensionality reduction: Dimensionality reduction techniques aim to reduce the number of features or dimensions in the dataset while preserving its essential structure. In the context of the dataset $\mathcal{D}$, these techniques would attempt to find a lower-dimensional representation of the $d$-dimensional data points, often leading a new dataset $\mathcal{Y} = \{\bm{y}_n| n = 1, \cdots, N\}$ such that the dimension of $\bm{y}_n$ is much lower but most of the information in the original data is retained.
-    \item Feature extraction. Feature extraction is the process of transforming the raw data into a set of meaningful features or representations that can be used as input for machine learning algorithms. In the context of the dataset $\mathcal{D}$, feature extraction would seek to find alternative representations of the $d$-dimensional data points that capture their essential characteristics while potentially reducing noise or redundancy. 
+    \item explain the role of unsupervised learning and distinguish clustering from dimensionality reduction;
+    \item formulate the objective of k-means clustering and explain how the algorithm iteratively improves a partition;
+    \item describe how hierarchical clustering and DBSCAN differ from k-means in assumptions, outputs, and practical behavior;
+    \item evaluate clustering results using internal and external criteria; and
+    \item explain how PCA constructs a low-dimensional representation and why nonlinear dimensionality-reduction methods may also be useful.
 \end{itemize}
 
 
 \section{Clustering}
- Clustering is the process of grouping similar data points together based on their features or attributes. It helps in identifying the underlying structure within the data and can be used for tasks such as customer segmentation, image segmentation, and anomaly detection. Common clustering algorithms include K-means, hierarchical clustering, and DBSCAN.
-
- 
-Using the dataset $\mathcal{D} = {\bm{x}_n | n = 1, 2, \cdots, N}$, where $\bm{x}_n\in \mathbb{R}^d$, we can introduce a few key clustering methods:
-
-% \subsection{K-means clustering}
-% K-means is a popular clustering method that partitions the data into $K$ clusters by minimizing the sum of squared distances between the data points and their corresponding cluster centroids. The basic steps of the K-means algorithm, which can be viewed as an Expectation-Maximization (E-M) procedure, are as follows:
-% \begin{itemize}
-% \item[\textbf{E-step}] Assign each data point to the nearest centroid:
-% \begin{equation}
-% S_i = {n : | \bm{x}_n - \bm{\mu}_i | \leq | \bm{x}_n - \bm{\mu}_j |, ; \forall j \neq i }
-% \end{equation}
-% where $S_i$ is the set of data points assigned to the $i$-th centroid $\bm{\mu}_i$.
-
-% \item[\textbf{M-step}] Update the centroids by calculating the mean of the data points assigned to each centroid:
-% \begin{equation}
-% \bm{\mu}i = \frac{1}{|S_i|} \sum{n \in S_i} \bm{x}_n
-% \end{equation}
-% \end{itemize}
-
-% The E-M steps are iterated until the centroids' positions converge or a stopping criterion is met.
-
+Clustering groups samples so that points within the same cluster are relatively similar while points from different clusters are relatively dissimilar. Because no labels are given, the meaning of a cluster is not known in advance; it must be inferred from the structure of the data and then interpreted in context. Different clustering algorithms define similarity differently, so method selection should reflect the expected geometry of the dataset.
 
 \subsection{K-means clustering}
 
-K-means is a popular clustering method that partitions a dataset 
+K-means is a prototype-based clustering method that partitions a dataset 
 \[
 \mathcal{D} = \{ \bm{x}_n \mid n=1,2,\ldots,N\}, \quad \bm{x}_n \in \mathbb{R}^d,
 \]
-into $K$ clusters by minimizing the sum of squared distances between each data point and its corresponding cluster centroid. In this context, the objective function is defined as:
+into $K$ clusters by minimizing the sum of squared distances between each sample and its assigned cluster centroid. Its objective function is
 \begin{equation}
 J = \sum_{k=1}^{K} \sum_{\bm{x}_i \in S_k} \lVert \bm{x}_i - \bm{\mu}_k \rVert^2,
 \end{equation}
 where $\bm{\mu}_k$ is the centroid of cluster $k$, and $S_k$ is the set of points assigned to that cluster. 
 
-The objective function $J$ directly measures clustering quality. By minimizing $J$, k-means aims to reduce intra-cluster variance and, consequently, enhance the separability of different clusters.
+The quantity $J$ is the within-cluster sum of squares. A small value of $J$ indicates that points lie close to the representative centroid of their cluster. The algorithm alternates between two simple operations:
+\begin{enumerate}
+    \item \textbf{Assignment step:} assign each point to its closest centroid.
+    \item \textbf{Update step:} recompute each centroid as the sample mean of the points currently assigned to it.
+\end{enumerate}
+These two steps are repeated until the assignments stabilize or the decrease in $J$ becomes negligible. Each iteration does not increase the objective, so k-means converges in a finite number of iterations to a local minimum.
 
 \subsubsection{History and Significance}
 
@@ -82,7 +68,7 @@ K-means has deep roots in pattern recognition and vector quantization:
 
 
 \subsubsection{Expectation-Maximization (EM) Algorithm}
-The Expectation-Maximization (EM) algorithm is a powerful iterative method used to find maximum likelihood estimates of parameters in statistical models when the data is incomplete or has missing values. It is also used in models with latent variables (unobserved variables that influence the data), where the likelihood function is challenging to optimize directly. The EM algorithm was formally introduced by Dempster, Laird, and Rubin in their seminal 1977 paper titled "Maximum Likelihood from Incomplete Data via the EM Algorithm". To date, it is one of the most influential and widely used machine learning algorithms and beyond ML fields. 
+The Expectation-Maximization (EM) algorithm is a general iterative framework for problems that involve hidden or latent variables. It alternates between estimating latent quantities and updating model parameters. K-means can be interpreted as a special, hard-assignment version of this broader idea.
 
 
 K-means can be viewed as a special case of the EM algorithm with hard assignments:
@@ -101,7 +87,7 @@ Each iteration decreases the objective function $J$ because:
     \item The E-step minimizes $J$ by assigning each data point to the closest centroid.
     \item The M-step minimizes $J$ with respect to $\bm{\mu}_k$, as the sample mean is the least-squares estimator.
 \end{itemize}
-It has been proven that k-means, through an EM process, converge in a finite number of iterations to a local minimum. Note that while convergence is guaranteed, it is to a local, not global, optimum, making initialization critical.
+This interpretation is useful because it connects a geometrically intuitive algorithm to a more general statistical optimization principle. It also explains why initialization matters: different starting centroids may lead to different local minima.
 
 \subsubsection{Computational Considerations}
 
@@ -123,6 +109,7 @@ Several factors influence the performance of k-means in practice:
         \frac{|J^{(t+1)} - J^{(t)}|}{J^{(t)}} < \epsilon.
         \]
     \end{itemize}
+    \item \textbf{Feature scaling:} Since the assignments are driven by distances, features with larger numerical ranges can dominate the clustering unless the data are standardized or normalized.
     \item \textbf{High-dimensionality:} Each iteration’s computational cost is approximately
     \[
     \mathcal{O}(N \times K \times d),
@@ -132,7 +119,16 @@ Several factors influence the performance of k-means in practice:
 
 \subsubsection{Determining the Number of Clusters}
 
-Choosing the number of clusters $K$ is a classical challenge in k-means clustering. Common methods include:
+Choosing the number of clusters $K$ is a classical challenge in k-means clustering. Figure~\ref{fig:topic12-kmeans-k3-k5} first gives a visual reminder of why this choice matters. When $K=3$, the recovered partition matches the three dominant groups in the dataset reasonably well; when a larger value such as $K=5$ is forced, k-means tends to split natural groups into smaller pieces. This visual effect motivates a more systematic way to select $K$.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.92\textwidth]{topic12_kmeans_k3_vs_k5.png}
+    \caption{Visual effect of choosing different values of $K$ in k-means on the same dataset. The left panel uses $K=3$, while the right panel uses a larger value, $K=5$, which produces a finer partition. Figure generated for this chapter using a synthetic dataset in the style of standard k-means demonstrations.}
+    \label{fig:topic12-kmeans-k3-k5}
+\end{figure}
+
+Common methods include:
 \begin{itemize}
     \item \textbf{Elbow Method:} Plot the objective function $J$ versus $K$ and identify the point where the reduction in $J$ begins to plateau ("elbow"), suggesting that additional clusters provide diminishing returns.
     \item \textbf{Silhouette Analysis:} Compute the silhouette coefficient,
@@ -143,40 +139,119 @@ Choosing the number of clusters $K$ is a classical challenge in k-means clusteri
     % \item \textbf{Information Criterion Methods:} When k-means is seen as a limiting case of a Gaussian Mixture Model, criteria such as the Bayesian Information Criterion (BIC) or Akaike Information Criterion (AIC) can help balance model fit and complexity.
 \end{itemize}
 % These methods provide insights into the trade-offs of different choices of $K$, and in practice, a combination of approaches is often used.
+Figure~\ref{fig:topic12-elbow} then shows the corresponding elbow-style plot used for this model-selection step.
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{topic12_elbow_method.png}
+    \caption{An example of the elbow method for selecting the number of clusters in k-means. Courtesy of Wikimedia Commons (\texttt{Elbow\_method.png}).}
+    \label{fig:topic12-elbow}
+\end{figure}
+
+
+\subsection{Hierarchical clustering}
+
+Hierarchical clustering builds a nested sequence of clusters rather than directly producing one partition for a prescribed value of $K$. In the agglomerative version, which is the most common, the algorithm begins with each sample as its own cluster and repeatedly merges the two closest clusters. The output is a tree structure called a \textbf{dendrogram}.
+
+An important modeling choice is the distance between two clusters. Common linkage rules include:
+\begin{itemize}
+    \item \textbf{single linkage:} distance between the closest pair of points;
+    \item \textbf{complete linkage:} distance between the farthest pair of points;
+    \item \textbf{average linkage:} average pairwise distance; and
+    \item \textbf{Ward linkage:} increase in within-cluster variance after merging.
+\end{itemize}
+One advantage of hierarchical clustering is that it does not require the user to fix the number of clusters in advance. Instead, one may inspect the dendrogram and choose a cut level that yields a desired grouping resolution. This is useful when the data may exhibit meaningful structure at multiple scales. Figure~\ref{fig:topic12-dendrogram} illustrates this nested view of merging. Its main limitations are computational cost on large datasets and sensitivity to the chosen linkage and distance metric.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.55\textwidth]{topic12_hierarchical_dendrogram.png}
+    \caption{A dendrogram visualizes the sequence of agglomerative merges in hierarchical clustering. Courtesy of the scikit-learn hierarchical clustering example.}
+    \label{fig:topic12-dendrogram}
+\end{figure}
 
 \subsection{DBSCAN}
-DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a density-based clustering method that groups data points that are closely packed, based on a density estimation. It can find clusters of arbitrary shapes and is robust to noise. The key idea is to define a neighborhood around each data point, and then form clusters based on the density of data points in these neighborhoods.
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a density-based clustering method that groups data points that are closely packed while explicitly identifying isolated samples as noise. It can find clusters of arbitrary shape and does not require the number of clusters to be specified in advance.
 
-% \subsection{Hierarchical clustering}
-% Hierarchical clustering is a family of clustering methods that build a tree of clusters, either from the bottom up (agglomerative) or from the top down (divisive). Agglomerative hierarchical clustering starts with each data point as its own cluster and iteratively merges the closest pairs of clusters until a single cluster remains. Divisive hierarchical clustering starts with a single cluster containing all data points and iteratively splits the clusters into smaller clusters until each data point is in its own cluster. The tree of clusters can be represented as a dendrogram, which can be cut at different levels to obtain different numbers of clusters.
+Given a radius parameter $\epsilon$, the $\epsilon$-neighborhood of a point $\bm{x}_n$ is
+\[
+\mathcal{N}_{\epsilon}(\bm{x}_n) = \{\bm{x}_j \in \mathcal{D} \mid \|\bm{x}_j-\bm{x}_n\| \leq \epsilon\}.
+\]
+If this neighborhood contains at least \textit{MinPts} samples, then $\bm{x}_n$ is called a \textbf{core point}. Clusters are formed by connecting core points that are density-reachable from one another. Points close to a cluster but not dense enough to be core points are often called border points, while isolated points are labeled as noise.
 
-% These clustering methods can be applied to the dataset $\mathcal{D}$ to group similar data points together and reveal the underlying structure in the data.
+DBSCAN is especially attractive when clusters are nonconvex or when outlier detection is important. Its main weakness is parameter sensitivity: if $\epsilon$ is too small, many points are labeled as noise; if it is too large, distinct clusters may merge. Figure~\ref{fig:topic12-dbscan} shows the type of irregular cluster geometry that motivates density-based methods. Like other distance-based methods, it also becomes more difficult in very high-dimensional spaces.
 
-\section{Performance Evaluation}
-Performance evaluation of unsupervised classification or clustering is much different; after all, there are no true labels. There are two categories of methods for performance evaluation: internal evaluation and external evaluation.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.55\textwidth]{topic12_dbscan.png}
+    \caption{DBSCAN can recover dense clusters of irregular shape while identifying noise points. Courtesy of the scikit-learn DBSCAN example.}
+    \label{fig:topic12-dbscan}
+\end{figure}
+
+\section{Clustering Evaluation}
+Performance evaluation in clustering is different from performance evaluation in supervised classification. Since true labels are usually unavailable, the question is not simply whether a predicted class agrees with a ground-truth class. Instead, we ask whether the clustering is compact, separated, stable, and meaningful for the application. There are two broad categories of evaluation methods: internal and external evaluation.
 
 \subsection{Internal evaluation}
- Internal evaluation methods assess the quality of the clustering or dimensionality reduction without using any external information. Some common internal evaluation metrics include:
+ Internal evaluation methods assess the quality of the clustering without using any external labels. Some common internal evaluation metrics include:
     \begin{itemize}
       \item \textit{Inertia (Sum of Squared Errors)}: Inertia measures the sum of squared distances between each data point and its assigned cluster centroid. A lower inertia value indicates tighter clusters. Inertia is primarily used for evaluating K-means clustering.
       \item \textit{Silhouette Score}: The silhouette score measures the average intra-cluster cohesion and inter-cluster separation. It ranges from -1 to 1, with a higher score indicating better clustering.
       \item \textit{Calinski-Harabasz Index}: The Calinski-Harabasz index measures the ratio of between-cluster dispersion to within-cluster dispersion. A higher value indicates better clustering.
     \end{itemize}
-  These internal evaluation metrics can be useful for model selection, such as choosing the optimal number of clusters or tuning hyperparameters.
+  These measures are useful for comparing candidate clusterings, choosing hyperparameters, and deciding whether the recovered groups are geometrically meaningful.
 
 
 \subsection{External evaluation}
-External evaluation methods compare the clustering or dimensionality reduction results with some external ground truth or reference information, such as class labels or expert annotations. Some common external evaluation metrics include:
+External evaluation methods compare the clustering result with some external ground truth or reference information, such as expert annotations or known classes that were not used during clustering. Some common external evaluation metrics include:
 
     \begin{itemize}
       \item \textit{Adjusted Rand Index (ARI)}: The ARI measures the similarity between two clustering assignments, adjusting for chance. It ranges from -1 to 1, with 1 indicating perfect agreement and 0 indicating the expected agreement by chance.
-      \item \textit{Normalized Mutual Information (NMI)}: NMI measures the mutual information between two clustering assignments, normalized by the geometric mean of their individual entropy's. It ranges from 0 to 1, with 1 indicating perfect agreement and 0 indicating no shared information.
+      \item \textit{Normalized Mutual Information (NMI)}: NMI measures the mutual information between two clustering assignments, normalized by the geometric mean of their individual entropies. It ranges from 0 to 1, with 1 indicating perfect agreement and 0 indicating no shared information.
       \item \textit{Fowlkes-Mallows Index}: The Fowlkes-Mallows index measures the geometric mean of precision and recall, with values ranging from 0 to 1. A higher value indicates better agreement between the clustering and the ground truth.
     \end{itemize}
-  External evaluation methods can provide more objective performance assessments, but they require external information, which may not always be available.
+  External evaluation methods can provide more objective assessments, but they are available only when some trusted reference grouping exists. In practice, numerical indices should still be interpreted together with engineering judgment, because a mathematically compact clustering is not necessarily the most useful one for decision making.
+
+\section{Dimensionality Reduction}
+
+Clustering aims to group samples; dimensionality reduction aims to represent each sample using fewer variables. This is important when the original feature space is high-dimensional, redundant, noisy, or difficult to visualize. A lower-dimensional representation can reveal dominant structure, suppress noise, and sometimes improve the behavior of later learning algorithms.
+
+\subsection{Principal Component Analysis (PCA)}
+
+Principal Component Analysis (PCA) is the classical linear method for reducing dimension. Its goal is to project the data onto a lower-dimensional subspace that preserves as much variance as possible. Let
+\[
+\bar{\bm{x}} = \frac{1}{N}\sum_{n=1}^{N} \bm{x}_n
+\]
+be the sample mean. After centering the data, define the covariance matrix
+\[
+\mathbf{C} = \frac{1}{N}\sum_{n=1}^{N}(\bm{x}_n-\bar{\bm{x}})(\bm{x}_n-\bar{\bm{x}})^T.
+\]
+PCA chooses orthogonal directions associated with the largest eigenvalues of $\mathbf{C}$. These directions are called the \textbf{principal components}. If $\mathbf{W}_p \in \mathbb{R}^{d\times p}$ collects the first $p$ principal directions, where $p<d$, then the reduced representation of $\bm{x}_n$ is
+\[
+\bm{y}_n = \mathbf{W}_p^T(\bm{x}_n-\bar{\bm{x}}), \qquad \bm{y}_n \in \mathbb{R}^{p}.
+\]
+The transformed dataset
+\[
+\mathcal{Y} = \{\bm{y}_n \mid n=1,2,\ldots,N\}
+\]
+retains the dominant linear variation of the original data using many fewer coordinates.
+
+PCA is widely used because it is simple, computationally efficient, and interpretable. It is often applied before clustering when features are highly correlated or when Euclidean distances in the original space become less informative. It is also common to inspect the fraction of variance explained by the first few principal components in order to choose a practical reduced dimension. Figure~\ref{fig:topic12-pca} shows how a high-dimensional dataset can be projected into a smaller visualizable space.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.65\textwidth]{topic12_pca_iris.png}
+    \caption{A PCA projection illustrates how high-dimensional data can be summarized in a smaller number of coordinates for visualization and analysis. Courtesy of the scikit-learn PCA example.}
+    \label{fig:topic12-pca}
+\end{figure}
+
+\subsection{A Brief Note on Nonlinear Methods}
+
+PCA is a linear method, so it works best when the dominant structure of the data is approximately captured by a flat low-dimensional subspace. This assumption is not always appropriate. In some datasets, the samples lie near a curved manifold in the original feature space, and a linear projection may fail to preserve important neighborhood relationships.
+
+In such cases, nonlinear dimensionality-reduction methods may be useful. Examples include kernel PCA, Isomap, t-SNE, and UMAP. These methods are especially valuable for visualization and exploratory analysis because they can reveal low-dimensional structure that PCA may miss. Their tradeoffs are greater parameter sensitivity, higher computational cost, and usually less direct interpretability. For this reason, PCA remains the natural first choice when the goal is compression, denoising, or stable preprocessing for later engineering models.
 
 \section{Conclusion Remarks}
-In this chapter, we look at the other paradigm of ML - unsupervised learning, where ground truth data are provided with labels. Clustering is particularly focused. The Expectation-Maximization algorithm is introduced, which features an iterative optimization corresponding to a graphically intuitive centroids-searching process. Performance evaluation of unsupervised clustering methods is conceptually covered. In the next chapter, two related techniques - dimensionality reduction and feature extraction, will be introduced, which are often treated pre-processing steps prior to adopting a supervised or unsupervised classification/clustering model. 
+In this chapter, we examined classical unsupervised learning, where the data are provided without labels or regression targets and the objective is to discover structure directly from the samples themselves. We focused on two major tasks. The first was clustering, studied through k-means, hierarchical clustering, and DBSCAN, which represent centroid-based, tree-based, and density-based views of grouping. The second was dimensionality reduction, where PCA provides a practical linear method for constructing compact representations and nonlinear methods offer additional flexibility when the data geometry is curved.
+
+For engineering applications, the main lesson is that unsupervised learning is not one single algorithm, but a family of tools for organizing, simplifying, and interpreting data before or alongside predictive modeling. Method selection should depend on the geometry of the data, the presence of noise and outliers, the need for interpretability, and the intended downstream use. When applied carefully, clustering and dimensionality reduction can reveal hidden operating regimes, compress high-dimensional measurements, and provide clearer structure for later supervised or unsupervised analysis.
 
 \end{document}

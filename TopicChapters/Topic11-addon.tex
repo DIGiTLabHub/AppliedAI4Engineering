@@ -1,0 +1,388 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{bm}
+\usepackage{graphicx} \graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\def\mathbi#1{\textbf{\em #1}}
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\Rset}{\field{R}}
+\newcommand{\Zset}{\field{Z}}
+\newcommand{\Qset}{\field{Q}}
+\newcommand{\Nset}{\field{N}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied AI \\ \large Topic 14: Machine Learning for Regression}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+\section{Review of Regression}
+
+\subsection{What Is Regression?}
+Regression analysis studies the mapping
+\[
+  \bm{x} \;\longmapsto\; y
+\]
+where \(\bm{x}\in\Rset^p\) is a vector of one or more input (predictor) variables and \(y\in\Rset\) is a continuous output.  In engineering and the sciences, regression underlies:
+\begin{itemize}
+  \item \textbf{Prediction:} forecasting future behavior (e.g.\ loads, flows, costs).
+  \item \textbf{Modeling:} capturing system relationships (e.g.\ stress–strain).
+  \item \textbf{System Identification:} inferring process parameters from measurements.
+\end{itemize}
+By contrast, \emph{classification} assigns inputs to a finite set of categories.
+
+
+\noindent
+\colorbox{green!10}{%
+  \parbox{\textwidth}{%
+    \textbf{Practical Tip:} Always begin with a simple linear regression model to establish a baseline. Exploring and transforming your inputs (e.g., via log or power transforms) often yields substantial improvements before moving to complex methods.
+  }%
+}
+
+\subsection{Linear Least Squares Regression}
+Suppose we posit a linear model
+\[
+  y \;=\; f(\bm{x};\bm{w})
+  \;=\;\bm{w}^T\bm{x}
+  \quad\text{or with intercept}\quad
+  y = w_0 + \bm{w}^T\bm{x}.
+\]
+Given \(N\) observations \(\{(\bm{x}_i,y_i)\}_{i=1}^N\), collect
+\(\bm{y}=(y_1,\dots,y_N)^T\) and \(X=[\bm{x}_1\,\dots\,\bm{x}_N]^T\).  The ordinary least‐squares criterion is
+\[
+  J(\bm{w})
+  \;=\;
+  \bigl\|\bm{y} - X\,\bm{w}\bigr\|^2
+  \;=\;
+  \sum_{i=1}^N \bigl(y_i - \bm{w}^T\bm{x}_i\bigr)^2.
+\]
+Because \(J(\bm{w})\) is a convex quadratic function, it has the closed‐form minimizer
+\[
+  \hat{\bm{w}}
+  =
+  (X^T X)^{-1} X^T \bm{y},
+\]
+provided \(X^T X\) is invertible.
+
+\subsection{Nonlinear Regression and Basis Expansions}
+Not all relationships are linear in the raw predictors.  Two common remedies:
+\begin{enumerate}
+  \item \emph{Transform the response or inputs} so that a linear relationship emerges.
+  \item \emph{Basis‐function expansion:} model
+    \(\;y = \sum_{j=1}^M w_j\,\phi_j(\bm{x})\), where \(\{\phi_j\}\) are nonlinear basis functions.
+\end{enumerate}
+
+\paragraph{Example 1: Power‐Law Regression.}
+\[
+  y = a\,\prod_{j=1}^p x_j^{b_j}
+  \quad\Longrightarrow\quad
+  \ln y = \ln a \;+\;\sum_{j=1}^p b_j\,\ln x_j,
+\]
+so a log–log plot followed by linear regression estimates \(\ln a\) and each \(b_j\).
+
+\paragraph{Example 2: Rectangular Hyperbola.}
+\[
+  y
+  = 
+  \frac{\beta_1\,x}{\beta_2 + x},
+\]
+which is intrinsically nonlinear but can be fitted by nonlinear least squares or linearized via the reciprocal transform.
+
+\subsection{Engineering Examples}
+
+\paragraph{Cost Prediction in Construction.}  
+Model total project cost \(y\) as
+\[
+  y 
+  = 
+  \beta_0 
+  + \beta_1\,x_{\text{mat}}
+  + \beta_2\,x_{\text{lab}}
+  + \beta_3\,x_{\text{dur}}
+  + \beta_4\,x_{\text{size}},
+\]
+where
+\(\;x_{\text{mat}}\)=material cost,\;
+\(x_{\text{lab}}\)=labor cost,\;
+\(x_{\text{dur}}\)=duration (weeks),\;
+\(x_{\text{size}}\)=area (sq.\ ft).  Fit by minimizing
+\[
+  J(\boldsymbol{\beta})
+  = 
+  \sum_{i=1}^N 
+    \bigl(
+      y_i 
+      - 
+      \beta_0 
+      - 
+      \sum_{j=1}^4 \beta_j\,x_{ij}
+    \bigr)^2.
+\]
+
+\paragraph{Concrete Modulus Prediction (ACI 318).}  
+Empirical formula for Young’s modulus \(E_c\):
+\[
+  E_c 
+  = 
+  33\,w_c^{1.5}\,\sqrt{f'_c},
+  \quad
+  f'_c=\text{compressive strength (MPa)},\quad
+  w_c=\text{unit weight (lb/ft}^3).
+\]
+Log‐transform yields
+\[
+  \log E_c 
+  = 
+  \alpha_0 
+  + 
+  \alpha_1\,\log w_c 
+  + 
+  \alpha_2\,\log f'_c,
+\]
+reducing to a straight‐line fit in \((\log w_c,\log f'_c)\) space.
+
+\section{Logistic Regression}
+
+\subsection{Logistic Regression as Classification}
+Logistic regression is a \emph{binary} classification method that maps an input vector \(\bm{x}\in\Rset^p\) to an estimated probability that the class label \(y\in\{0,1\}\) equals 1:
+\[
+  \hat p(\bm{x}) \;=\; P(y=1 \mid \bm{x})
+  \;=\;
+  \sigma\bigl(\bm{w}^T\bm{x} + b\bigr),
+\]
+where
+\[
+  \sigma(u) \;=\;\frac{1}{1+e^{-u}}
+\]
+is the logistic (sigmoid) function.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/sigmoid.pdf}
+  \caption{The sigmoid activation function \(\sigma(u)=1/(1+e^{-u})\).}
+  \label{fig:sigmoid}
+\end{figure}
+
+As shown in Figure~\ref{fig:sigmoid}, \(\sigma(u)\) smoothly maps \(\Rset\) to \((0,1)\).  The decision rule classifies \(\bm{x}\) as
+\[
+  \hat y = 
+  \begin{cases}
+    1, & \hat p(\bm{x}) \ge 0.5,\\
+    0, & \text{otherwise},
+  \end{cases}
+\]
+which corresponds to the linear decision boundary \(\bm{w}^T\bm{x} + b = 0\).
+
+\subsection{Parameter Estimation via Maximum Likelihood}
+Given training data \(\{(\bm{x}_i,y_i)\}_{i=1}^N\), we choose \((\bm{w},b)\) to maximize the likelihood
+\[
+  L(\bm{w},b)
+  = 
+  \prod_{i=1}^N
+    \hat p(\bm{x}_i)^{y_i}
+    \bigl(1-\hat p(\bm{x}_i)\bigr)^{1-y_i}.
+\]
+Equivalently, we minimize the negative log‐likelihood (the \emph{cross‐entropy} loss):
+\[
+  J(\bm{w},b)
+  = 
+  -\sum_{i=1}^N
+    \bigl[
+      y_i\ln\hat p(\bm{x}_i)
+      + (1-y_i)\ln\bigl(1-\hat p(\bm{x}_i)\bigr)
+    \bigr].
+\]
+Since \(J(\bm{w},b)\) is convex in \((\bm{w},b)\), standard optimization methods (e.g.\ gradient descent, Newton’s method) find the global minimum.
+
+\paragraph{Gradient of the Loss}
+\[
+  \frac{\partial J}{\partial \bm{w}}
+  = 
+  \sum_{i=1}^N \bigl(\hat p(\bm{x}_i) - y_i\bigr)\,\bm{x}_i,
+  \quad
+  \frac{\partial J}{\partial b}
+  = 
+  \sum_{i=1}^N \bigl(\hat p(\bm{x}_i) - y_i\bigr).
+\]
+
+\subsection{Interpretation of the Logit}
+Define the \emph{log‐odds} (logit)
+\[
+  \log\frac{\hat p(\bm{x})}{1-\hat p(\bm{x})}
+  = \bm{w}^T\bm{x} + b.
+\]
+Thus logistic regression is a \emph{linear} model on the log‐odds scale.
+
+\subsection{Regularization}
+To prevent overfitting, one often adds a penalty term:
+\[
+  J_{\lambda}(\bm{w},b)
+  = 
+  J(\bm{w},b)
+  + \frac{\lambda}{2}\|\bm{w}\|^2
+  \quad\text{(L2 regularization)},
+\]
+which keeps the optimization convex and shrinks weights toward zero.
+
+\section{Machine Learning for Regression}
+
+\subsection{Multi‐Layer Perceptron (MLP)}
+
+A multi‐layer perceptron is a feedforward neural network composed of one or more hidden layers.  For regression, the final layer is linear and produces a continuous output:
+\[
+  \hat y(\bm{x})
+  \;=\;
+  \bm{w}_L^T\,\bm{h}_{L-1}(\bm{x}) \;+\; b_L,
+\]
+where \(\bm{h}_{L-1}\) is the activation of the last hidden layer.  Training minimizes the mean‐squared error (MSE):
+\[
+  J(\Theta)
+  = 
+  \frac{1}{N}\sum_{i=1}^N \bigl(y_i - \hat y(\bm{x}_i)\bigr)^2.
+\]
+
+\subsubsection{Example: MLP Regression}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/sin-mlp.pdf}
+  \caption{MLP fit to the nonlinear function \(y = \sin(x)\).}
+  \label{fig:sin_mlp}
+\end{figure}
+
+\noindent
+\colorbox{blue!10}{%
+  \parbox{\textwidth}{%
+    \textbf{Universal Approximation Theorem.}  
+    A single‐hidden‐layer MLP with sufficiently many neurons can approximate any continuous function on a compact domain to arbitrary precision:
+    \[
+      \Bigl|\,f(\bm{x}) \;-\; \sum_{i=1}^M \alpha_i\,\sigma(\bm{w}_i^T\bm{x} + \theta_i)\Bigr|
+      < \varepsilon
+      \quad\forall\,\bm{x}\in[0,1]^n.
+    \]
+    Here \(\sigma\) is an activation function such as sigmoid, tanh, or ReLU.
+  }%
+}
+
+\vspace{1em}
+\noindent
+\colorbox{yellow!20}{%
+  \parbox{\textwidth}{%
+    \textbf{Practical Challenges.}\  
+    Although universal approximation holds in theory, in practice one must contend with:
+    \begin{itemize}
+      \item Optimization difficulties (local minima, saddle points).  
+      \item Overfitting without sufficient data or regularization.  
+      \item Choosing appropriate architecture (number of layers/neurons).
+    \end{itemize}
+  }%
+}
+
+\subsection{Support Vector Regression (SVR)}
+
+Support vector regression uses the kernel trick together with an \(\varepsilon\)-insensitive loss that ignores small errors:
+\[
+  L_{\varepsilon}(y,f(\bm{x})) 
+  = 
+  \max\{0,\,|y - f(\bm{x})| - \varepsilon\}.
+\]
+The resulting predictor is
+\[
+  f(\bm{x})
+  = 
+  \sum_{i\in\mathrm{SV}} (\alpha_i - \alpha^*_i)\,K(\bm{x}_i,\bm{x}) + b,
+\]
+where only support vectors (\(\mathrm{SV}\)) with nonzero \(\alpha\) terms contribute.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figs/cos-svr.pdf}
+  \caption{SVR applied to noisy samples of \(y=\cos(x)\).}
+  \label{fig:cos_svr}
+\end{figure}
+
+\subsection{Decision Tree Regression}
+
+Decision trees partition the input space into axis‐aligned regions \(R_m\).  For regression, splits are chosen to minimize within‐node variance:
+\[
+  \min_{j,t}
+  \Biggl\{
+    \sum_{i:x_i\in R_{\text{left}}} (y_i - \bar y_{\text{left}})^2
+  +
+    \sum_{i:x_i\in R_{\text{right}}} (y_i - \bar y_{\text{right}})^2
+  \Biggr\}.
+\]
+Each leaf node \(R_m\) predicts the average of its responses:
+\[
+  \hat y(R_m) = \frac{1}{|R_m|}\sum_{i: x_i\in R_m} y_i.
+\]
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.45\textwidth]{figs/dt_visualization.png}
+  \caption{Partitioning of the domain for \(y=x^2\).}
+  \label{fig:dt_partition}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.45\textwidth]{figs/dt-fitting.pdf}
+  \caption{Resulting piecewise‐constant fit to noisy \(y=x^2\) data.}
+  \label{fig:dt_fit}
+\end{figure}
+
+\noindent
+\colorbox{orange!10}{%
+  \parbox{\textwidth}{%
+    \textbf{Hyperparameter Tuning:} Use cross‐validation to select key settings—network size and regularization strength in MLPs; \(\varepsilon\), \(C\) (margin penalty) in SVR; and tree depth or pruning criteria in decision trees.
+  }%
+}
+
+\section{Summary}
+
+Regression techniques map inputs to continuous outputs. Start with linear least squares as an interpretable, convex baseline. For nonlinear patterns, choose among:
+\begin{itemize}
+  \item \textbf{MLP:} Flexible universal approximator, requires careful regularization and architecture selection.
+  \item \textbf{SVR:} Sparse kernel methods with \(\varepsilon\)-insensitive loss, balancing margin width (\(\varepsilon\)) and penalty (\(C\)).
+  \item \textbf{Decision Trees:} Interpretable piecewise‐constant fits, controlled via depth and pruning to avoid overfitting.
+\end{itemize}
+
+\noindent
+Balancing bias vs.\ variance—and interpretability vs.\ complexity—is key. Always validate with held‐out data and communicate model choices clearly for engineering decision‐making.
+
+
+
+
+
+
+Ask ChatGPT
+
+\end{document}

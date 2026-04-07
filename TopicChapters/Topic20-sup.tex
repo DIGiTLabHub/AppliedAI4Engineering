@@ -1,0 +1,151 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{ {./figs/} }
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode} % Removed this line
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\usepackage[english]{babel}
+\newtheorem{theorem}{Theorem}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{lscape}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501: Applied AI \\ \large Topic 16: Symbolic AI toward Next-gen AI for Engineering}
+\author{Dr. ZhiQiang Chen}
+\date{}
+\maketitle
+
+
+% Section 1: Revisiting Good-Old-Fashioned AI (GOFAI)
+\section{Revisiting Symbolic AI: Foundations and Classic Methods}
+\label{sec:gofai}
+Symbolic AI, or GOFAI, dominated early AI research by emphasizing explicit knowledge representation and logic-based reasoning. Key methods include:
+
+\subsection{Logic Systems}
+First-order logic (FOL) formalizes domain knowledge with predicates, quantifiers, and rules. For example, in engineering design, material compatibility can be encoded as:
+\begin{align}
+\forall x \, (\text{Material}(x) \rightarrow \exists y \, (\text{StressThreshold}(x, y)))
+\end{align}
+Seminal work by McCarthy (1958) introduced FOL for AI, while Robinson’s \textit{resolution refutation} (1965) enabled automated theorem proving:
+\begin{align}
+\frac{\neg P \vee Q, \quad \neg Q \vee R}{\neg P \vee R} \quad \text{(Resolution Rule)}
+\end{align}
+
+\subsection{Expert Systems}
+MYCIN (Shortliffe, 1976) demonstrated rule-based reasoning for medical diagnosis, inspiring engineering systems like XCON for configuring computer systems. Rules follow:
+\begin{align}
+\text{IF } \text{Condition}_1 \land \text{Condition}_2 \rightarrow \text{Action}
+\end{align}
+
+\subsection{Search Algorithms}
+A* search (Hart et al., 1968) optimizes paths using heuristics \( h(n) \):
+\begin{align}
+f(n) = g(n) + h(n)
+\end{align}
+where \( g(n) \) is the path cost and \( h(n) \) is admissible (never overestimates).
+
+% Section 2: Relevance to Modern GenAI
+\section{Symbolic AI in the Generative AI Era}
+\label{sec:genai}
+Modern GenAI (e.g., LLMs) struggles with structured reasoning, necessitating hybrid approaches:
+
+\subsection{Bridging Hallucinations with Knowledge Graphs (KGs)}
+KGs ground LLMs in factual triples \((h, r, t)\) (e.g., \textit{(Steel, hasDensity, 8,050 kg/m³)}). Google’s Gemini uses KGs to reduce hallucinations by 40\% in technical domains.
+
+\subsection{Constraint Solvers for Logical Consistency}
+Neuro-symbolic systems like Microsoft’s Minerva integrate transformers with satisfiability modulo theories (SMT):
+\begin{align}
+\text{SMT-Lib: } (declare-fun x () Int) \quad (assert (> x 0))
+\end{align}
+
+% Section 3: AI for 21st Century Engineering
+\section{Engineering Demands Hybrid AI}
+\label{sec:engineering}
+Modern engineering requires integrating physical laws, simulations, and collaboration:
+
+\subsection{Physics-Informed Neural Networks (PINNs)}
+Raissi et al. (2019) enforce PDE constraints on ML models:
+\begin{align}
+\mathcal{L} = \underbrace{\frac{1}{N} \sum_{i=1}^N |y_i - \hat{y}_i|^2}_{\text{Data Loss}} + \lambda \underbrace{|\nabla \hat{y} - f(\hat{y})|^2}_{\text{Physics Loss}}
+\end{align}
+
+\subsection{Multi-Agent Systems for Collaboration}
+Distributed constraint optimization (DCOP) coordinates teams:
+\begin{align}
+\max \sum_{a_i \in A} U_i(a_i), \quad \text{s.t. } C_{ij}(a_i, a_j) \leq 0
+\end{align}
+
+% Section 4: Neuro-Symbolic AI
+\section{Neuro-Symbolic AI: Architecture and Impact}
+\label{sec:neurosym}
+Neuro-symbolic AI unifies neural networks (pattern recognition) and symbolic systems (reasoning):
+
+\subsection{Architectural Frameworks}
+\begin{itemize}
+\item \textbf{Neural-Guided Symbolic Reasoning}: LLMs propose candidate solutions, validated by symbolic solvers (e.g., Codex + Python interpreter).
+\item \textbf{Symbolic Knowledge Distillation}: Extract rules from neural models (e.g., DeepMind’s Tracr compiles programs to neural weights).
+\end{itemize}
+
+\subsection{Logical Neural Networks (LNNs)}
+IBM’s LNNs (Riegel et al., 2020) unify logic and gradients:
+\begin{align}
+\sigma(w \cdot \text{AND}(x, y) + b) \quad \text{(Differentiable Logic Gates)}
+\end{align}
+
+% Section 5: Top 3 Symbolic AI Methods
+\section{Top 3 Symbolic AI Methods for Engineering}
+\label{sec:top3}
+\begin{enumerate}
+\item \textbf{Knowledge Graphs (KGs) with Graph Neural Networks} \\
+Integrate KGs (e.g., Neo4j) with GNNs for relational reasoning:
+\begin{align}
+h_v^{(k)} = \sigma\left(W^{(k)} \cdot \text{AGGREGATE}(\{h_u^{(k-1)}, \forall u \in \mathcal{N}(v)\})\right)
+\end{align}
+
+\item \textbf{Constraint Programming (CP)} \\
+Solve NP-hard scheduling via MiniZinc:
+\begin{align}
+% \text{var 1..n: x; constraint alldifferent([x_1, ..., x_n]);}
+\end{align}
+
+\item \textbf{Automated Planning with STRIPS} \\
+Define engineering workflows as \( \langle P, A, I, G \rangle \):
+\begin{align}
+\text{Action: } \text{Preconditions} \rightarrow \text{Effects}
+\end{align}
+\end{enumerate}
+
+% Summary
+\section{Summary}
+Hybrid neuro-symbolic AI is critical for engineering’s future, combining GenAI’s adaptability with symbolic rigor. Prioritize KGs, constraint solvers, and automated planning to address safety, scalability, and collaboration.
+
+% References
+\bibliographystyle{unsrt}
+\bibliography{topic16-references}
+
+\end{document}

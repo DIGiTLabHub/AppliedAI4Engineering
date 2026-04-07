@@ -14,6 +14,10 @@
 
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{booktabs} 
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
 
 \usepackage{tabulary}
 \usepackage{multirow}
@@ -34,10 +38,454 @@
 \begin{document}
 \doublespacing	
 
-\title{CE 401/5501: Applied AI \\ \large Topic 15: Deep Learning - Convolutional Neural Networks and Transformers}
+\title{CE 401/5501: Applied AI \\ \large Topic 17: Introduction to Large Language Models}
 \author{Dr. ZhiQiang Chen}
 \date{}
 \maketitle
+
+
+\subsection{Understanding Generative AI: Inductive vs Deductive Reasoning}
+\subsubsection{General Comments}
+Generative AI (GenAI) models, such as large language models (LLMs) and vision models, which are dominating amid all the state-of-the-art AI advances today. These models, trained on very large (vast volume of) datasets with deep-learning models containing billions (even trillions) of parameters, lead to the so-called `foundational' models. Representative model architectures include:
+\begin{itemize}
+    \item \textbf{Generative Adversarial Networks (GANs):} Ideal for generating realistic images and videos.
+    \item \textbf{Variational Autoencoders (VAEs):} Useful for data compression and generation.
+    \item \textbf{Transformers (e.g., GPT, DALL-E, Stable Diffusion):} Excels in generating text, images, and multi-modal content.
+\end{itemize}
+Roughly speaking, in terms of architectures, they belong to `Deep Learning' in Figure~\ref{lec_01_fig03}. 
+
+
+To this end, the excitement (or hype) around these foundational models is due to that, compared with classic ML/AI (small) models, a set of new inference \footnote{Inference means a process that we use a trained and tested AI model to make prediction.} capabilities appear, which include:
+\begin{itemize}
+    \item Zero-shot learning and generation: using LLMs and LVMs to answer questions including textual and imagery (video) generation, a process called `prompting' today.
+    \item Knowledge representation and curation: using LLMs to process and understand documents that `contain' knowledge due to LLM's underlying capabilities of semantically embedding and connecting textual tokens and representing them as graphs.
+    \item LLMs or LVMs as Intelligent Agents leading to AI Agentic Workflow. Such agentic workflow approach, as many asserted, can transform how AI solutions work together, work with other non-AI processes, and work with people; for more see this video \href{https://www.youtube.com/watch?v=KrRD7r7y7NY}{link} presented by Andrew Ng. 
+    \item Emergence of `reasoning': by adopting structuralized and logical `promptings', termed chains of thoughts (CoT) (a human-in-the-loop) process and exploiting reinforcement learning, recent LLMs (e.g., \href{https://en.wikipedia.org/wiki/OpenAI_o3}{GPT O3}) shows signs of (deduction-like) reasoning, for example, conducting mathematical proof for hard problems (i.e., \href{https://epoch.ai/frontiermath}{FrontierMath}). 
+\end{itemize}
+
+
+Particularly for the last 'Emergent Reasoning', it's a debatable matter if it mimics human-like logic reasoning as we do (deductive) proof or evidence-based decision-making (inductive), or combined. Herein the prompted feedback from GPT O1 is documented in the Appendix
+
+\subsection{Nature of Large Foundational AI Models}
+Generative AI models, particularly large language models (LLMs) and large vision models (LVMs), predominantly rely on transformer-based deep neural network architectures during their learning phase. These architectures excel at identifying and generalizing patterns from vast datasets, which forms the core of their inductive reasoning capabilities. In addition to the foundational training, these models undergo significant human-based tuning and reinforcement learning (e.g., \href{https://arxiv.org/abs/1706.03741}{RLHF}) to refine their responses and align their behavior with human expectations.
+
+Technically, despite their impressive capabilities, these foundational models remain fundamentally data-driven systems. Their reasoning and output generation are grounded in probabilistic associations derived from the massive datasets they are trained on, rather than \textit{symbolic understanding} as we (human beings) do in logical (deductive or much advanced) reasoning. Emerging deductive reasoning abilities during the inference of applying these models, such as solving structured logical tasks (e.g., mathematical proofs), are limited, still lacking theoretic explanation (for some deeper explanation, see this \href{https://arxiv.org/abs/2206.07682}{reference}).
+
+\section{What is next in AI?}
+Just in terms of AI advances, what is the next? AI scientists and industry leaders talk about `strong AI' or \href{https://en.wikipedia.org/wiki/Superintelligence}{`Artificial Super Intelligence'}. Overall, Artificial Super-Intelligence (ASI) is commonly defined as a form of intelligence surpassing human capabilities in all domains, including reasoning, creativity, and problem-solving. The central hypothesis is that if a generative AI can assimilate the breadth of human knowledge - much of it stored in language - it might emulate or even exceed human-level reasoning.
+
+Regardless its technical challenges (e.g., does the scaling law - scaling up the model size and training data size - have a limit?), the potential realization of ASI raises both ethical and practical issues. Ethically, it prompts us to consider how best to ensure that ASI’s objectives remain aligned with our values and interests. On a practical level, the ability to draw on comprehensive repositories of information means that ASI could revolutionize virtually every human endeavor. Yet this prospect also introduces concerns around the possibility of reasoning so advanced that it outstrips our capacity to understand or guide it. Echoing these anxieties,  \href{https://www.bbc.com/news/technology-30290540}{Stephen Hawking famously warned}, “The development of full artificial intelligence could spell the end of the human race" in 2014, much ahead of the current AI `hype'. 
+
+\newpage
+
+\section{Classical NLP: Pre-Transformer Era}
+
+\subsection{Early Machine Translation Vision}
+
+In 1949, Warren Weaver drew an analogy between language translation and cryptography, suggesting that text could be “decoded” in the same way that secret messages are deciphered.  He proposed leveraging Shannon’s information theory to measure and manage the uncertainty inherent in language, planting the seeds for statistical approaches to translation.
+
+\begin{itemize}
+  \item \textbf{Weaver’s Memorandum (1949)}  
+    Viewed translation as the noisy‐channel problem:  
+    \[
+      \hat{e} = \arg\max_{e} P(e \mid f)
+             = \arg\max_{e} P(f \mid e)\,P(e),
+    \]
+    where \(f\) is the foreign sentence and \(e\) the English candidate.  
+  \item \textbf{Georgetown–IBM Experiment (1954)}  
+    Demonstrated automatic translation of over sixty Russian sentences into English using rule‐based mappings; measured success as a proof of concept for machine translation.
+\end{itemize}
+
+\subsection{Rule-Based and Linguistic Models}
+
+Throughout the 1960s and 1970s, researchers built systems grounded in linguistic theory and handcrafted rules:
+
+\begin{itemize}
+  \item \textbf{Generative Grammar} (Chomsky):  
+    Defined a small set of production rules to generate all (and only) the grammatical sentences of a language.
+  \item \textbf{Expert Systems and Symbolic Parsers}:  
+    \begin{itemize}
+      \item Hand‐crafted lexicons and grammar rules.  
+      \item Feature unification for agreement (e.g.\ number, gender).  
+    \end{itemize}
+  \item \textbf{Limitations}:  
+    \begin{itemize}
+      \item \emph{Brittleness}: small rule changes could break system behavior.  
+      \item \emph{Resource‐Intensive}: required extensive linguistic expertise and manual effort.  
+    \end{itemize}
+\end{itemize}
+
+\subsection{Statistical NLP Emergence}
+
+By the 1980s and 1990s, large text corpora became available, shifting research toward data-driven methods:
+
+\begin{itemize}
+  \item \textbf{N‐gram Language Models}:  
+    \[
+      P(w_1^T) \approx \prod_{t=1}^T P(w_t \mid w_{t-n+1}^{t-1}),
+    \]
+    estimated from corpus frequencies with smoothing techniques (e.g.\ Laplace, Kneser-Ney).
+  \item \textbf{Hidden Markov Models (HMMs)}:  
+    Used for tasks such as Part-of-Speech tagging and speech recognition.  
+    \[
+      P(\mathbf{x},\mathbf{y})
+      = \prod_{t=1}^T P(y_t \mid y_{t-1})\,P(x_t \mid y_t),
+    \]
+    learned via the Baum–Welch (EM) algorithm.
+  \item \textbf{IBM Models 1–5} (Brown \emph{et al.}, 1993):  
+    Statistical models of word alignment in bilingual corpora, introducing concepts such as fertility and distortion (reordering).
+  \item \textbf{Phrase-Based SMT} (Koehn \emph{et al.}, 2003):  
+    Extended IBM Models to translate contiguous phrases rather than single words, improving fluency and context.
+\end{itemize}
+
+\subsection{Neural NLP Emergence}
+
+The turn of the millennium saw the rise of neural methods in NLP:
+
+\begin{itemize}
+  \item \textbf{Recurrent Neural Networks (RNNs)}:  
+    Modeled sequence data but suffered from vanishing/exploding gradients over long contexts.
+  \item \textbf{Long Short-Term Memory (LSTM)} (Hochreiter \& Schmidhuber, 1997):  
+    Introduced gating mechanisms to mitigate vanishing gradients, enabling modeling of longer dependencies.
+  \item \textbf{Sequence-to-Sequence with Attention} (Sutskever \emph{et al.}, 2014; Bahdanau \emph{et al.}, 2015):  
+    Encoder–decoder architecture with attention allowed the model to focus on relevant source positions during decoding, dramatically improving neural machine translation.
+\end{itemize}
+
+\subsection{Historical Timeline of Key Milestones}
+
+\begin{center}
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Year} & \textbf{Event} & \textbf{Notes} \\
+    \midrule
+    1949  & Weaver’s Memorandum        & Proposed noisy-channel view of MT. \\
+    1954  & Georgetown–IBM experiment  & First rule-based Russian–English MT. \\
+    1960s & Rule-Based Era             & Chomskyan grammars, expert systems. \\
+    1980s & Statistical NLP            & N-gram models, HMMs for POS tagging. \\
+    1993  & IBM Models 1–5             & Word‐alignment via EM. \\
+    1997  & LSTM                       & Gating solves long-term dependencies. \\
+    2003  & Phrase-based SMT           & Phrase translate improves fluency. \\
+    2014  & Seq2Seq + Attention        & Neural MT breakthrough. \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\section{Basics of Transformer-based Large Language Models}
+
+\subsection{Why Large Language Models?}
+
+Large Language Models (LLMs) represent a paradigm shift from task-specific neural architectures to a unified, general-purpose approach.  By training once on massive text corpora with a simple next-token objective, they capture syntax, semantics, and factual knowledge in a single model.  Key motivations include:
+
+\begin{itemize}
+  \item \textbf{From Task-Specific to General-Purpose.}  
+    Earlier RNN/LSTM/Seq2Seq models required bespoke architectures and datasets for each task (e.g.\ translation, summarization, question answering).  LLMs instead learn a single conditional language model:
+    \[
+      P_\theta(x_t \mid x_{<t})\,,
+    \]
+    which can be adapted to diverse tasks via prompting or fine-tuning.
+  \item \textbf{Unified Pretraining Paradigm.}  
+    Unsupervised pretraining on web-scale text imbues the model with broad linguistic and world knowledge, eliminating the need for task-specific data collection in many settings.
+  \item \textbf{Emergent Capabilities.}  
+    At sufficient scale, simple next-token prediction yields zero- and few-shot learning abilities, in-context adaptation, and cross-task generalization that were not explicitly programmed.
+  \item \textbf{Self-Attention Backbone.}  
+    The Transformer’s self-attention mechanism is fully parallelizable and models long-range dependencies, making it the enabler of all modern LLMs.
+\end{itemize}
+
+\subsection{Scale \& Benchmark Performance}
+
+Empirical studies show a strong correlation between model scale (parameters and compute) and performance on challenging benchmarks.  Table~\ref{tab:llm_performance} summarizes major open and closed LLMs evaluated on the MMLU (Massive Multitask Language Understanding) benchmark in 5-shot settings.
+
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Model}      & \textbf{Parameters} & \textbf{MMLU (5-shot)} \\
+    \midrule
+    GPT-3               & 175 B               & 46.4 \% \\
+    Chinchilla          & 70 B                & 67.5 \% \\
+    PaLM                & 540 B               & 69.3 \% \\
+    LLaMA (65 B)        & 65 B                & 63.4 \% \\
+    GPT-4               & 1.76 T              & 86.4 \% \\
+    \bottomrule
+  \end{tabular}
+  \caption{Scale and MMLU performance of major LLMs.}
+  \label{tab:llm_performance}
+\end{table}
+
+\subsection{Architecture Workflow}
+
+At inference time, an LLM executes the following pipeline:
+
+\begin{enumerate}
+  \item \textbf{Tokenization:} raw text is split into subword tokens (e.g.\ BPE or WordPiece).  
+  \item \textbf{Embedding \& Positional Encoding:} each token is mapped to a dense vector and augmented with positional information.  
+  \item \textbf{Stacked Transformer Blocks:} repeated layers of multi-head self-attention and feedforward sublayers process the sequence in parallel.  
+  \item \textbf{Output Head:} a linear layer with softmax over the vocabulary produces next-token probabilities.  
+  \item \textbf{Autoregressive Loop:} the chosen token is appended to the context, and the process repeats.
+\end{enumerate}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[>=stealth,font=\small]
+    \tikzset{box/.style={
+      draw, rounded corners, minimum width=2.5cm, minimum height=0.7cm, align=center
+    }}
+    \node[box] (input)       at (0,0)        {Raw Text\\(Prompt + Context)};
+    \node[box] (token)       at (0,-1)       {Tokenization};
+    \node[box] (embed)       at (0,-2)       {Embeddings + Positional Encoding};
+    \node[box] (transformer) at (3,-2)       {Transformer Blocks (×N)};
+    \node[box] (head)        at (3,-3)       {Linear + Softmax};
+    \node[box] (output)      at (6,-2.5)     {Next-Token Probabilities};
+    \draw[->] (input) -- (token) -- (embed) -- (transformer) -- (head) -- (output);
+    \draw[dashed,->] (output) -- (transformer);
+  \end{tikzpicture}
+  \caption{High-level LLM inference workflow; dashed arrow shows autoregressive feedback.}
+\end{figure}
+
+\subsection{Tokenization}
+
+Tokenization converts raw strings into discrete subword units.  Byte-Pair Encoding (BPE) is a common method:
+
+\[
+  \text{“ChatGPT revolutionizes NLP.”}
+  \;\longrightarrow\;
+  [\text{Chat},\,\text{GP},\,\text{T},\,\text{ revolution},\,\text{izes},\,\text{ NLP},\,\text{.}].
+\]
+
+BPE merges the most frequent symbol pairs in a data-driven manner, balancing vocabulary size against coverage.
+
+\subsection{Embeddings}
+
+Each token $x_i\in\{1,\dots,|\mathcal V|\}$ is represented by a $d$-dimensional vector via a lookup in the embedding matrix:
+\[
+  \mathbf{e}_i \;=\; E\,\mathrm{one\_hot}(x_i),
+  \quad
+  E\in\mathbb{R}^{|\mathcal V|\times d}.
+\]
+Modern GPT-style models may use $|\mathcal V|\approx50\,257$ and $d=12\,288$, implying $\sim619$ million parameters purely in the embedding layer.
+
+\subsection{Embedding Dimension \& Sparsity}
+
+\begin{itemize}
+  \item \textbf{Large $d$ for Nuance:} High dimension allows embeddings to encode syntax, semantics, and factual associations.  
+  \item \textbf{Manifold Concentration:} Although $\mathcal V$ is tiny relative to the $2^{16d}$ representable points in $\mathbb R^d$, token vectors lie on a low-dimensional manifold with near-orthogonality (avg.\ cosine $\approx0.02$).
+  \item \textbf{Trade-Off:} Increasing $d$ boosts representational capacity but also compute and memory costs.
+\end{itemize}
+
+\subsection{Transformer Overview}
+
+Transformers dispense with recurrence and convolutions in favor of attention:
+
+\begin{itemize}
+  \item \textbf{Variants:} Encoder-only (e.g.\ BERT), decoder-only (e.g.\ GPT), and encoder-decoder (e.g.\ T5).  
+  \item \textbf{GPT:} a stack of $N$ decoder-only blocks, each containing self-attention and feedforward sublayers with residual connections and layer normalization.
+\end{itemize}
+
+\subsection{Self-Attention Mechanism}
+
+For input matrix $X\in\mathbb R^{T\times d}$, define
+\[
+  Q = XW^Q,\quad K = XW^K,\quad V = XW^V,
+\]
+then
+\[
+  \mathrm{Attention}(Q,K,V)
+  = \mathrm{softmax}\!\bigl(\tfrac{QK^\top}{\sqrt{d_k}}\bigr)\,V.
+\]
+Multi-head attention splits $d$ into $H$ heads ($d_k=d/H$) and concatenates their outputs:
+\[
+  \mathrm{MultiHead}(X)
+  = \mathrm{Concat}(\dots)\,W^O.
+\]
+
+\subsection{Feedforward \& Residual Layers}
+
+Each block also contains a position-wise MLP:
+\[
+  \mathrm{FFN}(X)
+  = W_2\,\mathrm{GELU}(W_1X + b_1) + b_2,
+\]
+and applies residual connections plus layer normalization at each sublayer to stabilize training.
+
+\subsection{Pre-training \& Fine-tuning}
+
+\begin{itemize}
+  \item \textbf{Pre-training:} minimize
+    \(\displaystyle \mathcal{L} = -\sum_{t=1}^T\log P_\theta(x_t\mid x_{<t})\)
+    on large unlabeled text corpora.
+  \item \textbf{Fine-tuning:} minimize
+    \(\displaystyle -\sum_{(x,y)\in\mathcal D}\log P_\theta(y\mid x)\)
+    on supervised datasets for specific tasks.
+  \item \textbf{Adapters/LoRA:} parameter-efficient methods that tune only small modules rather than the full model.
+\end{itemize}
+
+\subsection{Inference \& Generation}
+
+Decoding strategies include:
+
+\begin{itemize}
+  \item \emph{Greedy:} pick $\arg\max$ at each step.
+  \item \emph{Beam Search:} maintain top $B$ hypotheses.
+  \item \emph{Top-$k$/nucleus:} sample from the top‐$k$ or top-$p$ cumulative mass.
+  \item \textbf{Temperature Scaling:}
+    \[
+      P_T(v)\propto \exp\!\Bigl(\tfrac{\log P(v)}{T}\Bigr).
+    \]
+\end{itemize}
+
+\subsection{Key Properties \& Limitations}
+
+\begin{description}
+  \item[Strengths:] large context windows (up to 100 k tokens), zero-/few-shot learning, in-context adaptation.
+  \item[Limitations:] fixed maximum context length, hallucinations, data biases, high training and update costs (\$1–5 M to train from scratch).
+  \item[Ongoing Challenges:] interpretability, continual learning, alignment with human values.
+\end{description}
+
+
+\section{Knowledge Representation \& Prompt Engineering}
+
+\subsection{Why Study Knowledge Representation?}
+
+Large Language Models do not store facts in discrete databases or rule‐sets.  Instead, all knowledge—grammar, world facts, reasoning patterns—is \emph{implicitly} encoded in billions of learned parameters.  Understanding this has three key implications:
+
+\begin{itemize}
+  \item \textbf{Reliability \& Explainability.}  
+    Since there is no explicit “fact table,” outputs may be hard to trace back to a single source.  
+  \item \textbf{Prompt Effectiveness.}  
+    Knowing that the model retrieves knowledge via pattern matching in weight space helps us craft prompts that surface the desired information.  
+  \item \textbf{Editing \& Control.}  
+    Targeted fact‐editing requires specialized methods (e.g.\ ROME, MEMIT) because individual weights cannot be modified by simple rule updates.
+\end{itemize}
+
+\subsection{Implicit Knowledge in Parameters}
+
+\begin{itemize}
+  \item All learned weights—embeddings, attention matrices, feed‐forward parameters—collectively encode linguistic structures and factual associations.
+  \item There is no discrete “lookup table” of facts: knowledge is \emph{distributed} across many parameters.
+  \item This distribution yields strong generalization but makes precise fact editing and debugging challenging.
+  \item Research into \emph{model editing} methods (e.g.\ ROME, MEMIT) aims to locate and adjust the subnetwork responsible for a given fact.
+\end{itemize}
+
+\subsection{Distributed vs.\ Symbolic Representations}
+
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{p{0.45\linewidth} p{0.45\linewidth}}
+    \toprule
+    \textbf{LLM / Distributed} & \textbf{Classic AI / Symbolic} \\
+    \midrule
+    Knowledge embedded in dense weight vectors  
+      & Explicit rules, logic chains, ontologies \\
+    Robust to input noise; graceful degradation  
+      & Transparent reasoning; easy to audit \\
+    Difficult to pinpoint or edit individual facts  
+      & Brittle when rules conflict or are incomplete \\
+    Learns from raw data; minimal manual encoding  
+      & Requires extensive hand‐crafting by experts \\
+    \bottomrule
+  \end{tabular}
+  \caption{Comparison of distributed versus symbolic knowledge representations.}
+\end{table}
+
+\subsection{Prompt Engineering Workflow}
+
+A systematic approach to designing effective prompts:
+
+\begin{enumerate}
+  \item \textbf{Define Objective.}  
+    State the task clearly (e.g.\ “Summarize the following text in three bullet points.”).  
+  \item \textbf{Provide Context.}  
+    Include any necessary background, definitions, or examples.  
+  \item \textbf{Set Constraints.}  
+    Specify style, tone, length, or output format (e.g.\ JSON schema).  
+  \item \textbf{Add Examples.}  
+    Use few‐shot in‐context examples to demonstrate the desired format or reasoning steps.  
+  \item \textbf{Iterate \& Refine.}  
+    Test, examine errors or unwanted behaviors, and adjust prompt phrasing or structure.
+\end{enumerate}
+
+\subsection{Best Practices for Prompting}
+
+\begin{itemize}
+  \item Use clear, unambiguous language: avoid slang or idioms unless intentional.
+  \item Break down complex tasks into step‐by‐step instructions.
+  \item Provide both positive and negative examples when useful (e.g.\ show what \emph{not} to do).
+  \item Specify exact output structure (e.g.\ “Return a JSON object with keys \texttt{title} and \texttt{summary}”).
+  \item Keep prompts concise: excessive context can dilute the model’s focus.
+  \item Experiment with phrasing (synonyms, reordering) to discover the most reliable formulation.
+\end{itemize}
+
+\subsection{Retrieval-Augmented Generation (RAG)}
+
+\begin{itemize}
+  \item \textbf{Retrieval Stage:}  
+    Use sparse (e.g.\ BM25) or dense (e.g.\ FAISS) search to fetch $k$ relevant documents from an external corpus.
+  \item \textbf{Augmentation Stage:}  
+    Insert the retrieved passages into the prompt to ground the model’s generation and reduce hallucinations.
+  \item \textbf{Generation Stage:}  
+    The LLM conditions on both the user query and retrieved context to produce a more factual response.
+  \item \textbf{Common Tools:}  
+    LangChain, LlamaIndex, Hugging Face RAG library.
+\end{itemize}
+
+\paragraph{Example}
+\begin{verbatim}
+Prompt:
+“Using the context below, answer the question.
+Context: ‘Mount Everest, at 8,848 m above sea level, is located on the border of Nepal and China.’
+Question: What is the tallest mountain in the world?”
+\end{verbatim}
+
+\subsection{Chain-of-Thought Prompting}
+
+Chain-of-Thought (CoT) prompts encourage the model to reveal intermediate reasoning steps:
+
+\begin{itemize}
+  \item Provide few-shot examples that explicitly show each reasoning step.
+  \item Use zero-shot triggers like “Let’s think step by step” to prompt internal decomposition.
+  \item Empirically improves accuracy on multi‐step tasks such as math, logic puzzles, and planning.
+\end{itemize}
+
+\paragraph{Example}
+\begin{verbatim}
+“Let’s think step by step:
+1. Each pencil costs $2.
+2. Number of pencils = 7.
+3. Total cost = 2 × 7 = 14.
+Answer: $14.”
+\end{verbatim}
+
+\section{Conclusion \& Next Steps}
+
+\begin{frame}{Conclusion Remarks}
+  \begin{itemize}
+    \item \textbf{Evolution of NLP:}  
+      From rule-based systems (Chomsky, expert systems) through statistical methods (n-grams, HMMs, IBM Models, phrase-based SMT) to neural sequence models (RNNs, LSTMs, Seq2Seq+Attention) and today’s Transformer-based LLMs.
+    \item \textbf{Transformer Impact:}  
+      Self-attention enabled fully parallel training, long-range context modeling, and emergent zero-/few-shot capabilities, powering models like GPT-4.
+    \item \textbf{LLM Inference Workflow:}  
+      Tokenization → Embeddings (+Positional Encodings) → Stacked Transformer Blocks → Softmax Head → Autoregressive Decoding.
+    \item \textbf{Knowledge Representation:}  
+      Facts and reasoning patterns are \emph{implicitly} distributed across billions of parameters—robust generalization but challenging to trace or edit.
+    \item \textbf{Prompt Engineering:}  
+      Clear objectives, context, constraints, and examples are essential. Advanced techniques (RAG, Chain-of-Thought) enhance factuality and multi-step reasoning.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Next Steps \& Hands-On}
+  \begin{enumerate}
+    \item \textbf{Prompt Design Exercises:}  
+      Experiment with few-shot and zero-shot prompts on tasks like summarization, Q\&A, and translation.
+    \item \textbf{Build a RAG Pipeline:}  
+      Index a custom corpus (e.g.\ PDF articles), retrieve relevant passages, and ground LLM responses.
+    \item \textbf{Explore Model Editing:}  
+      Try parameter‐efficient fine-tuning (LoRA, adapters) and fact-editing methods (ROME, MEMIT).
+    \item \textbf{Multimodal Extensions:}  
+      Investigate vision-language models (e.g.\ CLIP, Visual LLMs) and how they integrate non-textual inputs.
+    \item \textbf{Ethics \& Alignment:}  
+      Discuss bias, hallucinations, and human-in-the-loop alignment strategies.
+  \end{enumerate}
+\end{frame}
 
 
 \end{document}
