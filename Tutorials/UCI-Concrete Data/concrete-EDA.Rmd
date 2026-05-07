@@ -1,0 +1,334 @@
+---
+title: "Untitled"
+output:
+  word_document: default
+  html_document: default
+date: "2024-01-08"
+---
+
+```{r }
+df_conc=read.csv('Concrete_Data1.csv')
+head(df_conc)
+```
+
+```{r}
+str(df_conc)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r }
+lm_model <- lm(Concrete.strength ~ ., data = df_conc)
+summary(lm_model)
+plot(lm_model)
+```
+```{r }
+boxplot(df_conc$Concrete.strength ~ df_conc$Age.days., xlab = "Age in days", ylab = "Concrete Strength", main = "Concrete Strength vs. Age")
+```
+```{R fig.width=12}
+pairs(df_conc)
+
+```
+
+```{R }
+library(randomForest)  # or any other package used for modeling
+rf_model <- randomForest(Concrete.strength ~ ., data = df_conc)
+varImpPlot(rf_model)
+
+
+```
+```{r }
+library('ggplot2')
+ggplot(df_conc, aes(x = Cement, y = Concrete.strength)) +
+  geom_point() +
+  labs(x = "Cement", y = "Concrete Strength") +
+  theme_minimal()
+
+```
+```{r }
+
+ggplot(df_conc, aes(x = Water, y = Concrete.strength)) +
+  geom_point() +
+  labs(x = "Water", y = "Concrete Strength") +
+  theme_minimal()
+
+```
+```{r }
+ggplot(df_conc, aes(x = Age.days., y = Concrete.strength)) +
+  geom_point() +
+  labs(x = "Age (days)", y = "Concrete Strength") +
+  theme_minimal()
+
+```
+```{r }
+ggplot(df_conc, aes(x = Superplasticizer, y = Concrete.strength)) +
+  geom_point() +
+  labs(x = "Superplasticizer", y = "Concrete Strength") +
+  theme_minimal()
+
+
+```
+```{R }
+library(ggplot2)
+library(scales)
+
+# Set the range for the x-axis (Age.days.) and the break point
+range_days <- c(0, 400)
+break_point <- 50
+
+ggplot(df_conc, aes(x = Age.days., y = Cement, color = Concrete.strength)) +
+  geom_point(size = 3) +  # Use point size for visibility
+  scale_x_continuous(limits = range_days, breaks = seq(0, range_days[2], by = break_point)) +
+  scale_color_gradient(low = "tan", high = "darkred", guide = "legend") +
+  labs(x = "Age (days)", y = "Cement (kg in a m^3 mixture)", color = "Concrete Strength (Mpa)") +
+  theme_minimal()
+
+```   
+```{r  fig.width=9}
+library(ggplot2)
+# Set the range for the x-axis (Age.days.) and the break point
+range_days <- c(0, 400)
+break_point <- 50
+
+ggplot(df_conc, aes(x = Age.days., y = Cement, color = Concrete.strength)) +
+  geom_point(size = 3) +  # Use point size for visibility
+  scale_x_continuous(limits = range_days, breaks = seq(0, range_days[2], by = break_point)) +
+  scale_color_gradient(low = "tan", high = "darkred", guide = "legend") +
+  labs(x = "Age (days)", y = "Cement (kg in a m^3 mixture)", color = "Concrete Strength (MPa, megapascals)") +
+  geom_smooth(aes(y = Water), method = "loess", se = FALSE, color = 'steelblue', size = 1.5) +
+  theme_minimal()
+```
+```{r fig.width=10}
+library(ggplot2)
+
+ggplot(df_conc, aes(x = Cement, y = Concrete.strength, color = Water, size = Water)) +
+  geom_point() +
+  labs(x = "Cement (kg in a m^3 mixture)", y = "Concrete Strength (Mpa megapascals)", color = "Water", size = "Water") +
+  scale_size_continuous(guide = FALSE) +  # Remove size legend
+  guides(color = guide_legend(title = "Water (kg in a m^3 mixture) ")) +  # Set a single legend for color
+  theme_minimal()
+
+
+```
+
+```{r }
+ggplot(df_conc, aes(x = Cement, y = Concrete.strength, color = Water, size = Water)) +
+  geom_point() +
+  geom_smooth(aes(x = Cement, y = Superplasticizer), method = "auto", se = FALSE, color = "red", linetype = "dashed") +
+  labs(x = "Cement", y = "Concrete Strength", color = "Water", size = "Water") +
+  scale_size_continuous(guide = FALSE) +  # Remove size legend
+  guides(color = guide_legend(title = "Water")) +  # Set a single legend for color
+  theme_minimal()
+
+```
+```{r }
+
+```
+
+```{r }
+ggplot(df_conc, aes(x = Cement, y = Concrete.strength, color = Fly.Ash, size = Fly.Ash)) +
+  geom_point() +
+  labs(x = "Cement", y = "Concrete Strength", color = "Fly Ash", size = "Fly Ash") +
+  scale_size_continuous(guide = FALSE) +  # Remove size legend
+  guides(color = guide_legend(title = "Fly Ash")) +  # Set a single legend for color
+  theme_minimal()
+
+
+```
+```{r fig.width=10}
+
+library(ggplot2)
+
+ggplot(df_conc, aes(x = Cement, y = Concrete.strength, color = Fly.Ash)) +
+  geom_point() +
+  scale_color_gradient(low = "lightgrey", high = "darkslategrey", name = "Fly Ash") +
+  scale_size_continuous(range = c(2, 8), name = "Fly Ash") +
+  labs(x = "Cement (kg in a m^3 mixture)", y = "Concrete Strength (MPa, megapascals) ") +
+  theme_minimal()
+# Define intervals for Concrete Strength
+df_conc$Strength_Group <- cut(df_conc$Concrete.strength, breaks = c(0, 30, 50, 70, max(df_conc$Concrete.strength)), labels = c("<30", "30-50", "50-70", ">=70"))
+
+# Calculate mean Cement and Fly Ash for each interval of Concrete Strength
+aggregate_cement_flyash <- aggregate(cbind(Cement, Fly.Ash) ~ Strength_Group, data = df_conc, FUN = mean)
+
+# Create a bar plot for Cement and Fly Ash on different intervals of Concrete Strength
+barplot(t(aggregate_cement_flyash[, c("Cement", "Fly.Ash")]), beside = TRUE, 
+        col = c("darkslategrey", "gray"), 
+        names.arg = aggregate_cement_flyash$Strength_Group, 
+        main = "Mean Cement and Fly Ash on Different Strength Intervals",
+        xlab = "Concrete Strength Intervals (MPa, megapascals) ", ylab = "Mean Value of Cemennt & FlyAsh")
+
+legend("topright", legend = c("Cement", "Fly Ash"), fill = c("darkslategrey", "gray"))
+
+
+
+```
+```{r }
+# Sorting the data by Concrete.strength for proper line plotting
+df_conc <- df_conc[order(df_conc$Concrete.strength), ]
+
+# Plotting lines for Water and Superplasticizer against Concrete.strength
+matplot(df_conc$Concrete.strength, 
+        cbind(df_conc$Water, df_conc$Superplasticizer),
+        type = "l", lty = 1, col = c("blue", "red"),
+        xlab = "Concrete Strength", ylab = "Value",
+        main = "Lines for Water and Superplasticizer against Concrete Strength")
+
+# Adding legend
+legend("topright", legend = c("Water", "Superplasticizer"), 
+       col = c("blue", "red"), lty = 1)
+
+```
+```{r}
+# Define colors based on Superplasticizer values
+colors <- ifelse(df_conc$Superplasticizer < 2, "green", 
+           ifelse(df_conc$Superplasticizer >= 2 & df_conc$Superplasticizer < 4, "blue", "darkorange"))
+
+# Scatter plot of Superplasticizer against Water with colored points
+plot(df_conc$Superplasticizer, df_conc$Water, 
+     xlab = "Superplasticizer (kg in a m^3 mixture)", ylab = "Water (kg in a m^3 mixture)",
+     main = "Relationship between Superplasticizer and Water",
+     col = colors)
+
+# Adding a trend line
+abline(lm(df_conc$Water ~ df_conc$Superplasticizer), col = "red")
+
+# Adding a legend
+legend("topright", legend = c("< 2", "2 - 4", ">= 4"), col = c("green", "blue", "darkorange"), pch = 2,
+       title = "Superplasticizer Range")
+
+
+```
+```{r  fig.width= 10}
+# Define intervals for Concrete Strength
+df_conc$Strength_Group <- cut(df_conc$Concrete.strength, breaks = c(0, 30, 50, 70, max(df_conc$Concrete.strength)), labels = c("<30", "30-50", "50-70", ">=70"))
+
+# Calculate mean Cement and Fly Ash for each interval of Concrete Strength
+aggregate_cement_flyash <- aggregate(cbind(Cement, Fly.Ash) ~ Strength_Group, data = df_conc, FUN = mean)
+
+# Create a bar plot for Cement and Fly Ash on different intervals of Concrete Strength
+barplot(t(aggregate_cement_flyash[, c("Cement", "Fly.Ash")]), beside = TRUE, 
+        col = c("darkslategrey", "gray"), 
+        names.arg = aggregate_cement_flyash$Strength_Group, 
+        main = "Mean Cement and Fly Ash on Different Strength Intervals",
+        xlab = "Concrete Strength Intervals (MPa, megapascals) ", ylab = "Mean Value of Cemennt & FlyAsh")
+
+legend("topright", legend = c("Cement", "Fly Ash"), fill = c("darkslategrey", "gray"))
+
+
+
+```
+
+```{r }
+# Calculate mean Water for each interval of Concrete Strength
+aggregate_water <- aggregate(Water ~ Strength_Group, data = df_conc, FUN = mean)
+
+# Create a bar plot for Cement and Fly Ash on different intervals of Concrete Strength
+barplot(t(aggregate_cement_flyash[, c("Cement", "Fly.Ash")]), beside = TRUE, 
+        col = c("blue", "green"), 
+        names.arg = aggregate_cement_flyash$Strength_Group, 
+        main = "Mean Cement and Fly Ash on Different Strength Intervals",
+        xlab = "Concrete Strength Intervals", ylab = "Mean Value")
+
+# Add a line for average Water
+lines(aggregate_water$Strength_Group, aggregate_water$Water, type = "o", col = "red")
+legend("topright", legend = c("Cement", "Fly Ash", "Water"), fill = c("blue", "green", "red"), title = "Variables")
+
+```
+```{r fig.width= 12 }
+par(mfrow = c(1, 2))  # Set up a 1x2 grid for plots
+
+# Plot 1: Concrete Strength vs. Cement and Fine Aggregate
+plot(df_conc$Cement, df_conc$Concrete.strength, xlab = "Cement", ylab = "Concrete Strength", 
+     main = "Concrete Strength vs. Cement & Fine Aggregate", col = "red")
+points(df_conc$Fine.Aggregate,col = "red")
+
+# Plot 2: Concrete Strength vs. Cement and Coarse Aggregate
+plot(df_conc$Cement, df_conc$Concrete.strength, xlab = "Cement", ylab = "Concrete Strength", 
+     main = "Concrete Strength vs. Cement & Coarse Aggregate", col = "blue")
+points(df_conc$Coarse.Aggregate, df_conc$Concrete.strength, col = "blue")
+
+```
+```{r fig.width=12 }
+# Define intervals for Concrete Strength
+df_conc$Strength_Group <- cut(df_conc$Concrete.strength, breaks = c(0, 30, 50, 70, max(df_conc$Concrete.strength)), labels = c("<30", "30-50", "50-70", ">=70"))
+
+# Calculate mean Cement, Fly Ash, Coarse Aggregate, and Fine Aggregate for each interval of Concrete Strength
+aggregate_values <- aggregate(cbind(Cement, Fly.Ash, Coarse.Aggregate, Fine.Aggregate) ~ Strength_Group, data = df_conc, FUN = mean)
+
+# Create a bar plot for Cement, Fly Ash, Coarse Aggregate, and Fine Aggregate on different intervals of Concrete Strength
+barplot(t(aggregate_values[, c("Cement", "Fly.Ash", "Coarse.Aggregate", "Fine.Aggregate")]), beside = TRUE, 
+        col = c("darkslategrey", "gray", "#996666", "#666666"), 
+        names.arg = aggregate_values$Strength_Group, 
+        main = "Mean Values on Different Strength Intervals",
+        xlab = "Concrete Strength Intervals (MPa)", ylab = "Mean Value",
+        ylim = c(0, 1200))  # Set the y-axis limits to accommodate Coarse Aggregate max value
+
+legend("topright", legend = c("Cement", "Fly Ash", "Coarse Aggregate", "Fine Aggregate"), 
+       fill = c("darkslategrey", "gray", "#996666", "#666666"))
+
+
+```
+ 
+```{r fig.width=12}
+# Define intervals for Concrete Strength
+df_conc$Strength_Group <- cut(df_conc$Concrete.strength, breaks = c(0, 30, 50, 70, max(df_conc$Concrete.strength)), labels = c("<30", "30-50", "50-70", ">=70"))
+
+# Calculate mean Cement, Fly Ash, Coarse Aggregate, Fine Aggregate, and Water for each interval of Concrete Strength
+aggregate_values <- aggregate(cbind(Cement, Fly.Ash, Coarse.Aggregate, Fine.Aggregate, Water) ~ Strength_Group, data = df_conc, FUN = mean)
+
+# Create a bar plot for Cement, Fly Ash, Coarse Aggregate, Fine Aggregate, and Water on different intervals of Concrete Strength
+barplot(t(aggregate_values[, c("Cement", "Fly.Ash", "Coarse.Aggregate", "Fine.Aggregate", "Water")]), beside = TRUE, 
+        col = c("darkslategrey", "gray", "#996666", "#666666", "lightblue"), 
+        names.arg = aggregate_values$Strength_Group, 
+        main = "Mean Values of COmponents on Different Concrete Strength Intervals",
+        xlab = "Concrete Strength Intervals (MPa)", ylab = "Mean Value",
+        ylim = c(0, 1200))  # Set the y-axis limits to accommodate Coarse Aggregate max value
+legend("topright", legend = c("Cement", "Fly Ash", "Coarse Aggregate", "Fine Aggregate", "Water"), 
+       fill = c("darkslategrey", "gray", "#996666", "#666666", "lightblue"))
+
+
+```
+```{r fig.width=12}
+# Define colors based on Superplasticizer values
+colors <- ifelse(df_conc$Superplasticizer < 2, "green", 
+                 ifelse(df_conc$Superplasticizer >= 2 & df_conc$Superplasticizer < 4, "blue", "darkorange"))
+par(mfrow = c(1, 2))  # Set up a 1x2 grid for plots
+# Scatter plot of Superplasticizer against Water with colored points based on Superplasticizer range
+plot(df_conc$Superplasticizer, df_conc$Water, 
+     xlab = "Superplasticizer (kg in a m^3 mixture)", ylab = "Water (kg in a m^3 mixture)",
+     main = "Relationship between Superplasticizer and Water",
+     col = colors)
+
+# Adding a trend line for Water vs. Superplasticizer
+abline(lm(df_conc$Water ~ df_conc$Superplasticizer), col = "red")
+
+# Adding a legend
+legend("topright", legend = c("< 2", "2 - 4", ">= 4"), col = c("green", "blue", "darkorange"), pch = 2,
+       title = "Superplasticizer Range")
+
+# Create a second plot to show the effect on response variable (Concrete.strength)
+
+
+# Scatter plot of Superplasticizer against Concrete.strength with colored points based on Superplasticizer range
+plot(df_conc$Superplasticizer, df_conc$Concrete.strength, 
+     xlab = "Superplasticizer (kg in a m^3 mixture)", ylab = "Concrete Strength (MPa)",
+     main = "Effect of Superplasticizer on Concrete Strength",
+     col = colors)
+
+# Adding a trend line for Concrete.strength vs. Superplasticizer
+abline(lm(df_conc$Concrete.strength ~ df_conc$Superplasticizer), col = "red")
+
+# Adding a legend
+legend("topright", legend = c("< 2", "2 - 4", ">= 4"), col = c("green", "blue", "darkorange"), pch = 2,
+       title = "Superplasticizer Range")
+
+
+# Adding a legend
+legend("topright", legend = c("< 2", "2 - 4", ">= 4"), col = c("green", "blue", "darkorange"), pch = 2,
+       title = "Superplasticizer Range")
+
+```
+ 

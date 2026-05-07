@@ -1,0 +1,82 @@
+\documentclass[11pt]{article}
+
+\usepackage{ceai}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{booktabs}
+
+\lstdefinestyle{term}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!8},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!60},
+  breaklines=true,
+  columns=fullflexible,
+  showstringspaces=false,
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+}
+
+\title{\textbf{Tutorial 05B Run Report --- Concrete Sparsity Exploration}}
+\author{CE 488/5588 --- Applied Artificial Intelligence}
+\date{\today}
+
+\newcommand{\figdir}{concrete-eda-assets}
+
+\begin{document}
+\maketitle
+
+\begin{def-box}
+This report records the actual run of \texttt{concrete-EDA.py} and includes figure outputs generated from the same dataset.
+\end{def-box}
+
+\section*{Run Summary}
+\begin{itemize}
+  \item Script executed: \texttt{python3 concrete-EDA.py}
+  \item Captured stdout: \texttt{concrete-EDA-run.txt}
+  \item Generated figures: age distribution, strength histogram, correlation plot, and example growth curve
+\end{itemize}
+
+\section*{Key Results}
+\begin{itemize}
+  \item 1,030 cleaned rows, 11 columns
+  \item 14 unique curing ages; 28 days dominates at 41.3\%
+  \item 427 unique mixture designs
+  \item 992 unique mixture-age combinations; sparsity ratio 96.3\%
+  \item Strongest positive correlation with strength: Cement (+0.498)
+  \item Strongest negative correlation with strength: Water (-0.290)
+  \item No missing values after cleaning; 4 IQR outliers in strength
+\end{itemize}
+
+\section*{Figures}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{\figdir/age_distribution.png}
+  \caption{Age distribution in the concrete dataset.}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{\figdir/strength_histogram.png}
+  \caption{Strength histogram.}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{\figdir/correlation_strength.png}
+  \caption{Feature correlation with compressive strength.}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{\figdir/growth_curve_example.png}
+  \caption{Example growth curve for the mixture with the most age measurements.}
+\end{figure}
+
+\clearpage
+\section*{Recorded Console Output}
+\lstinputlisting[style=term]{concrete-EDA-run-ascii.txt}
+
+\end{document}

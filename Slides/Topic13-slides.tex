@@ -631,16 +631,39 @@
   The boundaries between architecture families are becoming increasingly porous.
 \end{frame}
 
-\begin{frame}{From Topic 13 to Topic 14}
-  This topic introduced diffusion at a high level, but generative modeling deserves a closer look.
+\begin{frame}{What Makes These Architectures Generative?}
+  \begin{conceptbox}{Architecture versus Modeling Goal}
+    CNNs, Transformers, and diffusion models are not automatically generative. They become generative when they are trained to produce new samples rather than only classify or predict from existing inputs.
+  \end{conceptbox}
 
-  In the next chapter we will move deeper into:
   \begin{itemize}
-    \item GANs,
-    \item VAEs,
-    \item diffusion in more detail,
-    \item engineering uses of synthetic generation.
+    \item CNNs become generative inside decoders, U-Nets, and image generators.
+    \item Transformers become generative when they generate sequences token by token.
+    \item Diffusion models are generative because they learn a sampling process from noise to data.
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Old Generative Models versus New Generative AI}
+  In classical machine learning, a model was called \textbf{generative} if it explicitly modeled how data were produced.
+
+  \begin{itemize}
+    \item Examples: Gaussian mixture models, hidden Markov models, Bayesian latent-variable models.
+    \item Modern deep generative AI keeps that goal, but uses neural networks to synthesize complex high-dimensional outputs directly.
+  \end{itemize}
+
+  \begin{conceptbox}{The New Emphasis}
+    ``Generative'' now means not only describing a probability structure, but actually constructing plausible new images, text, layouts, signals, or scenarios from learned data structure.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{From Topic 13 to Topic 14}
+  \begin{itemize}
+    \item A \textbf{discriminative} model asks: given this input, what label, class, or value should I predict?
+    \item A \textbf{generative} model asks: what plausible sample could have come from this data-generating process?
+    \item For engineers, this means AI can support not only classification and forecasting, but also synthesis, reconstruction, and design exploration.
+  \end{itemize}
+
+  In Topic 14, we turn explicitly to that generative perspective through GANs, VAEs, and diffusion models in practice.
 \end{frame}
 
 \begin{frame}{Key Takeaways}

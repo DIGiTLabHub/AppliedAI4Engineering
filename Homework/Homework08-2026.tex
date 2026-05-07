@@ -1,0 +1,194 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+
+\title{CE 488/5588 Homework 08\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+\newpage
+
+\section*{Topics 13--16: Deep Learning, Generative AI, LLMs, and Modern AI Workflows}
+
+\begin{ch-box}
+This homework is based on the lecture content in Topics 13, 14, 15, and 16. The purpose is not detailed derivation or heavy numerical work. Instead, the goal is to make sure you understand the big picture: why deep learning became practical, how generative AI differs from classical prediction, why LLMs matter for engineering, and how modern AI systems are built as workflows rather than as isolated models. Answer all four problems. You may review the lecture notes or slides while completing the homework.
+\end{ch-box}
+
+\subsection*{Problem 1: From deep architectures to generative and language models}
+Answer the following short conceptual questions.
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item In one or two sentences, explain why deep learning became practical after 2010 even though neural networks had existed for decades earlier.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Briefly compare the main roles of the following three model families covered in Topic 13 and Topic 14:
+    \begin{enumerate}
+        \renewcommand{\labelenumii}{(\roman{enumii})}
+        \item convolutional neural networks (CNNs),
+        \item Transformers, and
+        \item diffusion models.
+    \end{enumerate}
+    Your answer should focus on what kind of data or task each model family is especially good at.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item In Topic 14, we distinguished \textbf{discriminative} and \textbf{generative} AI. Explain that distinction in engineering terms, and give one example of an engineering task that is more naturally discriminative and one that is more naturally generative.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Topic 15 argued that LLMs matter for engineering even before full automation. In one short paragraph, explain why document-heavy engineering work makes LLMs useful, and state one reason why they should still not be treated as final engineering authority.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+\end{enumerate}
+
+\newpage
+
+\subsection*{Problem 2: Modern LLM systems as engineering workflows}
+Consider an engineering assistant that helps a user review a set of design notes, search relevant standards, summarize the key assumptions, and draft a short code or analysis script.
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item Topic 16 distinguishes a \textbf{base model} from a \textbf{post-trained assistant}. In one or two sentences, explain that difference and why it matters for practical engineering use.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item For each of the following tasks, identify which transformer family is conceptually the best fit---\textbf{encoder-only}, \textbf{decoder-only}, or \textbf{encoder-decoder}---and give a one-sentence reason:
+    \begin{enumerate}
+        \renewcommand{\labelenumii}{(\roman{enumii})}
+        \item embedding inspection reports for semantic search,
+        \item a conversational coding assistant,
+        \item translating a long technical memo into a shorter structured summary.
+    \end{enumerate}
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Explain, at a high level, how \textbf{RAG} changes the engineering question from ``What does the model remember?'' to a more useful systems question. Then state one reason this matters in professional engineering settings.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Design a short workflow plan (3--5 ordered steps) for the engineering assistant described above. Your plan should use at least three of the following ideas from Topic 16: prompt design, retrieval, structured output, verification, tool use, or human review.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item State one limitation or failure mode that could still occur even if the assistant uses good prompts and retrieval, and state one responsibility that should remain with the human engineer.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+\end{enumerate}
+
+\newpage
+
+\subsection*{Problem 3: A minimal convolution formulation}
+Consider a one-dimensional input signal
+\[
+\bm{x} = [x_1,x_2,x_3,x_4,x_5]
+\]
+and a length-3 filter
+\[
+\bm{w} = [w_1,w_2,w_3].
+\]
+Assume stride 1 and no padding.
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item Write the three scalar outputs of the convolution operation explicitly in terms of the entries of \(\bm{x}\) and \(\bm{w}\).
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item In one or two sentences, explain why using the same filter weights across different local positions is useful for image or spatial data.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Briefly explain the difference between learning a convolutional filter and hand-crafting a feature detector.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+\end{enumerate}
+
+\newpage
+
+\subsection*{Problem 4: Tokenization and vectorization}
+Suppose a technical sentence is processed by an LLM pipeline:
+\[
+\texttt{"Bridge inspection report shows corrosion near support B2."}
+\]
+
+\begin{enumerate}
+    \renewcommand{\labelenumi}{(\alph{enumi})}
+    \item In one or two sentences, explain the difference between a \textbf{token}, a \textbf{token ID}, and an \textbf{embedding vector}.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Write a simple notation for the embedding lookup of token \(x_i\) using an embedding matrix \(E\), and state the dimensions of \(E\) if the vocabulary size is \(|\mathcal{V}|\) and the embedding dimension is \(d\).
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+
+    \item Briefly explain why two passages can be semantically similar even if they do not share exactly the same keywords, and why this matters for vector retrieval in engineering document search.
+
+    \vspace{18pt}
+    \fullunderline
+
+    \vspace{18pt}
+    \fullunderline
+\end{enumerate}
+
+\end{document}

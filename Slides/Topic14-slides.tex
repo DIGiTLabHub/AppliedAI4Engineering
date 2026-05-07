@@ -1,0 +1,627 @@
+\documentclass[12pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e}
+\AtBeginEnvironment{frame}{\justifying}
+\AtBeginSection[]{}
+\AtBeginSubsection[]{}
+
+\title[Topic 14: Generative Deep Learning]{CE 488/5588: Applied AI\\Topic 14: Generative Deep Learning in Practice --- GANs, VAEs, Diffusion, and Engineering Applications}
+\author{}
+\date{}
+
+\newcommand{\source}[1]{\vspace{0.4em}{\tiny\color{gray}Source: #1\par}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Lecture Roadmap}
+  \tableofcontents
+\end{frame}
+
+\section{Why Generative AI Matters}
+
+\begin{frame}{From Prediction to Synthesis}
+  Topic 13 focused on why deep learning became trainable and how major architectures emerged.
+
+  Topic 14 asks a different question:
+  \begin{itemize}
+    \item what do generative models actually do in practice,
+    \item where are they being used in engineering,
+    \item and what should we trust or distrust about their outputs?
+  \end{itemize}
+
+  This chapter is intentionally application-heavy.
+\end{frame}
+
+\begin{frame}{Why Engineers Should Care}
+  Generative AI is relevant to engineering because it can support:
+  \begin{itemize}
+    \item design-space exploration,
+    \item scenario generation,
+    \item data augmentation,
+    \item reconstruction of missing or corrupted information.
+  \end{itemize}
+
+  \begin{examplebox}{Examples}
+    Crack-mask synthesis, anomaly-sensitive monitoring, and floorplan generation are all generative tasks.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{What Question Do Generative Models Answer?}
+  Discriminative models ask:
+  \begin{itemize}
+    \item What class is this?
+    \item What value should I predict?
+  \end{itemize}
+
+  Generative models ask:
+  \begin{itemize}
+    \item What realistic sample could have produced this observation?
+    \item What plausible new sample could I synthesize?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Plausible Is Not the Same as Valid}
+  \begin{warningbox}{Core Caveat}
+    A generative model may produce outputs that look convincing while still violating physical laws, code requirements, or engineering constraints.
+  \end{warningbox}
+
+  In engineering, realism is not enough. Validation remains essential.
+\end{frame}
+
+\begin{frame}{What This Chapter Covers}
+  \begin{itemize}
+    \item a short primer on generative modeling,
+    \item GANs for crack and damage imagery,
+    \item VAEs for SHM and monitoring,
+    \item diffusion for media generation and design,
+    \item comparison, limitations, and engineering judgment.
+  \end{itemize}
+\end{frame}
+
+\section{A Short Primer on Generative Models}
+
+\begin{frame}{Discriminative versus Generative Thinking}
+  \begin{conceptbox}{Main Distinction}
+    Discriminative models learn decision boundaries or input-output mappings. Generative models learn enough of the data distribution to synthesize, reconstruct, or interpolate samples.
+  \end{conceptbox}
+
+  For engineers, the distinction is practical rather than philosophical.
+\end{frame}
+
+\begin{frame}{Engineering Use Cases for Generative Models}
+  Generative models are useful when the task involves:
+  \begin{itemize}
+    \item synthesis of rare events,
+    \item reconstruction or imputation,
+    \item exploration of candidate designs,
+    \item learning what ``normal'' looks like.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Three Main Families at a Glance}
+  \begin{conceptbox}{Three Influential Families}
+    VAEs emphasize latent structure, GANs emphasize adversarial realism, and diffusion models emphasize iterative denoising with strong conditioning.
+  \end{conceptbox}
+
+  These families solve similar broad problems with very different trade-offs.
+\end{frame}
+
+\begin{frame}{VAE in One Slide}
+  \begin{itemize}
+    \item Encode data into a latent representation.
+    \item Decode from that latent space back to data.
+    \item Strength: smooth latent interpolation and stable training.
+    \item Weakness: outputs may be overly smooth or blurry.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{GAN in One Slide}
+  \begin{itemize}
+    \item A generator proposes synthetic samples.
+    \item A discriminator tries to detect whether they are fake.
+    \item Strength: visually sharp outputs.
+    \item Weakness: unstable training and mode collapse.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Diffusion in One Slide}
+  \begin{conceptbox}{Diffusion Idea}
+    Add noise to data, then train a model to reverse that process step by step. Generation starts from noise and progressively becomes structured.
+  \end{conceptbox}
+
+  This is why diffusion is often explained as controlled denoising.
+\end{frame}
+
+\begin{frame}{How Should Engineers Choose?}
+  The right family depends on the objective:
+  \begin{itemize}
+    \item structured latent modeling and anomaly reasoning $\rightarrow$ VAE,
+    \item sharp targeted synthesis under supervision $\rightarrow$ GAN,
+    \item flexible conditioned generation $\rightarrow$ diffusion.
+  \end{itemize}
+\end{frame}
+
+\section{GANs in Engineering Practice}
+
+\begin{frame}{GANs: The Adversarial Intuition}
+  At a high level, GAN training is a game:
+  \begin{itemize}
+    \item the generator tries to produce convincing samples,
+    \item the discriminator tries to reject them,
+    \item both improve in response to each other.
+  \end{itemize}
+
+  \begin{conceptbox}{Why This Matters}
+    Adversarial loss can preserve structure better than simple pixel-wise averaging, especially for thin, connected defects.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Why Crack Detection Is a Good GAN Testbed}
+  Crack imagery is difficult because:
+  \begin{itemize}
+    \item cracks are thin and sparse,
+    \item labels are often noisy,
+    \item shadows, stains, and road texture create clutter,
+    \item ordinary losses can blur or erase the target structure.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ICGA for Road-Surface Crack Detection}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.78\textwidth]{Topic14fig01.pdf}
+    \caption{ICGA architecture for road-surface crack detection.}
+  \end{figure}
+
+  This is a strong example of using conditional adversarial learning inside a practical inspection pipeline.
+
+  \source{\href{https://pmc.ncbi.nlm.nih.gov/articles/PMC8587934/}{Road Surface Crack Detection Method Based on Conditional GANs}}
+\end{frame}
+
+\begin{frame}{Why the ICGA Figure Matters}
+  The figure is pedagogically useful because it shows that:
+  \begin{itemize}
+    \item engineering GANs are usually conditional,
+    \item they are often paired with segmentation-style backbones,
+    \item they are meant to improve structure, not generate arbitrary art.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{CrackGAN and Imperfect Labels}
+  CrackGAN addressed a realistic annotation problem:
+  \begin{itemize}
+    \item crack masks are often incomplete,
+    \item the positive class is highly imbalanced,
+    \item a model may collapse to ``all background'' if not properly regularized.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/1909.08216}{CrackGAN (arXiv)}}
+\end{frame}
+
+\begin{frame}{Why GANs Help in This Setting}
+  \begin{conceptbox}{Engineering Interpretation}
+    GANs in civil infrastructure vision often work as structure-preserving regularizers. They encourage outputs that look globally plausible rather than merely minimizing pixel error.
+  \end{conceptbox}
+
+  That makes them attractive for connected crack morphology.
+\end{frame}
+
+\begin{frame}{Conditional GAN Pavement Segmentation}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.78\textwidth]{Topic14fig02.pdf}
+    \caption{Conditional GAN structure for pavement-crack segmentation.}
+  \end{figure}
+
+  Here the generator maps a specific road image to a crack mask instead of generating free-form content.
+
+  \source{\href{https://www.mdpi.com/1424-8220/22/21/8478}{Pavement Cracks Segmentation Algorithm Based on CGAN}}
+\end{frame}
+
+\begin{frame}{What This Tells Us About Engineering GANs}
+  Common patterns in civil-engineering GAN adoption:
+  \begin{itemize}
+    \item pair GAN objectives with U-Net-style backbones,
+    \item focus on segmentation and enhancement,
+    \item use GANs to sharpen spatial coherence under field noise.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{GAN Strengths in Civil Vision}
+  \begin{examplebox}{Where GANs Help Most}
+    \begin{itemize}
+      \item crack segmentation,
+      \item image enhancement,
+      \item data augmentation,
+      \item structure-preserving reconstruction.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{GAN Risks in Deployment}
+  \begin{warningbox}{Why Better-Looking Is Not Enough}
+    A GAN may hallucinate plausible continuity, sharpen false positives, or hide uncertainty. Visual quality alone does not guarantee decision quality.
+  \end{warningbox}
+
+  This is especially serious in maintenance and safety applications.
+\end{frame}
+
+\begin{frame}{Domain Shift Still Matters}
+  Field deployment adds challenges:
+  \begin{itemize}
+    \item new cameras,
+    \item different pavement textures,
+    \item weather and lighting changes,
+    \item seasonal wear and sealants.
+  \end{itemize}
+
+  Curated benchmark gains may not transfer cleanly.
+\end{frame}
+
+\begin{frame}{GAN Takeaway for Infrastructure Vision}
+  \begin{conceptbox}{Main Takeaway}
+    GANs are most valuable in civil vision when the target is thin, structured, and difficult to label precisely. Their role is less about art and more about preserving geometry under noisy supervision.
+  \end{conceptbox}
+\end{frame}
+
+\section{VAEs in Monitoring and SHM}
+
+\begin{frame}{Why VAEs Fit Monitoring Problems}
+  VAEs are often more useful in engineering monitoring than in photorealistic image synthesis.
+
+  They are good at:
+  \begin{itemize}
+    \item compact latent representation,
+    \item interpolation across operating conditions,
+    \item anomaly-style reasoning.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{VAE Objective at a High Level}
+  A VAE balances two goals:
+  \begin{itemize}
+    \item reconstruct the observed signal,
+    \item organize the latent space so it stays smooth and sampleable.
+  \end{itemize}
+
+  \begin{conceptbox}{Why Engineers Care}
+    This makes VAEs useful for learning what normal variability looks like.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Mechanics-Informed Autoencoder Example}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.72\textwidth]{Topic14fig03.pdf}
+    \caption{Mechanics-informed damage-detection and localization framework.}
+  \end{figure}
+
+  The pedagogical point is that the latent representation is tied to structural interpretation, not just compression.
+
+  \source{\href{https://www.nature.com/articles/s41467-024-52501-4}{Mechanics-Informed Autoencoder Enables Automated Detection and Localization of Unforeseen Structural Damage}}
+\end{frame}
+
+\begin{frame}{Why This Figure Is Important}
+  It shows the direction of modern SHM research:
+  \begin{itemize}
+    \item latent models should reflect mechanics,
+    \item autoencoders are more valuable when physically informed,
+    \item damage localization is stronger than pure reconstruction alone.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{VAEs for Structural Health Monitoring}
+  In SHM, the central challenge is often:
+  \begin{itemize}
+    \item damage affects the signal,
+    \item but so do temperature, moisture, traffic, and operational conditions.
+  \end{itemize}
+
+  A useful latent model must represent ordinary variability without hiding damage.
+\end{frame}
+
+\begin{frame}{Temperature Variation in Guided-Wave Monitoring}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{Topic14fig04.pdf}
+    \caption{VAE workflow under temperature variation.}
+  \end{figure}
+
+  \source{\href{https://www.mdpi.com/1424-8220/24/5/1494}{Sensors 2024: VAE-based SHM under temperature variation}}
+\end{frame}
+
+\begin{frame}{Why Temperature Is a Serious Engineering Problem}
+  Temperature variation can:
+  \begin{itemize}
+    \item mimic damage,
+    \item hide real damage,
+    \item distort baseline comparisons,
+    \item confuse anomaly thresholds.
+  \end{itemize}
+
+  This is why VAEs are compelling in monitoring settings.
+\end{frame}
+
+\begin{frame}{What ``Forced VAE'' Means Conceptually}
+  The main idea is not the exact formula.
+
+  \begin{conceptbox}{Conceptual Lesson}
+    Latent spaces do not become meaningful automatically. Engineering problems often require additional structure so that the latent manifold reflects real operational trends.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Strengths of VAEs in Monitoring}
+  \begin{examplebox}{Best Uses}
+    \begin{itemize}
+      \item baseline modeling,
+      \item anomaly detection,
+      \item interpolation across operating conditions,
+      \item low-dimensional health-state representation.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{VAE Failure Modes}
+  \begin{warningbox}{Important Limitation}
+    VAEs can oversmooth the signal. If trained carelessly, they may absorb weak early-stage faults as normal variability.
+  \end{warningbox}
+
+  That makes domain knowledge and sensor physics essential.
+\end{frame}
+
+\begin{frame}{VAE Takeaway for SHM}
+  \begin{conceptbox}{Main Takeaway}
+    In engineering, VAEs are less about flashy generation and more about learning structured normality. Their real promise is disentangling nuisance variation from damage-sensitive behavior.
+  \end{conceptbox}
+\end{frame}
+
+\section{Diffusion, Media, and Design}
+
+\begin{frame}{Why Diffusion Changed the Landscape}
+  Diffusion models became dominant because they:
+  \begin{itemize}
+    \item train more stably than GANs,
+    \item produce very high-quality outputs,
+    \item support strong conditioning from prompts, masks, and layouts.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The Core Diffusion Intuition}
+  \begin{conceptbox}{Simple Story}
+    Corrupt real data by gradually adding noise, then train a model to reverse that process. Generation starts from noise and repeatedly denoises until a coherent sample appears.
+  \end{conceptbox}
+
+  This is controlled iterative generation.
+\end{frame}
+
+\begin{frame}{Why Diffusion Became Publicly Visible}
+  The public saw diffusion through:
+  \begin{itemize}
+    \item text-to-image systems,
+    \item viral prompt-based illustration,
+    \item aesthetic filters and style transfer,
+    \item later, text-to-video systems.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Social Implications of Diffusion Hype}
+  \begin{warningbox}{Synthetic Media Changes Trust}
+    Once realistic images and videos can be generated from prompts, visual evidence is no longer automatically trustworthy.
+  \end{warningbox}
+
+  That matters for engineering communication and disaster response.
+\end{frame}
+
+\begin{frame}{What New Risks Emerge?}
+  \begin{itemize}
+    \item fabricated disaster imagery,
+    \item deepfakes and identity misuse,
+    \item text-to-video hype,
+    \item rapid spread of persuasive but false visuals.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why the Built Environment Fits Diffusion}
+  Many built-environment problems are constrained generation problems:
+  \begin{itemize}
+    \item floorplans,
+    \item site concepts,
+    \item facade and interior layouts,
+    \item design alternatives under partial specification.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Latent Diffusion for Floorplan Generation}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.68\textwidth]{Topic14fig05.pdf}
+    \caption{Latent-diffusion floorplan generation.}
+  \end{figure}
+
+  Conditions go in; candidate layouts come out.
+
+  \source{\href{https://arxiv.org/abs/2412.06859}{arXiv 2024: latent-diffusion floorplan generation}}
+\end{frame}
+
+\begin{frame}{Why This Figure Works Pedagogically}
+  It shows that diffusion is not only about artistic image synthesis.
+  \begin{itemize}
+    \item Inputs are structured and meaningful.
+    \item Outputs are candidate design artifacts.
+    \item The model supports rapid exploration rather than final approval.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{DiffPlanner and Vector-Space Generation}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.84\textwidth]{Topic14fig06.pdf}
+    \caption{DiffPlanner: raster pipeline versus direct vector workflow.}
+  \end{figure}
+
+  This is especially relevant because engineering outputs are often structured geometry, not just images.
+
+  \source{\href{https://arxiv.org/abs/2508.13738}{Eliminating Rasterization: Direct Vector Floor Plan Generation with DiffPlanner}}
+\end{frame}
+
+\begin{frame}{Why Vector-Space Generation Matters}
+  \begin{conceptbox}{Engineering Relevance}
+    Raster generation may look plausible, but vector-space generation is much closer to real CAD/BIM-style workflows because it preserves geometry and topology more directly.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Human-in-the-Loop Design}
+  Diffusion is best understood here as a proposal engine:
+  \begin{itemize}
+    \item propose candidate layouts,
+    \item let humans refine and reject,
+    \item use engineering judgment for compliance and feasibility.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Other Built-Environment Opportunities}
+  \begin{examplebox}{Potential Uses}
+    \begin{itemize}
+      \item early-stage design exploration,
+      \item scenario visualization,
+      \item concept generation,
+      \item synthetic training data for rare cases.
+    \end{itemize}
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{Diffusion Risks in Engineering Use}
+  \begin{warningbox}{Important Warning}
+    A visually plausible floorplan is not automatically valid. Structural systems, egress, accessibility, MEP coordination, and code requirements still impose hard constraints.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Diffusion Takeaway}
+  \begin{conceptbox}{Main Takeaway}
+    Diffusion models are powerful because they combine high-quality generation with conditioning. In engineering, their value is strongest when they support controlled exploration rather than unverified automation.
+  \end{conceptbox}
+\end{frame}
+
+\section{Comparison and Engineering Judgment}
+
+\begin{frame}{Three Families, Three Priorities}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.32\textwidth}
+      \begin{conceptbox}{GANs}
+        Realism\\and sharpness.
+      \end{conceptbox}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{conceptbox}{VAEs}
+        Latent structure\\and smooth variation.
+      \end{conceptbox}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{conceptbox}{Diffusion}
+        Control and\\high quality.
+      \end{conceptbox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Model Choice by Engineering Task}
+  \begin{itemize}
+    \item Fast targeted synthesis with strong supervision $\rightarrow$ GANs.
+    \item Latent interpolation and anomaly-style reasoning $\rightarrow$ VAEs.
+    \item High-quality conditioned generation under prompts or layouts $\rightarrow$ diffusion.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shared Challenges Across All Three}
+  \begin{itemize}
+    \item satisfying physics and code constraints,
+    \item evaluating quality beyond appearance,
+    \item dataset bias and representativeness,
+    \item compute cost and sustainability,
+    \item trust and provenance.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Good-Looking Is Not Enough}
+  \begin{warningbox}{Evaluation Challenge}
+    Generative models can produce outputs that look convincing but are not useful, valid, or safe. Engineering quality requires task-specific evaluation, not just visual inspection.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Bias and Compute Are Engineering Issues Too}
+  \begin{itemize}
+    \item Models inherit the biases of their training data.
+    \item Large generative systems are expensive to train and deploy.
+    \item Sustainability and resource cost are part of engineering judgment.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Trust and Provenance}
+  Synthetic media quality is improving quickly.
+
+  \begin{conceptbox}{What Changes?}
+    Engineers, planners, and the public need stronger provenance, metadata, and verification practices.
+    \\
+    Authentic-looking images are no longer guaranteed to be authentic.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Case Study Synthesis: Crack Inspection}
+  \begin{examplebox}{GAN Lesson}
+    In crack inspection, GANs are strongest when used to preserve thin defect structure under noisy labels and cluttered field imagery.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{Case Study Synthesis: SHM and Monitoring}
+  \begin{examplebox}{VAE Lesson}
+    In monitoring, VAEs are strongest when used to model normal variability and separate nuisance factors such as temperature from potential damage-sensitive behavior.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{Case Study Synthesis: Design Generation}
+  \begin{examplebox}{Diffusion Lesson}
+    In design, diffusion models are strongest when used to generate candidate layouts under conditioning, with humans still responsible for filtering, refining, and validating the results.
+  \end{examplebox}
+\end{frame}
+
+\begin{frame}{What Practitioners Should Remember}
+  \begin{itemize}
+    \item Generative AI expands the design and search space.
+    \item It does not replace engineering judgment.
+    \item Validation, constraints, and domain knowledge remain the real workload.
+  \end{itemize}
+\end{frame}
+
+\section{Conclusion and Transition}
+
+\begin{frame}{Chapter Takeaways}
+  \begin{itemize}
+    \item GANs, VAEs, and diffusion all address generative modeling, but with distinct trade-offs.
+    \item Each family has a different engineering niche.
+    \item The most valuable uses are controlled, task-specific, and human-supervised.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{From Topic 14 to Topic 15}
+  Diffusion made prompting and natural-language control visible to the public.
+
+  That leads to the next chapter:
+  \begin{itemize}
+    \item why text became a control interface,
+    \item how language models work,
+    \item and how the LLM era emerged from Transformer-based sequence modeling.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Final Message}
+  \begin{conceptbox}{Bottom Line}
+    Generative AI is powerful not because it makes pretty outputs, but because it creates new ways to represent uncertainty, propose alternatives, and interact with engineering problems. The challenge is learning where that power is genuinely useful.
+  \end{conceptbox}
+\end{frame}
+
+\end{document}

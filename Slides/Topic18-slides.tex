@@ -1,0 +1,609 @@
+\documentclass[12pt]{beamer}
+\usepackage{ceai-beamer}
+\usepackage{ragged2e}
+\AtBeginEnvironment{frame}{\justifying}
+\AtBeginSection[]{}
+\AtBeginSubsection[]{}
+
+\title[Topic 18: AI Futures]{CE 488/5588: Applied AI\\Topic 18: AI Futures, World Models, Embodied Intelligence, and Engineering Judgment}
+\author{}
+\date{}
+
+\newcommand{\source}[1]{\vspace{0.4em}{\tiny\color{gray}Source: #1\par}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Lecture Roadmap}
+  \tableofcontents
+\end{frame}
+
+\section{From Topic 17 to Topic 18}
+
+\begin{frame}{From Agentic Workflows to Frontier Questions}
+  Previously, we examined why foundation models became useful (Topic 15), how retrieval and tools extend them (Topic 16), and what changes when those components become persistent workflows (Topic 17).
+
+  In this chapter, we ask a different question:
+  \begin{itemize}
+    \item if current LLM systems are powerful but incomplete,
+    \item what kinds of ideas are most likely to matter next,
+    \item and what should engineers believe without drifting into mythology?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why This Chapter Matters}
+  The future-AI conversation is often distorted by false choices:
+  \begin{itemize}
+    \item either LLMs already contain everything needed,
+    \item or one replacement paradigm will soon sweep them away,
+    \item or engineering judgment will dissolve into prompting.
+  \end{itemize}
+
+  \begin{warningbox}{This chapter takes a stricter view}
+    The most credible future is not one universal architecture. It is a layered stack in which different mechanisms handle interface, explicit structure, prediction, physical action, and oversight.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Learning Objectives}
+  After this lecture, students should be able to:
+  \begin{itemize}
+    \item explain why today's AI is best understood as a system stack rather than a standalone model,
+    \item distinguish among foundation models, neuro-symbolic methods, world models, and embodied intelligence,
+    \item describe why world models matter most when prediction and control are central,
+    \item explain why embodiment matters for physical agency but not equally for every useful AI system,
+    \item evaluate AGI and ASI claims using engineering standards of evidence, and
+    \item explain why engineers remain responsible for constraints, verification, and accountability.
+  \end{itemize}
+\end{frame}
+
+\section{The Current Paradigm}
+
+\begin{frame}{The Current Paradigm: Foundation-Model Pragmatism}
+  The foundation-model era has already changed coding, search, content generation, and parts of engineering workflow.
+
+  In practice, useful systems are no longer just ``a model.'' They are models connected to:
+  \begin{itemize}
+    \item retrieval,
+    \item memory,
+    \item tools,
+    \item environments, and
+    \item human supervision.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2108.07258}{Bommasani et al. (2021): Foundation Models}}
+\end{frame}
+
+\begin{frame}{Why System Design Matters So Much}
+  Current LLM systems are strong at:
+  \begin{itemize}
+    \item language interface,
+    \item pattern extraction,
+    \item summarization,
+    \item procedural decomposition.
+  \end{itemize}
+
+  They are weaker at:
+  \begin{itemize}
+    \item robust grounding,
+    \item stable physical state tracking,
+    \item reasoning about open-ended physical consequence.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2310.07018}{Wang et al. (2023): NEWTON}; \href{https://arxiv.org/abs/2504.16074}{Qiu et al. (2025): PHYBench}}
+\end{frame}
+
+\begin{frame}{The Future AI Stack as an Engineering Stack}
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[>=Stealth, font=\small, node distance=0.45cm, scale=0.90, transform shape]
+      \tikzset{layer/.style={draw, rounded corners, minimum width=10.7cm, minimum height=0.9cm, align=center}}
+      \node[layer, fill=blue!8] (fm) {Foundation model interface layer\\language, code, multimodal priors};
+      \node[layer, fill=green!10, below=of fm] (tool) {System scaffolding\\retrieval, memory, tools, agent loops, verification};
+      \node[layer, fill=orange!12, below=of tool] (world) {Task-specific intelligence layers\\constraints, world models, planners, domain simulators};
+      \node[layer, fill=red!9, below=of world] (deploy) {Deployment reality\\physical environments, institutions, operators, accountability};
+      \draw[->, thick] (fm) -- (tool);
+      \draw[->, thick] (tool) -- (world);
+      \draw[->, thick] (world) -- (deploy);
+    \end{tikzpicture}
+    \caption{Recreated teaching figure: a layered view of likely future AI system design.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Interpreting the Stack}
+  \begin{conceptbox}{Main claim}
+    The credible future is not ``LLMs disappear'' or ``LLMs become everything.'' Foundation models remain useful interface layers while other mechanisms become more important around them.
+  \end{conceptbox}
+
+  From an engineering perspective, the system boundary now includes:
+  \begin{itemize}
+    \item prompt structure,
+    \item memory and retrieval,
+    \item tool interfaces,
+    \item verification layers,
+    \item operators and institutions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Language-First Systems Are Still Incomplete}
+  A fluent model can imitate reasoning traces and summarize rules, but that is not the same as:
+  \begin{itemize}
+    \item keeping a stable world state,
+    \item predicting physical consequences under intervention,
+    \item recovering from novel physical failure,
+    \item acting safely in real environments.
+  \end{itemize}
+
+  \begin{warningbox}{Engineering consequence}
+    If the task involves explicit rules, physical prediction, or high consequence, language fluency alone is rarely enough.
+  \end{warningbox}
+\end{frame}
+
+\section{Neural-Symbolic AI}
+
+\begin{frame}{What Neural-Symbolic AI Means}
+  \begin{conceptbox}{Definition}
+    Neuro-symbolic AI combines learned subsymbolic representations with explicit symbolic machinery: rules, variables, programs, constraints, logic, or probabilistic reasoning.
+  \end{conceptbox}
+
+  Motivation:
+  \begin{itemize}
+    \item neural systems scale well in noisy, high-dimensional perception,
+    \item symbolic systems preserve explicit structure and traceable inference,
+    \item each side is strong where the other is weak.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/1711.03902}{Besold et al. (2017)}; \href{https://arxiv.org/abs/2501.05435}{Colelough \& Regli (2025)}}
+\end{frame}
+
+\begin{frame}{Why Explicit Structure Keeps Returning}
+  Engineers care about domains where the structure is not optional:
+  \begin{itemize}
+    \item laws,
+    \item design constraints,
+    \item operating procedures,
+    \item ontologies,
+    \item program semantics,
+    \item scientific priors.
+  \end{itemize}
+
+  In such settings, symbolic structure improves:
+  \begin{itemize}
+    \item auditability,
+    \item checkability,
+    \item data efficiency,
+    \item controllability.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Representative Neuro-Symbolic Systems}
+  Representative systems make the idea concrete:
+  \begin{itemize}
+    \item \textbf{DeepProbLog}: learned perception inside probabilistic logic,
+    \item \textbf{Neural Logic Machines}: relational and logical inductive bias,
+    \item \textbf{NS-CL}: object-centric perception + semantic parsing + executable programs.
+  \end{itemize}
+
+  \source{\href{https://doi.org/10.1016/j.artint.2021.103504}{Manhaeve et al. (DeepProbLog)}; \href{https://arxiv.org/abs/1904.11694}{Dong et al. (NLM)}; \href{https://arxiv.org/abs/1904.12584}{Mao et al. (NS-CL)}}
+\end{frame}
+
+\begin{frame}{The Modern Extension: Agentic AI as System-Level Hybridization}
+  Topic 17 described modern agentic systems in terms of:
+  \begin{itemize}
+    \item skills,
+    \item tool interfaces,
+    \item orchestration logic,
+    \item explicit constraints,
+    \item human review checkpoints.
+  \end{itemize}
+
+  \begin{conceptbox}{Careful claim}
+    Many agentic systems are neuro-symbolic at the \emph{system level}, even when their neural core is still a large language model rather than a classical theorem prover.
+  \end{conceptbox}
+\end{frame}
+
+\begin{frame}{Why Skills and Constraints Function Symbolically}
+  When an engineer defines a reusable workflow, the engineer is not merely ``prompting'' a model.
+
+  The engineer is imposing symbolic structure on the task:
+  \begin{itemize}
+    \item what steps exist,
+    \item which tools may be called,
+    \item what counts as acceptable evidence,
+    \item when the system must stop,
+    \item when a human must intervene.
+  \end{itemize}
+
+  If those rules can be inspected and revised by humans, they are functioning like a symbolic layer around a neural substrate.
+\end{frame}
+
+\begin{frame}{Why Natural Language Can Still Be Symbolic}
+  Natural language carries symbolic structure when it is used to define:
+  \begin{itemize}
+    \item roles,
+    \item branches,
+    \item pass/fail criteria,
+    \item escalation rules,
+    \item scenario-specific constraints.
+  \end{itemize}
+
+  \begin{warningbox}{Important caution}
+    The careful claim is not that every agentic system is a classical symbolic reasoner. The claim is that many useful agentic systems are neuro-symbolic in practice because neural models operate inside human-defined symbolic workflows.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Engineering Example: Design Code Checking}
+  \begin{examplebox}{Where this matters in engineering}
+    Imagine an AI assistant for design code checking. A purely neural system may summarize text well, but the workflow still needs explicit clauses, pass/fail constraints, traceable justification, and human review of edge cases.
+  \end{examplebox}
+
+  That is exactly the kind of setting in which symbolic structure is not nostalgia. It is operationally useful.
+\end{frame}
+
+\section{World Models}
+
+\begin{frame}{What Counts as a World Model?}
+  The phrase \textbf{world model} is used in more than one way.
+
+  \begin{itemize}
+    \item In model-based reinforcement learning: a learned dynamics model that lets an agent imagine futures and plan in latent space.
+    \item In the JEPA line: predictive latent representations that capture what is predictable and task-relevant without reconstructing every surface detail.
+  \end{itemize}
+
+  These communities overlap, but they should not be collapsed into a single slogan.
+\end{frame}
+
+\begin{frame}{The PlaNet and Dreamer Line}
+  The model-based RL trajectory is already substantial:
+  \begin{itemize}
+    \item \textbf{PlaNet}: latent dynamics planning from pixels,
+    \item \textbf{Dreamer}: behavior learned through latent imagination,
+    \item \textbf{DreamerV3}: a much more scalable control program across many tasks.
+  \end{itemize}
+
+  This is not hype. It is a real research program with repeated empirical gains.
+
+  \source{\href{https://arxiv.org/abs/1811.04551}{Hafner et al. (PlaNet)}}
+\end{frame}
+
+\begin{frame}{What Dreamer Adds Conceptually}
+  Dreamer matters because it sharpens the idea of a world model:
+  \begin{itemize}
+    \item learn a latent state,
+    \item imagine future trajectories in that latent space,
+    \item optimize behavior using imagined rollouts rather than only expensive environment interaction.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/1912.01603}{Hafner et al. (Dreamer)}}
+\end{frame}
+
+\begin{frame}{LeCun's Critique of Pure Next-Token Prediction}
+  LeCun's roadmap argues that next-token prediction alone may be an insufficient route to autonomous intelligence because intelligence also requires:
+  \begin{itemize}
+    \item hierarchical representation,
+    \item prediction,
+    \item planning,
+    \item action over latent world state.
+  \end{itemize}
+
+  \source{\href{https://openreview.net/forum?id=BZ5a1r-kVsf}{LeCun (2022): A Path Towards Autonomous Machine Intelligence}}
+\end{frame}
+
+\begin{frame}{I-JEPA and V-JEPA}
+  I-JEPA and V-JEPA should be read as attempts to operationalize that roadmap:
+  \begin{itemize}
+    \item predict latent representations rather than reconstruct every pixel,
+    \item emphasize what is predictable and semantically useful,
+    \item move from image prediction to video and, increasingly, planning-relevant settings.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2301.08243}{Assran et al. (I-JEPA)}; \href{https://arxiv.org/abs/2404.08471}{Bardes et al. (V-JEPA)}}
+\end{frame}
+
+\begin{frame}{Autoregression versus World Models}
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[>=Stealth, font=\small, node distance=0.6cm, scale=0.92, transform shape]
+      \tikzset{box/.style={draw, rounded corners, minimum width=3.1cm, minimum height=0.9cm, align=center}}
+      \node[box, fill=blue!8] (obs1) at (0,0) {Observation / tokens};
+      \node[box, fill=blue!8] (pred1) at (3.9,0) {Next-step prediction};
+      \node[box, fill=blue!8] (out1) at (7.8,0) {Generated continuation};
+      \draw[->, thick] (obs1) -- (pred1);
+      \draw[->, thick] (pred1) -- (out1);
+      \node[box, fill=orange!10] (obs2) at (0,-2.2) {Observations + actions};
+      \node[box, fill=orange!10] (state) at (3.9,-2.2) {Latent state / world model};
+      \node[box, fill=orange!10] (plan) at (7.8,-2.2) {Imagined futures + planning};
+      \draw[->, thick] (obs2) -- (state);
+      \draw[->, thick] (state) -- (plan);
+      \draw[->, dashed, thick] (plan.south) to[out=-70,in=-20] (state.south);
+    \end{tikzpicture}
+    \caption{Recreated teaching figure: two predictive emphases.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{How to Read the Figure}
+  The top path asks:
+  \begin{itemize}
+    \item what comes next,
+    \item how should the sequence continue,
+    \item how do we maximize fluent continuation?
+  \end{itemize}
+
+  The bottom path asks:
+  \begin{itemize}
+    \item what state of the world am I in,
+    \item what happens if I act,
+    \item which imagined future should I prefer?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{What World Models Buy You}
+  World models are one of the strongest candidates for progress beyond language-only systems because they target:
+  \begin{itemize}
+    \item prediction,
+    \item abstraction,
+    \item planning,
+    \item action.
+  \end{itemize}
+
+  They are especially compelling where:
+  \begin{itemize}
+    \item control matters,
+    \item consequences matter,
+    \item interventions change future observations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why the Evidence Is Still Narrower Than the Hype}
+  The strongest evidence for world models is concentrated in:
+  \begin{itemize}
+    \item reinforcement learning,
+    \item robotics,
+    \item video representation,
+    \item planning-heavy tasks.
+  \end{itemize}
+
+  \begin{warningbox}{Do not overclaim}
+    It is not yet well supported to say that JEPA-style methods have already superseded autoregressive modeling across all of AI.
+  \end{warningbox}
+
+  \source{\href{https://arxiv.org/abs/2601.00844}{Destrade et al. (2026): Value-guided JEPA Planning}}
+\end{frame}
+
+\begin{frame}{V-JEPA 2 and the Move Toward Robotics}
+  V-JEPA 2 is especially notable because it pushes from large-scale video prediction toward robotic planning with a small amount of robot-interaction data.
+
+  That matters because it shows a plausible route from:
+  \begin{itemize}
+    \item predictive latent representation,
+    \item to planning,
+    \item to embodied deployment.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2506.09985}{Assran et al. (2025): V-JEPA 2}}
+\end{frame}
+
+\section{Embodied Intelligence}
+
+\begin{frame}{What Embodiment Actually Means}
+  Embodiment does not simply mean ``having a camera'' or ``being multimodal.''
+
+  \begin{conceptbox}{Definition}
+    Embodiment means intelligence coupled to a body that acts in an environment, changes future observations through action, and must manage the sensorimotor consequences of its own behavior.
+  \end{conceptbox}
+
+  \source{\href{https://people.csail.mit.edu/brooks/idocs/elephants.pdf}{Brooks (1990): Elephants Don't Play Chess}}
+\end{frame}
+
+\begin{frame}{Why Physical Deployment Changes the Problem}
+  Some useful AI systems do not need bodies in the strong sense:
+  \begin{itemize}
+    \item theorem assistants,
+    \item schedulers,
+    \item CAD copilots,
+    \item document-review systems.
+  \end{itemize}
+
+  But once the world can push back through friction, delay, occlusion, contact, or damage, text-only competence becomes a weak proxy for intelligence.
+\end{frame}
+
+\begin{frame}{Why Robotics Put Embodiment Back at the Center}
+  Modern robotics research explains why embodiment returned to the center of AI discussion:
+  \begin{itemize}
+    \item RT-1 and RT-2 showed broad robot control with transformer-style architectures,
+    \item Open X-Embodiment demonstrated positive transfer across robots and institutions,
+    \item OpenVLA and Octo pushed the generalist robot policy idea further.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2307.15818}{Brohan et al. (RT-2)}; \href{https://arxiv.org/abs/2310.08864}{Open X-Embodiment Collaboration}; \href{https://arxiv.org/abs/2406.09246}{OpenVLA}}
+\end{frame}
+
+\begin{frame}{From Language Interface to Physical Agency}
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[>=Stealth, font=\small, node distance=0.45cm, scale=0.82, transform shape]
+      \tikzset{stage/.style={draw, rounded corners, minimum width=2.55cm, minimum height=0.95cm, align=center}}
+      \node[stage, fill=blue!8] (text) {Language-only systems\\chat, coding, retrieval};
+      \node[stage, fill=green!10, right=of text] (tools) {Tool-using systems\\search, code execution, workflows};
+      \node[stage, fill=orange!12, right=of tools] (models) {World-aware agents\\prediction, planning, simulation};
+      \node[stage, fill=red!9, right=of models] (emb) {Embodied systems\\robotics, navigation, manipulation};
+      \draw[->, thick] (text) -- (tools);
+      \draw[->, thick] (tools) -- (models);
+      \draw[->, thick] (models) -- (emb);
+      \node[align=center, below=0.55cm of tools] {Increasing need for persistent state,\\causal prediction, and physical feedback};
+    \end{tikzpicture}
+    \caption{Recreated teaching figure: from interface intelligence to physical agency.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Biological Analogies: Use Carefully}
+  The biological examples are useful pedagogically if interpreted carefully:
+  \begin{itemize}
+    \item paramecium and amoebae show adaptive environment-coupled behavior below brains,
+    \item crows and dolphins show that sophisticated cognition is not confined to primates.
+  \end{itemize}
+
+  The lesson is not that robots are about to become animals. The lesson is that intelligence is biologically plural and strongly shaped by bodies and niches.
+\end{frame}
+
+\begin{frame}{What Embodiment Does \emph{Not} Imply}
+  \begin{warningbox}{Do not universalize from robotics}
+    Embodiment is necessary for robust physical agency, but it is not obviously necessary for every economically useful form of AI competence.
+  \end{warningbox}
+
+  The stronger claim is domain-specific:
+  \begin{itemize}
+    \item when the world can push back through physics,
+    \item embodiment becomes increasingly important,
+    \item but not every useful AI system must become embodied.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Engineering Takeaway on Embodiment}
+  If the task is:
+  \begin{itemize}
+    \item closed-loop,
+    \item safety-critical,
+    \item contact-rich,
+    \item irreversible,
+  \end{itemize}
+  then embodiment becomes a first-order engineering question rather than a philosophical embellishment.
+
+  \begin{examplebox}{Examples}
+    maintenance robotics, navigation, manipulation, human-robot interaction, industrial autonomy.
+  \end{examplebox}
+\end{frame}
+
+\section{AGI, ASI, and Oversight}
+
+\begin{frame}{Why AGI and ASI Are Slippery Terms}
+  Artificial general intelligence and artificial superintelligence are among the least disciplined terms in public AI discourse.
+
+  Problems:
+  \begin{itemize}
+    \item no consensus operational benchmark,
+    \item performance can be confused with intelligence,
+    \item impressive task demonstrations can be over-generalized into species-level narratives.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2311.02462}{Morris et al. (Levels of AGI)}; \href{https://arxiv.org/abs/1911.01547}{Chollet (2019)}}
+\end{frame}
+
+\begin{frame}{Why Capability Talk Jumps Too Fast}
+  The literature discussed here does \emph{not} demonstrate a system with all of the following together:
+  \begin{itemize}
+    \item broad autonomous competence across open-ended environments,
+    \item stable self-improvement under weak oversight,
+    \item robust goal alignment under superhuman capability,
+    \item reliable control under distribution shift.
+  \end{itemize}
+
+  Those are separate requirements, and the evidence does not yet show them together.
+\end{frame}
+
+\begin{frame}{What Serious Near-Term Work Actually Studies}
+  The most serious work near this area is not proof of ASI. It is \textbf{oversight research} motivated by the possibility that future systems may outstrip direct human inspection.
+
+  Examples:
+  \begin{itemize}
+    \item Constitutional AI,
+    \item weak-to-strong generalization,
+    \item debate and consultancy protocols.
+  \end{itemize}
+
+  \source{\href{https://arxiv.org/abs/2212.08073}{Bai et al. (Constitutional AI)}; \href{https://arxiv.org/abs/2312.09390}{Burns et al. (Weak-to-Strong)}}
+\end{frame}
+
+\begin{frame}{Engineering Standard of Evidence}
+  \begin{conceptbox}{A practical rule}
+    A strong future-AI claim should be evaluated the same way any engineering claim is evaluated: what was demonstrated, under what conditions, with what controls, with what failure modes, and with what verification mechanism?
+  \end{conceptbox}
+
+  This standard is deliberately stricter than hype-cycle rhetoric.
+\end{frame}
+
+\begin{frame}{What the Literature Does Not Yet Justify}
+  The responsible teaching stance is neither ridicule nor prophecy.
+
+  It is to say clearly:
+  \begin{itemize}
+    \item the evidentiary burden is extreme,
+    \item current results are interesting but partial,
+    \item oversight and governance are more concrete than superintelligence storytelling.
+  \end{itemize}
+\end{frame}
+
+\section{What Engineers Should Conclude}
+
+\begin{frame}{The Likely Next Decade: Diversification of the Stack}
+  From an engineering point of view, the likely next decade is not a clean handoff from LLMs to one replacement architecture.
+
+  It is a diversification of the stack:
+  \begin{itemize}
+    \item foundation models as interface layers,
+    \item neuro-symbolic methods where explicit structure matters,
+    \item world models where prediction and planning matter,
+    \item embodiment where physical deployment matters.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Distinction Sheet I}
+  \small
+  \begin{tabular}{p{0.22\textwidth}p{0.34\textwidth}p{0.34\textwidth}}
+    \toprule
+    \textbf{Theme} & \textbf{Established} & \textbf{Strong hypothesis} \\
+    \midrule
+    Current LLM systems & Powerful for language, code, retrieval, and tool-using workflows & Better scaffolding can keep extending usefulness in many professional settings \\
+    Neuro-symbolic AI & Hybrid systems can improve structured reasoning and explicit constraint handling & Constraint-aware hybrids will become more important in engineering-grade AI \\
+    World models & Learned latent dynamics help control and planning in RL and robotics & Predictive state models are necessary for robust physical agency \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Distinction Sheet II}
+  \small
+  \begin{tabular}{p{0.22\textwidth}p{0.34\textwidth}p{0.34\textwidth}}
+    \toprule
+    \textbf{Theme} & \textbf{Established} & \textbf{Speculative} \\
+    \midrule
+    Embodiment & Physical interaction changes the competence required & Every useful future AI system must be embodied \\
+    AGI / ASI & There is no consensus operational benchmark & Near-term ASI is already an established engineering forecast \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{The Less Credible Forecast}
+  The less credible forecast is the one preferred by hype cycles:
+  \begin{itemize}
+    \item one architecture becomes universally intelligent,
+    \item human oversight fades away,
+    \item engineering collapses into prompting.
+  \end{itemize}
+
+  \begin{warningbox}{Why this is weak}
+    The literature supports a more demanding picture in which future AI systems become more heterogeneous, more infrastructure-like, and more dependent on careful interface design, deployment boundaries, and verification.
+  \end{warningbox}
+\end{frame}
+
+\begin{frame}{Final Message}
+  The frontier after current LLM systems is real.
+
+  \begin{itemize}
+    \item Neuro-symbolic AI says that intelligence without explicit structure is often not enough.
+    \item World-model research says that prediction and planning over latent state may matter more than surface continuation when action matters.
+    \item Embodiment says that intelligence tested only in language is not the same as intelligence tested in the world.
+    \item AGI/ASI discourse says that capability talk without measurement and oversight is mostly theater.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Engineers Stay Above AI}
+  \begin{conceptbox}{Chapter conclusion}
+    Regardless of paradigm, engineers stay above AI because engineers still define the task, the constraints, the acceptable evidence, the failure boundaries, and the accountability chain.
+  \end{conceptbox}
+
+  That is the design principle that should survive every architecture transition discussed in this course.
+\end{frame}
+
+\end{document}

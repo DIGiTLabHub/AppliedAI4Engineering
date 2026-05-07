@@ -1,0 +1,159 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+
+\begin{document}
+
+\title{CE 488/5588: Applied AI for Engineering \\ Final Assignment - Set A}
+\author{}
+\date{Spring 2026}
+
+\maketitle
+
+\begin{center}
+\pmb{Name: \rule{3in}{0.15mm}}
+\end{center}
+
+\begin{ch-box}
+This final assignment evaluates your understanding of AI foundations and machine learning methods in engineering. The problems are designed to progress from conceptual understanding to basic analytical formulation. Answer all parts of each problem.
+\end{ch-box}
+
+\section{Problem 1: Reasoning \& Data Foundations}
+\textbf{Context:} In Homework 01 and 02, we explored how engineers transition from physics-based laws to data-driven models. 
+
+\begin{enumerate}[label=(\alph*)]
+    \item A structural engineer uses a Finite Element Model (FEM) based on Hooke's Law to predict stress. Another engineer collects 1,000 stress measurements to build a regression model. Which one is \textbf{Deductive} and which is \textbf{Inductive}? Explain why. \\
+    \fullunderline \\
+    \fullunderline
+
+    \item You are monitoring a bridge with 3 strain gauges, 2 accelerometers, and 1 temperature sensor. 
+    \begin{itemize}
+        \item Define the dimension of a single feature vector $\bm{x}$ representing one moment in time. Briefly justify the count. \rule{1in}{0.15mm} \\
+        \fullunderline
+        \item If you collect data at 10Hz for 1 hour, what is the size of your data matrix $\bm{X}$? Show your calculation. \rule{1in}{0.15mm} \\
+        \fullunderline
+    \end{itemize}
+
+    \item \textbf{PCA Concept:} If the 3 strain gauges are located very close to each other, they will likely be highly correlated. How does PCA help in reducing the redundancy of these attributes while preserving the signal? \\
+    \fullunderline \\
+    \fullunderline \\
+    \fullunderline
+\end{enumerate}
+
+\section{Problem 2: The Perceptron \& Linear Classification}
+\textbf{Context:} The Perceptron is the simplest neural model. Consider a binary classifier for soil liquefaction ($c=1$ for liquefied, $c=0$ for stable) based on two features: $x_1$ (magnitude) and $x_2$ (depth).
+
+\begin{enumerate}[label=(\alph*)]
+    \item The learned weights are $\bm{w} = [1.5, -2.0]^T$ and bias $b = -3.0$. Write the \textbf{decision function} $u(\bm{x})$ and the \textbf{boundary equation} $u(\bm{x})=0$. \\
+    \fullunderline \\
+    \fullunderline
+
+    \item For a site with $x_1 = 6.0$ and $x_2 = 2.0$:
+    \begin{itemize}
+        \item Calculate the logit $u$ and explain the meaning of its sign. \rule{1.5in}{0.15mm} \\
+        \fullunderline
+        \item Using the Heaviside activation $H(u)$, determine the predicted class $c^*$. \rule{1in}{0.15mm} \\
+        \fullunderline
+    \end{itemize}
+
+    \item \textbf{Geometry:} If we increase the bias $b$ from $-3.0$ to $-1.0$ (while keeping weights constant), does the decision boundary shift \textit{toward} or \textit{away} from the origin? Briefly justify. \\
+    \fullunderline \\
+    \fullunderline
+\end{enumerate}
+
+\section{Problem 3: Logistic Regression \& Probability}
+\textbf{Context:} Unlike the Perceptron, Logistic Regression provides a membership probability $P(c=1|\bm{x})$ using the sigmoid function $\sigma(u) = 1/(1+e^{-u})$.
+
+\begin{enumerate}[label=(\alph*)]
+    \item An engineer builds a model to predict concrete durability. For a specific mix, the model computes a score (logit) of $u = 0.85$. 
+    \begin{itemize}
+        \item Calculate the probability of the mix being durable ($c=1$). (Use $e^{-0.85} \approx 0.427$). \rule{1.5in}{0.15mm} \\
+        \fullunderline
+        \item If the threshold is $\tau = 0.5$, what is the predicted label? Justify based on the probability. \rule{1in}{0.15mm} \\
+        \fullunderline
+    \end{itemize}
+
+    \item \textbf{Loss Function:} Why do we use the \textbf{Cross-Entropy Loss} (log-loss) for logistic regression instead of the Mean Squared Error (MSE) used in standard regression? \\
+    \fullunderline \\
+    \fullunderline
+
+    \item \textbf{Decision Boundary:} If $u(\bm{x}) = \bm{w}^T\bm{x} + b$, prove that the condition $P(c=1|\bm{x}) = 0.5$ corresponds exactly to the linear decision boundary $u(\bm{x}) = 0$. \\
+    \fullunderline \\
+    \fullunderline \\
+    \fullunderline
+\end{enumerate}
+
+\section{Problem 4: Support Vector Machines (SVM)}
+\textbf{Context:} SVMs seek the \textit{Maximum Margin Hyperplane} and can handle non-linear data via kernels.
+
+\begin{enumerate}[label=(\alph*)]
+    \item Define the \textbf{Margin} in the context of an SVM. Why is a ``Large Margin'' classifier considered more robust to noise than a standard Perceptron? \\
+    \fullunderline \\
+    \fullunderline \\
+    \fullunderline
+
+    \item \textbf{Kernel Trick:} Suppose your data points are distributed such that class 1 is a circle in the center and class 0 surrounds it.
+    \begin{itemize}
+        \item Can a linear SVM separate this data? Explain why or why not. \rule{1in}{0.15mm} \\
+        \fullunderline
+        \item Name a kernel function that could be used to solve this, and briefly explain what it does to the feature space. \\
+        \fullunderline \\
+        \fullunderline
+    \end{itemize}
+
+    \item \textbf{Trade-off:} In the SVM objective, what is the role of the \textbf{Regularization parameter $C$}? What happens to the margin if $C \to \infty$ and why? \\
+    \fullunderline \\
+    \fullunderline
+\end{enumerate}
+
+\section{Problem 5: Multi-Layer Perceptrons (MLP)}
+\textbf{Context:} MLPs use hidden layers to learn complex, non-linear mappings.
+
+\begin{enumerate}[label=(\alph*)]
+    \item Consider an MLP with:
+    \begin{itemize}
+        \item Input Layer: 4 neurons.
+        \item Hidden Layer 1: 10 neurons.
+        \item Output Layer: 1 neuron (binary classification).
+    \end{itemize}
+    Calculate the total number of \textbf{trainable parameters} (weights + biases) in this network. Show your work clearly for each layer. \\
+    \fullunderline \\
+    \fullunderline \\
+    \fullunderline
+
+    \item \textbf{Forward Pass:} If the output of Hidden Layer 1 is a vector $\bm{h}$, and the output layer has weight $\bm{v}$ and bias $b_o$, write the mathematical expression for the final prediction $y$ using a sigmoid activation $\sigma$. Explain each term. \\
+    \fullunderline \\
+    \fullunderline
+
+    \item \textbf{Universal Approximation:} Briefly explain the statement: ``A single hidden layer MLP with enough neurons can approximate any continuous function.'' What is the role of the \textbf{activation function} in this capability and why is it necessary? \\
+    \fullunderline \\
+    \fullunderline \\
+    \fullunderline
+\end{enumerate}
+
+\section{Problem 6: Deep Learning \& Workflows}
+\textbf{Context:} Topic 13-16 covered CNNs and the shift toward LLM-based engineering systems.
+
+\begin{enumerate}[label=(\alph*)]
+    \item \textbf{Convolution:} A $3 \times 3$ image patch $I$ and a $3 \times 3$ filter $K$ are given:
+    \[ I = \begin{bmatrix} 1 & 1 & 0 \\ 1 & 0 & 1 \\ 0 & 1 & 1 \end{bmatrix}, \quad K = \begin{bmatrix} 1 & 0 & -1 \\ 0 & 1 & 0 \\ -1 & 0 & 1 \end{bmatrix} \]
+    Calculate the output of the convolution at this location and explain what this specific filter might be detecting. \rule{1.5in}{0.15mm} \\
+    \fullunderline \\
+    \fullunderline
+
+    \item \textbf{LLM Workflow:} You want to build a \textbf{RAG (Retrieval-Augmented Generation)} system to help junior engineers search for specific clauses in AASHTO bridge design specifications.
+    \begin{itemize}
+        \item What is the role of the \textbf{Vector Database} in this workflow and why is it used instead of a standard text search? \\
+        \fullunderline \\
+        \fullunderline
+        \item Why is RAG better than just asking the LLM to ``remember'' the design code? \\
+        \fullunderline \\
+        \fullunderline
+    \end{itemize}
+
+    \item \textbf{Ethics/Safety:} Give one example of a task an AI assistant \textit{should not} perform without human verification in a civil engineering project. Explain the potential risk. \rule{3in}{0.15mm} \\
+    \fullunderline \\
+    \fullunderline
+\end{enumerate}
+
+
+\end{document}

@@ -1,458 +1,504 @@
-%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
-
 \documentclass[12pt]{article}
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath, amssymb, graphics, setspace}
-\usepackage{bm}
-\usepackage{graphicx} \graphicspath{ {./figs/} }
-\usepackage{tcolorbox}
-\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
-\newcommand{\mathsym}[1]{{}}
-\newcommand{\unicode}[1]{{}}
 
-\usepackage[english]{babel}
-\newtheorem{theorem}{Theorem}
-
-\usepackage{caption}
-\usepackage{subcaption}
-
-\usepackage{tikz}
-\usetikzlibrary{calc}
-
-\usepackage{tabulary}
-\usepackage{multirow}
-\usepackage{lscape}
-
-\usepackage{hyperref}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={Overleaf Example},
-    pdfpagemode=FullScreen,
-    }
-
-\def\mathbi#1{\textbf{\em #1}}
+\usepackage{ceai}
+\graphicspath{{../figs/}}
 
 \begin{document}
-\doublespacing	
+\doublespacing
 
-\title{CE 401/5501: Applied AI \\ \large Topic 16: Good-old-fashioned AI}
-\author{Dr. ZhiQiang Chen}
+\title{CE 488/5588: Applied AI for Engineering\\ \large Topic 16: Modern LLM Systems and Direct Engineering Applications}
+\author{}
 \date{}
 \maketitle
 
-\section{AI by Far (Covered in This Class)}
+\begin{ch-box}
+Topic 15 introduced the motivation for large language models, the historical difficulty of NLP, the rise of transformers, tokenization, embeddings, vector spaces, vector stores, and the basic limits of probabilistic generation. This chapter moves one step closer to practice. The central question is no longer only ``what is an LLM?'' but ``how are modern LLM systems actually organized, and how are they already changing engineering work before full agentic AI?''
+\end{ch-box}
 
-\subsection{Relations of Classic AI and ML}
-Artificial Intelligence (AI) is the broad field concerned with simulating aspects of human intelligence—reasoning, decision-making, perception—within computer systems.  Machine Learning (ML) is a subfield of AI that focuses on algorithms which \emph{learn} patterns from data rather than rely on hand-coded rules.
-
-\colorbox{blue!10}{%
-  \parbox{\textwidth}{%
-    \textbf{Key Insight:} AI encompasses ML.  Whereas classical AI often used explicit, symbolic rules, ML relies on inductive reasoning to infer predictive models automatically from data.
-  }%
-}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.4\textwidth]{./figs/Figure0103.png}
-  \caption{Relationship between AI and ML: ML is the data-driven core within the broader AI discipline.}
-  \label{fig:ai_ml_relationships}
-\end{figure}
-
-
-\subsection{Classic ML Methods Covered}
-In this course we have surveyed the following foundational ML techniques:
-
+\section*{Learning Objectives}
+After completing this chapter, you should be able to:
 \begin{itemize}
-  \item \textbf{Logistic Regression}  
-    A linear model for binary classification, mapping inputs through the sigmoid function to estimate class probabilities.
-  \item \textbf{Perceptron and MLPs}  
-    Neural network models—single‐layer (perceptron) or multi‐layer (MLP)—that learn decision boundaries (classification) or continuous mappings (regression) via iterative weight updates.
-  \item \textbf{Support Vector Machines (SVM)}  
-    Max-margin classifiers (and regressors) that use kernels to handle nonlinearity while maintaining convex optimization.
-  \item \textbf{Bayesian Classifiers}  
-    Generative models (e.g.\ Naive Bayes) that apply Bayes’ theorem under conditional independence assumptions to compute class posteriors.
-  \item \textbf{\(k\)-Means Clustering}  
-    An unsupervised algorithm that partitions data into \(k\) groups by minimizing within-cluster variance.
-  \item \textbf{Deep Neural Networks}  
-    Multi-layer architectures (CNNs, RNNs, Transformers) that perform hierarchical, data-driven feature extraction and achieve state-of-the-art results across vision, language, and more.
+    \item distinguish encoder-only, decoder-only, and encoder-decoder transformer families at a high level;
+    \item explain the difference between a base model and a post-trained assistant;
+    \item describe prompt engineering as workflow design rather than as a single clever prompt;
+    \item explain how retrieval-augmented generation (RAG), LangChain-style pipelines, and knowledge graphs support engineering knowledge systems;
+    \item describe first-generation LLM engineering patterns such as structured prompting and ReAct; and
+    \item explain why these workflows naturally lead into the frontier topic of agentic AI and human-in-the-loop engineering.
 \end{itemize}
 
-\colorbox{red!10}{%
-  \parbox{\textwidth}{%
-    \textbf{All of these are data-driven models, which can be classified as:}
-    \begin{itemize}
-      \item \emph{Connectionist:} Neural-network-based approaches (Perceptron, MLP, DNNs, etc.)  
-      \item \emph{Statistical:} Probabilistic and kernel methods (SVMs, Bayesian classifiers, EM, etc.)
-    \end{itemize}
-  }%
-}
+\section{From Topic 15 to Topic 16}
 
-% --- Next up: Section 2: Motivation for GOFAI ---
+Topic 15 focused on representation: how text becomes tokens, how tokens become vectors, and how vectors enable semantic retrieval. Topic 16 now focuses on \emph{systems}. An LLM used in practice is rarely just a raw pretrained neural network. It is usually part of a larger workflow that includes prompt design, post-training, retrieval, formatting rules, external tools, and user supervision.
 
-\section{Motivation for GOFAI}
+This distinction matters in engineering. A language model can produce fluent text on its own, but a usable engineering assistant usually needs structure: relevant documents, source traceability, task decomposition, and a clear boundary between what is generated and what must be verified.
 
-\subsection{Human Reasoning: Observations vs. Rules}
+\begin{alert-box}
+\textbf{Scope decision for this chapter:} Topic 16 focuses on direct LLM applications and first-generation LLM engineering. It introduces structured prompting, RAG, LangChain-style orchestration, knowledge-graph construction, and ReAct-style workflows. Full frontier agentic workflows, skills, and autonomous research systems are reserved for Topic 17.
+\end{alert-box}
 
-Humans learn not only by observing the world but also by internalizing formal rules—grammar, logic, and domain‐specific procedures—that guide reasoning beyond mere pattern recognition.
+\subsection{Why LLM Systems Are More Than Chatbots}
 
-\colorbox{blue!10}{%
-  \parbox{\textwidth}{%
-    \textbf{Key Question:} Do humans reason based solely on observations (data)?%
-  }%
-}
+The public often encounters LLMs through a chat window, but the engineering reality is broader. A useful deployed system usually combines several layers: a model architecture, post-training, prompting structure, retrieval or tool use, and human supervision. In that sense, Topic 16 is not merely about another model family. It is about the system stack that turns a language model into an engineering assistant.
 
-Infants initially depend on sensory experience, yet very early in development they acquire language and formal rules that structure their understanding of the world.
-
-\colorbox{blue!10}{%
-  \parbox{\textwidth}{%
-    \textbf{Early AI Motivation:} Pioneers such as Alan Turing (1950), John McCarthy (1955), Marvin Minsky (1956), and Herbert Simon \& Allen Newell (1956) argued that symbolic, rule‐based systems are needed to capture the reasoning processes characteristic of human intelligence.%
-  }%
-}
-
-\begin{figure}[h!]
-  \centering
-  \begin{minipage}{0.45\textwidth}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\linewidth]{figs/Turning.png}
-    \caption*{Alan Turing, “Computing Machinery and Intelligence” (1950)}
-  \end{minipage}
-  \hfill
-  \begin{minipage}{0.45\textwidth}
+    \begin{tikzpicture}[>=stealth,font=\small, scale=0.90, transform shape]
+        \tikzset{box/.style={draw, rounded corners, minimum width=2.8cm, minimum height=0.9cm, align=center}}
+        \node[box, fill=blue!6] (user) at (0,0) {User intent\\engineering task};
+        \node[box, fill=orange!10] (prompt) at (3.5,0) {Prompt +\\workflow rules};
+        \node[box, fill=green!10] (assist) at (7.2,0) {Post-trained\\assistant};
+        \node[box, fill=yellow!12] (tools) at (11.0,0) {Retrieval / tools\\documents / code};
+        \node[box, fill=red!8] (verify) at (14.7,0) {Human review\\and verification};
+        \draw[->] (user) -- (prompt);
+        \draw[->] (prompt) -- (assist);
+        \draw[->] (assist) -- (tools);
+        \draw[->] (tools) -- (verify);
+        \draw[dashed,->] (verify.south) to[out=-100,in=-80] (prompt.south);
+    \end{tikzpicture}
+    \caption{A practical system view of an engineering LLM assistant. In real use, the model sits inside a larger workflow that includes prompting, tools, retrieved evidence, and human verification.}
+    \label{t16fig:system_stack}
+\end{figure}
+
+This broader system view is also what connects Topic 16 back to Topic 15. Topic 15 explained why embeddings, retrieval, and probabilistic generation matter. Topic 16 asks how those ingredients are assembled into practical systems that can support real work.
+
+\section{Mainstream Architectures of Modern LLM Systems}
+
+Although the public often speaks of ``LLMs'' as if they were one architecture, transformer-based language systems come in several important families.
+
+\subsection{Encoder-Only Models}
+
+Encoder-only models, such as BERT-style systems, process input with bidirectional attention. Every token can attend to the full input sequence. This makes encoder-only systems strong for representation tasks such as classification, semantic similarity, retrieval, and embedding generation.
+
+A common pretraining objective for encoder-style models is masked-token prediction:
+\begin{equation}
+    \mathcal{L}_{\mathrm{MLM}}(\theta)
+    = -\sum_{t\in \mathcal{M}} \log P_\theta(x_t \mid x_{\setminus t}),
+    \label{t16eq:mlm}
+\end{equation}
+where $\mathcal{M}$ denotes the set of masked positions.
+
+The practical point is that encoder-only models are excellent when the output is primarily an internal representation rather than open-ended generation.
+
+\subsection{Decoder-Only Models}
+
+Decoder-only models, such as GPT-style systems, use causal attention. Each token sees only the tokens before it. This architecture is the dominant backbone for modern general-purpose chat and coding assistants because it matches the autoregressive generation process naturally:
+\begin{equation}
+    P(x_1,\dots,x_T) = \prod_{t=1}^T P(x_t\mid x_{<t}).
+    \label{t16eq:autoregressive}
+\end{equation}
+
+Decoder-only systems became dominant largely because they are simple to scale and unify many tasks under one objective. In practice, if students interact with a large conversational assistant, they are usually interacting with a decoder-only or mostly decoder-centered system.
+
+\subsection{Encoder-Decoder Models}
+
+Encoder-decoder systems, such as T5-style sequence-to-sequence models, split processing into two stages. The encoder builds a representation of the source input, and the decoder generates the target sequence using both causal self-attention and cross-attention to the encoder output. The conditional objective has the form
+\begin{equation}
+    P(y\mid x) = \prod_{t=1}^{T_y} P(y_t \mid y_{<t}, x).
+    \label{t16eq:seq2seq}
+\end{equation}
+
+This design is especially natural for translation, summarization, structured transformation, and other tasks where the input and output play clearly different roles.
+
+\begin{table}[ht]
     \centering
-    \includegraphics[width=\linewidth]{figs/McCarthy.png}
-    \caption*{John McCarthy, “Programs with Common Sense” (1958)}
-  \end{minipage}
+    \caption{A practical comparison of the three transformer families.}
+    \label{t16tab:architectures}
+    \begin{tabulary}{\textwidth}{L L L}
+        \toprule
+        \textbf{Architecture} & \textbf{Strength} & \textbf{Typical use} \\
+        \midrule
+        Encoder-only & rich bidirectional representation & embeddings, classification, retrieval \\
+        Decoder-only & scalable generation from prompts & chat, coding, general assistants \\
+        Encoder-decoder & explicit input-to-output mapping & translation, summarization, structured generation \\
+        \bottomrule
+    \end{tabulary}
+\end{table}
+
+\begin{ex-box}
+\textbf{Engineering interpretation.} If you want to embed inspection reports for search, an encoder-style system is natural. If you want a coding or analysis assistant, a decoder-only system is natural. If you want to convert technical descriptions into another textual format, such as summarization or structured reporting, an encoder-decoder design is often conceptually clean.
+\end{ex-box}
+
+\subsection{Why Decoder-Only Models Dominated the Public Interface}
+
+The public AI wave after 2020 was largely driven by decoder-only models because they turned one architecture into many products: chat, code completion, summarization, drafting, transformation, and question answering. This was not because encoder-only or encoder-decoder models became useless. Rather, decoder-only systems became the most versatile general front end.
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[>=stealth,font=\small, scale=0.92, transform shape]
+        \tikzset{box/.style={draw, rounded corners, minimum width=3.2cm, minimum height=0.8cm, align=center}}
+
+        \node[box, fill=blue!8] (encin) at (0,2.0) {Input tokens};
+        \node[box, fill=blue!15] (enc) at (0,0.8) {Encoder stack\\bidirectional attention};
+        \node[box, fill=blue!5] (encout) at (0,-0.4) {Embeddings / labels / retrieval};
+        \draw[->] (encin) -- (enc);
+        \draw[->] (enc) -- (encout);
+
+        \node at (0,3.0) {\textbf{Encoder-only}};
+
+        \node[box, fill=green!8] (decin) at (5.3,2.0) {Prompt tokens};
+        \node[box, fill=green!15] (dec) at (5.3,0.8) {Decoder stack\\causal attention};
+        \node[box, fill=green!5] (decout) at (5.3,-0.4) {Next-token generation};
+        \draw[->] (decin) -- (dec);
+        \draw[->] (dec) -- (decout);
+        \draw[dashed,->] (decout.south) to[out=-90,in=-90] (decin.south);
+
+        \node at (5.3,3.0) {\textbf{Decoder-only}};
+
+        \node[box, fill=orange!8] (seqin) at (10.8,2.0) {Source input};
+        \node[box, fill=orange!15] (seqenc) at (9.6,0.8) {Encoder};
+        \node[box, fill=orange!15] (seqdec) at (12.0,0.8) {Decoder\\+ cross-attention};
+        \node[box, fill=orange!5] (seqout) at (12.0,-0.4) {Target sequence};
+        \draw[->] (seqin) -- (seqenc);
+        \draw[->] (seqenc) -- (seqdec);
+        \draw[->] (seqdec) -- (seqout);
+
+        \node at (10.8,3.0) {\textbf{Encoder-decoder}};
+    \end{tikzpicture}
+    \caption{Three mainstream transformer families. Encoder-only models emphasize representation, decoder-only models emphasize autoregressive generation, and encoder-decoder models emphasize explicit input-to-output transformation.}
+    \label{t16fig:transformer_family}
 \end{figure}
 
+Figure~\ref{t16fig:transformer_family} is more useful here than a single generic transformer schematic because Topic 16 is about system choices. Students need to see not just that these models all descend from the transformer, but that they support different engineering tasks for structural reasons.
 
-\subsection{Defining GOFAI: Basic Features}
+\section{Base Models, Post-Training, and Assistant Behavior}
 
-GOFAI (Good‐Old‐Fashioned AI) is characterized by two core elements:
+In Topic 15, we already introduced pretraining, supervised fine-tuning, RLHF, DPO, and LoRA at a foundational level. Here we place those ideas into a more practical system view.
 
-\paragraph{Symbolic Representation}  
-Knowledge is encoded as discrete, human‐readable symbols.  
-\[
-  \texttt{Parent}(\text{John},\,\text{Mary})
-  \quad\text{denotes}\quad
-  \text{“John is a parent of Mary.”}
-\]
+\subsection{Base Model versus Assistant}
 
-\paragraph{Rule‐Based Reasoning}  
-Inference is performed by applying explicit IF–THEN rules to symbolic facts.  
-\[
-  \text{IF }\texttt{Parent}(x,y)\;\text{AND}\;\texttt{Parent}(y,z)
-  \quad\text{THEN}\quad
-  \texttt{Grandparent}(x,z).
-\]
+A \textbf{base model} is the raw language model after pretraining or after general-purpose training. It has broad competence but may not respond in the way users expect. A \textbf{post-trained assistant} is the result of adding behavioral shaping so that the system follows instructions, answers more helpfully, formats outputs more reliably, and often refuses unsafe requests.
 
-\colorbox{yellow!10}{%
-  \parbox{\textwidth}{%
-    \textbf{Contrast with Data‐Driven ML:} Connectionist (neural) and statistical models learn patterns inductively from data, whereas GOFAI relies on explicitly encoded symbolic knowledge and rules to perform reasoning.%
-  }%
-}
+From an engineering perspective, the most important distinction is this: what users experience is not just the architecture. It is the architecture \emph{plus} post-training.
 
-\section{GOFAI Basics}
+\subsection{Instruction Tuning}
 
-\subsection{Historical Milestones (1956–1990)}
+Instruction tuning uses prompt-response demonstrations to help the model follow tasks more directly. If the training set is $\mathcal{D}$, the supervised objective is
+\begin{equation}
+    \mathcal{L}_{\mathrm{SFT}}(\theta) = -\sum_{(x,y)\in\mathcal{D}} \log P_\theta(y\mid x).
+    \label{t16eq:sft}
+\end{equation}
 
-The early era of symbolic AI featured groundbreaking systems and subsequent “AI winters”:
+This step makes the difference between ``a model that can continue text'' and ``a model that behaves like an assistant.''
 
-\begin{itemize}
-  \item \textbf{1956: Logic Theorist (Newell \& Simon)}  
-    First program to prove theorems in symbolic logic.
-  \item \textbf{1957: General Problem Solver (Newell \& Simon)}  
-    A universal problem‐solving architecture using means–ends analysis.
-  \item \textbf{1970: SHRDLU (Winograd)}  
-    Natural‐language understanding and block‐world manipulation.
-  \item \textbf{mid‐1970s: AI Winter I}  
-    Funding cuts after overly optimistic early results.
-  \item \textbf{1980s: Expert Systems Boom}  
-    Industry adoption (e.g.\ XCON, DENDRAL, PROSPECTOR).
-  \item \textbf{late‐1980s–early‐1990s: AI Winter II}  
-    Collapse of the expert-systems market.
-\end{itemize}
+\subsection{Preference Optimization}
 
-\subsection{Resurgence \& Semantic Era (1990–2024)}
+Not every desired property is a single correct answer. Helpfulness, tone, clarity, professionalism, and concision are often preference-like rather than absolute. This motivates preference learning.
 
-Symbolic methods were complemented and sometimes supplanted by statistical and hybrid approaches:
+RLHF uses human preferences to train a reward signal and then optimize the model under that signal. DPO simplifies this picture by using preferred and non-preferred outputs more directly. The exact mathematics can be postponed, but students should remember the conceptual shift: from predicting text to optimizing for outputs people prefer.
 
-\begin{itemize}
-  \item \textbf{1990s:} Revival of neural networks (Rumelhart et al., 1986), introduction of SVMs (Cortes \& Vapnik, 1995), graphical models.
-  \item \textbf{2000s:} Semantic Web \& Knowledge Graphs (RDF/OWL, SPARQL).
-  \item \textbf{2010s:} Deep Learning revolution (CNNs, Transformers).
-  \item \textbf{2020s:} Generative AI (large‐scale LLMs, diffusion models) and emergence of neurosymbolic frameworks.
-\end{itemize}
+\begin{def-box}
+\textbf{Practical summary.} Pretraining gives general competence. Instruction tuning gives task-following behavior. Preference optimization shapes style, alignment, and subjective quality. Together they explain why a deployed assistant feels different from a raw language model.
+\end{def-box}
 
-\begin{figure}[h!]
-  \centering
-  \begin{tikzpicture}[scale=0.7, transform shape]
-    \def\YearStart{1950}
-    \def\YearEnd{2025}
-    \def\AxisLen{14}
-    \draw[->, thick] (0,0) -- (\AxisLen,0) node[right]{Year};
-    \foreach \y in {1950,1960,1970,1980,1990,2000,2010,2020} {
-      \pgfmathsetmacro{\x}{(\y-\YearStart)/(\YearEnd-\YearStart)*\AxisLen}
-      \draw (\x,0.1) -- (\x,-0.1) node[below=2pt]{\small \y};
-    }
-    \foreach \event/\year/\offset/\col in {
-      {Logic Theorist}/1956/1.2/blue,
-      {GPS}/1957/1.4/blue,
-      {SHRDLU}/1970/1.2/blue,
-      {AI Winter I}/1975/1.0/red,
-      {Expert Systems Boom}/1985/1.4/blue,
-      {AI Winter II}/1990/1.0/red,
-      {ML Resurgence}/1995/2.0/black,
-      {Semantic Web}/2005/0.8/blue,
-      {Deep Learning}/2015/1.2/black,
-      {Generative AI}/2022/1.0/black,
-      {Neuro-Symbolic}/2024/1.6/green}
-      {
-      \pgfmathsetmacro{\x}{(\year-\YearStart)/(\YearEnd-\YearStart)*\AxisLen}
-      \draw[->, thick, color=\col] (\x,0.1) -- ++(0,\offset)
-        node[above, align=center]{\small \textbf{\event}\\(\year)};
-    }
-  \end{tikzpicture}
-  \caption{Timeline of AI milestones from 1956 to 2024.}
-  \label{fig:ai-timeline}
+\subsection{Parameter-Efficient Customization}
+
+Organizations often want to adapt a model without retraining every parameter. This is where methods such as LoRA become useful. Rather than updating the full model, one updates a small number of additional trainable components. This is attractive because it reduces memory cost, engineering complexity, and deployment friction.
+
+For engineering organizations, this matters because many use cases are narrow: internal style guides, project-specific terminology, report templates, compliance phrasing, or domain-focused code assistance. Those use cases may not require a full-model retraining strategy.
+
+\section{First-Generation LLM Engineering Workflows}
+
+Before frontier autonomous agents became a mainstream topic, many practical LLM workflows already existed. These are best understood as \emph{first-generation AI engineering patterns}: more structured than ordinary chat, but not yet full autonomous agents.
+
+\subsection{ReAct as a Bridge Pattern}
+
+One influential pattern is \textbf{ReAct}, short for \emph{reasoning and acting}. The idea is to interleave a short reasoning trace with an action such as search, retrieval, or tool use. In stylized form, the loop looks like this:
+\begin{equation}
+    \text{Thought} \rightarrow \text{Action} \rightarrow \text{Observation} \rightarrow \text{Thought} \rightarrow \cdots
+    \label{t16eq:react}
+\end{equation}
+
+ReAct is important pedagogically because it sits between plain prompting and full agentic systems. It shows students that an LLM workflow can be iterative, tool-aware, and partially self-correcting without requiring a fully autonomous platform.
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[>=stealth,font=\small]
+        \tikzset{box/.style={draw, rounded corners, minimum width=2.6cm, minimum height=0.9cm, align=center}}
+        \node[box] (t1) at (0,0) {Thought\\interpret task};
+        \node[box] (a1) at (4,0) {Action\\retrieve / search};
+        \node[box] (o1) at (8,0) {Observation\\documents / results};
+        \node[box] (t2) at (12,0) {Thought\\revise answer};
+        \draw[->] (t1) -- (a1);
+        \draw[->] (a1) -- (o1);
+        \draw[->] (o1) -- (t2);
+        \draw[dashed,->] (t2.south) to[out=-70,in=-110] (t1.south);
+    \end{tikzpicture}
+    \caption{A simplified ReAct-style loop. This pattern interleaves reasoning, external action, and observation, making the workflow more structured than ordinary chat while still short of a fully autonomous agent system.}
+    \label{t16fig:react}
 \end{figure}
 
-\subsection{Developing an Expert System}
+\subsection{Why ReAct Matters in Engineering}
 
-Building an expert system typically follows six key steps (Figure~\ref{fig:expert-workflow}):
+Engineering tasks rarely succeed from a single fluent response. The useful process is often iterative: identify the missing source, retrieve the clause, inspect the evidence, revise the conclusion, and document the assumptions. ReAct-style prompting therefore matters because it teaches the model to work with intermediate evidence rather than only to produce an immediate final answer.
 
+\begin{ex-box}
+\textbf{Example: code-compliance question.} A user asks, ``What serviceability deflection limit applies here?'' A ReAct-style workflow might first retrieve the relevant code section, then observe that the clause depends on occupancy or finish sensitivity, then ask for or infer that missing context before drafting a bounded answer.
+\end{ex-box}
+
+\section{RAG and Knowledge Bases}
+
+Topic 15 introduced vector stores and semantic retrieval. Topic 16 now places them into the practical architecture of a modern engineering assistant.
+
+\subsection{RAG as a System Pattern}
+
+Retrieval-augmented generation (RAG) combines two ideas:
 \begin{enumerate}
-  \item Domain Knowledge Acquisition  
-  \item Knowledge Formalization  
-  \item Knowledge Representation  
-  \item Rule Base \& Inference Engine  
-  \item Testing \& Validation  
-  \item Deployment \& Maintenance
+    \item retrieve relevant external documents; and
+    \item condition the generation on those retrieved documents.
 \end{enumerate}
 
-\begin{figure}[h!]
-  \centering
-  \begin{tikzpicture}[scale=0.8, transform shape]
-    \tikzstyle{block}=[
-      draw, rectangle, rounded corners,
-      minimum width=4cm, minimum height=1cm,
-      align=center]
-    \node[block] (A) at (-3,3) {1. Domain Knowledge\\Acquisition};
-    \node[block] (B) at (-3,1.5) {2. Knowledge\\Formalization};
-    \node[block] (C) at (-3,0) {3. Knowledge\\Representation};
-    \node[block] (D) at (3,0) {4. Rule Base \&\\Inference Engine};
-    \node[block] (E) at (3,-1.5) {5. Testing \&\\Validation};
-    \node[block] (F) at (3,-3) {6. Deployment \&\\Maintenance};
-    \draw[->, thick] (A.south) -- (B.north);
-    \draw[->, thick] (B.south) -- (C.north);
-    \draw[->, thick] (C.east) -- (D.west);
-    \draw[->, thick] (D.south) -- (E.north);
-    \draw[->, thick] (E.south) -- (F.north);
-  \end{tikzpicture}
-  \caption{Workflow for developing a symbolic expert system.}
-  \label{fig:expert-workflow}
+The system-level logic can be summarized as
+\begin{equation}
+    \text{query} \rightarrow \text{retriever} \rightarrow \text{context} \rightarrow \text{generator} \rightarrow \text{answer}.
+    \label{t16eq:rag}
+\end{equation}
+
+RAG matters because it changes the question from ``What does the model remember?'' to ``What evidence can the system retrieve and use?'' For engineering use, that shift is crucial.
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[>=stealth,font=\small, scale=0.88, transform shape]
+        \tikzset{box/.style={draw, rounded corners, minimum width=2.8cm, minimum height=0.9cm, align=center}}
+        \node[box] (q) at (0,0) {User query};
+        \node[box] (r) at (3.6,0) {Retriever\\vector / hybrid search};
+        \node[box] (d) at (7.4,0) {Retrieved chunks\\+ metadata};
+        \node[box] (g) at (11.2,0) {LLM generator};
+        \node[box] (a) at (14.2,0) {Grounded answer};
+        \draw[->] (q) -- (r);
+        \draw[->] (r) -- (d);
+        \draw[->] (d) -- (g);
+        \draw[->] (g) -- (a);
+        \node[box] (c) at (7.4,-2.0) {Document corpus\\PDFs, reports, code, notes};
+        \draw[->] (c) -- (r);
+    \end{tikzpicture}
+    \caption{A practical RAG pipeline for engineering knowledge work. The retriever brings relevant chunks and metadata into the context window before generation, so the answer depends on accessible evidence rather than only model memory.}
+    \label{t16fig:rag}
 \end{figure}
 
-\colorbox{yellow!10}{%
-  \parbox{\textwidth}{%
-    \textbf{Two Major Components:}  
-    \(\bullet\) \emph{Knowledge Representation}  
-    \(\bullet\) \emph{Rule Base \& Inference Engine} (predicate logic, unification, search)
-  }%
-}
+\subsection{LangChain-Style Orchestration}
 
-\subsection{Knowledge Representation}
+Frameworks such as LangChain became popular not because they changed the mathematics of language models, but because they made it easier to connect prompts, retrievers, tools, memory, and output formatting into one workflow. In other words, they are orchestration layers for LLM applications.
 
-Symbolic AI supports multiple formalisms for encoding structured knowledge:
-
+For students, the important concept is not any one framework API. It is the architectural pattern:
 \begin{itemize}
-  \item \textbf{Frames \& Objects:}  
-    Records with named slots, e.g.\ \(\texttt{Person(name, age, occupation)}\).  
-    Inheritance: \(\texttt{Student}\sqsubseteq\texttt{Person}\).
-  \item \textbf{Semantic Networks:}  
-    Directed graphs with labeled edges, e.g.\ \(\texttt{Dog}\xrightarrow{\texttt{isA}}\texttt{Mammal}\).  
-    Inference via transitive closure.
-  \item \textbf{Ontologies (Description Logics):}  
-    Concept inclusion \(Dog\sqsubseteq Animal\), role restrictions \(Dog\sqsubseteq \exists hasPart.\,Tail\).  
-    Trade‐off: expressivity vs.\ reasoning complexity (e.g.\ \(\mathcal{ALC}\) vs.\ \(\mathcal{SROIQ}\)).
+    \item prompt template;
+    \item retriever or database connector;
+    \item LLM call;
+    \item parser or structured output step; and
+    \item optional memory or tool integration.
 \end{itemize}
 
-\subsection{Predicate Logic}
+This is why one can use LangChain or a similar framework to build an engineering knowledge assistant without yet building a full agent.
 
-Logical statements encode precise facts and inference rules:
+\subsection{Engineering Knowledge Bases}
 
-\begin{itemize}
-  \item \textbf{Clauses:}  
-    \[
-      C_1: P(a)\lor Q(a)
-      \quad
-      C_2: \neg P(a)
-    \]
-  \item \textbf{Resolution Rule:}
-    \[
-      \frac{L \lor \phi,\;\neg L \lor \psi}{\phi \lor \psi}
-    \]
-  \item \textbf{Example:}
-    \[
-      \frac{P(a)\lor Q(a),\;\neg P(a)}{Q(a)}
-    \]
-\end{itemize}
+A useful engineering knowledge base is not just a pile of text. It is an indexed, chunked, traceable corpus with metadata, version awareness, and often domain-specific filtering. For example, a structural engineering knowledge base may need to separate design codes, office standards, project memos, spreadsheets, and prior report sections.
 
-\subsection{Unification}
+The technical challenge is not merely retrieval quality. It is also governance: which source is official, which is superseded, and which may only be advisory.
 
-Unification finds substitutions to make terms identical:
-
-\[
-  \mathrm{mgu}\bigl(f(x,a),\,f(b,y)\bigr)
-  = \{x\mapsto b,\;y\mapsto a\}.
-\]
-
-Applying these yields:
-\[
-  f(x,a)\to f(b,a),
-  \quad
-  f(b,y)\to f(b,a).
-\]
-
-\subsection{Search \& Production Systems}
-
-Symbolic inference often involves search and rule firing:
-
-\begin{itemize}
-  \item \textbf{Search Algorithms:}
-  \begin{itemize}
-    \item BFS, DFS for tree/graph search.
-    \item A\*: \(f(n)=g(n)+h(n)\) with admissible heuristic.
-  \end{itemize}
-  \item \textbf{Production Systems (Rete Algorithm):}
-  \begin{itemize}
-    \item Working memory \(WM\), rule set \(R\).
-    \item Update: \(WM_{t+1}=WM_t\cup\{\mathrm{head}(r)\mid \mathrm{body}(r)\subseteq WM_t\}\).
-    \item Rete compiles rules into a shared-test network giving \(O(\Delta WM + \Delta R)\) matching per update.
-  \end{itemize}
-\end{itemize}
-
-\section{Expert Systems}
-
-\subsection{Definition and Origins}
-An \emph{expert system} is a software application that encodes expert knowledge in a domain as a set of symbolic rules and uses an inference engine to draw conclusions.
-
-\colorbox{green!10}{%
-  \parbox{\textwidth}{%
-    \textbf{Architecture:}  
-    \(\bullet\) Knowledge Base (facts + rules)  
-    \(\bullet\) Inference Engine (forward/backward chaining)  
-    \(\bullet\) Explanation Facility (justifies conclusions)
-  }%
-}
-
-Early pioneering systems:
-\begin{itemize}
-  \item \textbf{DENDRAL} (Feigenbaum \& Buchanan, 1965): Chemical-structure elucidation  
-  \item \textbf{MYCIN} (Buchanan \& Shortliffe, 1972): Medical diagnosis with certainty factors  
-  \item Term “Expert System” popularized in the mid-1970s at Stanford and Carnegie Mellon.
-\end{itemize}
-
-\subsection{The Expert Systems Hype}
-Expert systems generated enormous excitement and investment in the 1980s:
-
-\begin{itemize}
-  \item \textbf{Promise of Automation:} Capture scarce human expertise (medicine, engineering, finance).
-  \item \textbf{Business Impact:}  
-    \(\bullet\) Consistent, 24/7 decision support  
-    \(\bullet\) Example: XCON at DEC saved over \$40 million per year.
-  \item \textbf{Funding Surge:} Governments and industry invested billions in knowledge‐based initiatives.
-  \item \textbf{Bottlenecks Uncovered:} Knowledge‐acquisition, brittleness, difficulty adapting to new domains.
-\end{itemize}
-
-\subsection{Applications in Engineering Design}
-Notable engineering expert systems:
-\begin{itemize}
-  \item XCON (DEC, 1980): Automatic VAX configuration  
-  \item PROSPECTOR (Stanford, 1978): Geologic exploration guidance  
-  \item ICAD (MIT, 1988): Parametric CAD for mechanical parts  
-  \item CADEX/KEE (Intel, early 1980s): Advisory shells for engineering tasks  
-\end{itemize}
-
-\subsection{Case Study: HI-RISE (CMU, 1985–1987)}
-\begin{itemize}
-  \item \textbf{Challenge:} Structural design problems are often ill‐structured and rely on expert heuristics.
-  \item \textbf{Approach:}  
-    \(\bullet\) Encode design rules and heuristics in a symbolic knowledge base  
-    \(\bullet\) Use forward/backward chaining to derive design decisions  
-    \(\bullet\) Integrate case‐based reasoning to adapt previous examples
-  \item \textbf{Impact:}  
-    Pioneered rule‐based support for structural member sizing and load analysis; influenced later CAD‐integrated design assistants.
-\end{itemize}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.5\textwidth]{figs/Maher1985.png}
-  \caption{Workflow of the HI-RISE expert system (courtesy Maher, 1985).}
-  \label{fig:hi-rise}
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[>=stealth,font=\small, scale=0.90, transform shape]
+        \tikzset{box/.style={draw, rounded corners, minimum width=2.7cm, minimum height=0.9cm, align=center}}
+        \node[box, fill=blue!6] (text) at (0,0) {Unstructured text\\reports / notes / standards};
+        \node[box, fill=orange!10] (entity) at (4.0,0) {Entity extraction\\and normalization};
+        \node[box, fill=yellow!12] (relation) at (8.2,0) {Relation extraction\\candidate triples};
+        \node[box, fill=green!10] (graph) at (12.3,0) {Knowledge graph\\nodes + edges};
+        \node[box, fill=red!8] (review) at (16.1,0) {Human review\\ontology / quality};
+        \draw[->] (text) -- (entity);
+        \draw[->] (entity) -- (relation);
+        \draw[->] (relation) -- (graph);
+        \draw[->] (graph) -- (review);
+    \end{tikzpicture}
+    \caption{A simplified text-to-knowledge-graph workflow. LLMs can assist with extracting entities and relations, but the resulting graph still requires normalization and human review.}
+    \label{t16fig:kg_pipeline}
 \end{figure}
 
-\subsection{Limitations and Criticisms}
-Expert systems revealed key drawbacks:
+\section{Knowledge Graph Creation with LLMs}
+
+RAG is not the only way to organize knowledge. Another important direction is to use LLMs to help build or extend \textbf{knowledge graphs}.
+
+\subsection{Why Knowledge Graphs Matter}
+
+A knowledge graph stores entities and relations explicitly. In a simplified form, one may represent facts as triples:
+\begin{equation}
+    (h,r,t),
+    \label{t16eq:triple}
+\end{equation}
+where $h$ is the head entity, $r$ is the relation, and $t$ is the tail entity.
+
+For example:
+\[
+    (\texttt{ACI318},\ \texttt{defines},\ \texttt{load\ combination})
+\]
+or
+\[
+    (\texttt{Beam\ B12},\ \texttt{uses\ material},\ \texttt{A992\ steel}).
+\]
+
+This is attractive in engineering because graphs support explicit relationships, queryability, and rule-based augmentation.
+
+\subsection{How LLMs Help Build Graphs}
+
+An LLM can assist with graph creation by:
 \begin{itemize}
-  \item \textbf{Brittleness \& Frame Problem:} Rigid rule bases fail with novel scenarios.
-  \item \textbf{Knowledge‐Acquisition Bottleneck:} Manual extraction and encoding of expert rules is time‐consuming.
-  \item \textbf{Scalability \& Maintenance:} Large rule sets become difficult to update and debug.
+    \item extracting entities from documents;
+    \item extracting candidate relations;
+    \item normalizing terms to an ontology or vocabulary;
+    \item resolving aliases and abbreviations; and
+    \item producing draft triples for later human review.
 \end{itemize}
 
-\section{Conclusions}
+The practical lesson is that LLMs can help transform messy engineering text into more structured knowledge artifacts. However, that output must still be reviewed, because an incorrect triple may look formally clean while remaining semantically wrong.
 
-In this lecture, we explored the evolution and principles of Good‐Old‐Fashioned AI (GOFAI) and its relationship to modern, data‐driven methods:
+\begin{alert-box}
+\textbf{RAG and knowledge graphs are complementary.} RAG is strong when one wants grounded access to source passages. Knowledge graphs are strong when one wants explicit relationships, schema, and structured queries. Many useful engineering systems may combine both.
+\end{alert-box}
 
+\section{Prompt Engineering as Workflow Design}
+
+Prompt engineering is sometimes presented as if it were the art of discovering one magical sentence. That is not the most useful engineering view. A better view is that prompt engineering is the design of a \emph{workflow interface} between human intent and model behavior.
+
+\subsection{Prompt Components}
+
+A reliable prompt often specifies several elements explicitly:
 \begin{itemize}
-  \item \textbf{GOFAI’s Strengths:}  
-    Transparent, human‐readable rule bases with strong guarantees on logical consistency and explainability.
-  \item \textbf{Expert Systems’ Impact:}  
-    Pioneering domain automation (e.g., DENDRAL, MYCIN, XCON) but challenged by knowledge‐acquisition bottlenecks and maintenance as rule bases grew.
-  \item \textbf{Neuro‐Symbolic Integration:}  
-    Hybrid frameworks (LogicTensorNetworks, DeepProbLog, Neuro‐Symbolic Transformers) seek to combine symbolic constraints with statistical learning for robust, explainable AI.
-  \item \textbf{Path toward AGI/AMI:}  
-    Scalable neuro‐symbolic architectures—modular “cognitive stacks” with integrated symbolic audit trails and statistical confidence—offer a promising route to AI systems with human‐level adaptability, commonsense reasoning, and verifiable safety.
+    \item \textbf{role:} what the model should act as;
+    \item \textbf{context:} what information the model should use;
+    \item \textbf{task:} what the model is being asked to do;
+    \item \textbf{constraints:} format, scope, tone, or assumptions; and
+    \item \textbf{verification cues:} how the model should check itself or cite sources.
 \end{itemize}
 
-\section*{References}
-\begin{thebibliography}{10}
-  \bibitem{RussellNorvig}
-    S.~Russell and P.~Norvig,
-    \emph{Artificial Intelligence: A Modern Approach}, 4th~ed., Pearson, 2020.
-  \bibitem{NewellSimon}
-    A.~Newell and H.~A.~Simon,
-    “Computer Science as Empirical Inquiry: Symbols and Search,”
-    \emph{Communications of the ACM}, vol.~19, no.~3, pp.\ 113–126, 1976.
-  \bibitem{MuggletonDeRaedt}
-    S.~Muggleton and L.~De~Raedt,
-    “Inductive Logic Programming,”
-    \emph{New Generation Computing}, vol.~13, pp.\ 245–286, 1994.
-  \bibitem{Garcez2009}
-    A.~d’Avila Garcez, L.~De~Raedt, and K.~Küng,
-    \emph{Neural‐Symbolic Cognitive Reasoning}, IOS Press, 2009.
-  \bibitem{Maher1985}
-    M.~Maher,
-    “HI‐RISE and Beyond: Directions for Expert Systems in Design,”
-    \emph{Computer‐Aided Design}, vol.~17, no.~9, pp.\ 420–427, 1985.
-  \bibitem{Clark2020}
-    P.~Clark et al.,
-    “Transformers as Soft Reasoners over Language,”
-    \emph{Findings of the Association for Computational Linguistics}, 2020.
-  \bibitem{Xu2023}
-    M.~Xu and M.~Lewis,
-    “Neuro‐Symbolic Transformers for Structured Reasoning,”
-    \emph{Journal of AI Research}, vol.~76, pp.\ 1–25, 2023.
-  \bibitem{Marcus2022}
-    G.~Marcus and E.~Davis,
-    “Neuro‐Symbolic AI: The State of the Art,”
-    \emph{Communications of the ACM}, vol.~65, no.~7, pp.\ 38–46, 2022.
-  \bibitem{IEEE7010}
-    IEEE Standards Association,
-    \emph{Recommended Practice for Addressing Ethical Concerns in Building Autonomous Systems (IEEE P7010)}, 2021.
-\end{thebibliography}
+The reason this works is not mystical. A prompt is effectively a lightweight program written in natural language. It constrains the space of plausible continuations.
 
+\subsection{A Minimal Prompt Template}
+
+For many engineering uses, a compact prompt template is enough:
+\begin{verbatim}
+Role: You are a structural engineering assistant.
+Context: Use only the attached design note and cited code clauses.
+Task: Summarize the controlling assumptions for serviceability checks.
+Constraints: Return 5 bullet points and cite the source section for each.
+Verification: If a needed source is missing, say so explicitly.
+\end{verbatim}
+
+This is already a workflow. It tells the model what to do, what not to do, and how to signal uncertainty.
+
+\subsection{Structured Prompting Patterns}
+
+Several prompting patterns are especially useful in practice:
+\begin{itemize}
+    \item \textbf{few-shot prompting:} show examples of the desired behavior;
+    \item \textbf{decomposition prompting:} break a task into steps;
+    \item \textbf{format-constrained prompting:} request JSON, tables, or a fixed schema;
+    \item \textbf{verification prompting:} require explicit assumptions or source references; and
+    \item \textbf{tool-oriented prompting:} specify when the model should call retrieval, search, or code tools.
+\end{itemize}
+
+\begin{alert-box}
+\textbf{Prompt engineering is not a substitute for missing evidence.} A strong prompt can improve behavior, but it cannot manufacture a reliable engineering source that is not present in the context.
+\end{alert-box}
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[>=stealth,font=\small, scale=0.92, transform shape]
+        \tikzset{box/.style={draw, rounded corners, minimum width=2.8cm, minimum height=0.9cm, align=center}}
+        \node[box, fill=blue!6] (intent) at (0,0) {Engineering intent};
+        \node[box, fill=orange!10] (schema) at (3.6,0) {Role + context +\\task + constraints};
+        \node[box, fill=yellow!12] (evidence) at (7.4,0) {Retrieved evidence\\or supplied documents};
+        \node[box, fill=green!10] (output) at (11.3,0) {Bounded output\\with format and sources};
+        \node[box, fill=red!8] (check) at (15.0,0) {Verification\\missing info?};
+        \draw[->] (intent) -- (schema);
+        \draw[->] (schema) -- (evidence);
+        \draw[->] (evidence) -- (output);
+        \draw[->] (output) -- (check);
+        \draw[dashed,->] (check.south) to[out=-100,in=-80] (schema.south);
+    \end{tikzpicture}
+    \caption{Prompt engineering as workflow design. A reliable prompt does not just ask for an answer; it structures role, evidence, output format, and verification behavior.}
+    \label{t16fig:prompt_workflow}
+\end{figure}
+
+The point of Figure~\ref{t16fig:prompt_workflow} is that prompt engineering is closer to interface design than to incantation. The prompt helps organize evidence, task specification, and verification into a lightweight program-like workflow.
+
+\section{Direct LLM Applications in Engineering Work}
+
+We can now summarize the most important direct applications of LLMs before full frontier autonomy enters the picture.
+
+\subsection{Document-Centered Applications}
+
+These include:
+\begin{itemize}
+    \item summarizing long reports or standards;
+    \item extracting assumptions, risks, and action items;
+    \item comparing revisions of specifications or memos;
+    \item generating draft technical narratives from structured inputs; and
+    \item supporting question answering over project archives.
+\end{itemize}
+
+These are often the first high-value applications because they directly target knowledge bottlenecks rather than final design authority.
+
+\subsection{Coding and Programming Assistance}
+
+LLMs are also becoming practical front ends for programming. Coding assistants can:
+\begin{itemize}
+    \item explain unfamiliar codebases;
+    \item draft scripts for parsing, analysis, or visualization;
+    \item translate intent into regular expressions, SQL, or Python;
+    \item propose tests, refactors, or documentation; and
+    \item help navigate multi-file code repositories more quickly.
+\end{itemize}
+
+Students should see this as more than autocomplete. Modern coding tools increasingly combine language understanding, repository search, structured output, and tool integration.
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[>=stealth,font=\small, scale=0.84, transform shape]
+        \tikzset{box/.style={draw, rounded corners, minimum width=2.8cm, minimum height=0.9cm, align=center}}
+        \node[box] (intent) at (0,0) {Engineer intent\\``parse inspection logs''};
+        \node[box] (prompt) at (4,0) {Prompt / task spec};
+        \node[box] (search) at (8,0) {Codebase or docs\\search};
+        \node[box] (draft) at (12,0) {Draft code / tests};
+        \node[box] (review) at (15.2,0) {Human review\\run / verify};
+        \draw[->] (intent) -- (prompt);
+        \draw[->] (prompt) -- (search);
+        \draw[->] (search) -- (draft);
+        \draw[->] (draft) -- (review);
+    \end{tikzpicture}
+    \caption{A direct coding-assistant workflow. This remains a human-directed engineering pipeline: natural-language intent is translated into search, draft generation, and explicit verification rather than unconstrained autonomy.}
+    \label{t16fig:coding_workflow}
+\end{figure}
+
+\subsection{Examples of AI-Native Coding Front Ends}
+
+Tools such as GitHub Copilot, Claude Code, and OpenCode represent a broader change in the software interface. The user increasingly describes an objective in language, and the tool translates that into code search, code generation, edits, verification steps, or planning assistance.
+
+This is why the phrase ``language is software'' is becoming more than a metaphor. In many workflows, natural language now acts as a control layer over computational systems.
+
+\begin{ex-box}
+\textbf{Engineering coding example.} A civil engineering student wants to compare sensor drift before and after recalibration. Instead of manually building the script from scratch, the student may ask the assistant to inspect the CSV schema, write a cleaning function, generate a plotting routine, and explain the assumptions in the analysis. The useful output is not just the code. It is the accelerated movement from problem description to runnable workflow.
+\end{ex-box}
+
+\section{Language as Programming, Language as Software}
+
+This chapter naturally leads to a broader conceptual shift. In classical software engineering, programming usually means writing formal code in languages such as Python, C++, or MATLAB. In modern LLM workflows, natural language increasingly acts as a specification layer.
+
+This does not mean natural language replaces formal software. It means that natural language now controls, configures, and composes more of the computational workflow than before. A prompt can define a role, call for a retrieval step, request a schema, invoke a tool, and constrain the output. That is not identical to a formal program, but it is increasingly program-like.
+
+\begin{def-box}
+\textbf{Working thesis.} In modern AI workflows, language is becoming a software interface. Formal code still executes the work, but natural language increasingly specifies objectives, constraints, orchestration, and interaction patterns.
+\end{def-box}
+
+This is especially important for engineering because engineering work is already mediated by language: requirements, standards, contracts, reports, and code comments are all part of the computational ecosystem. LLM systems make that language more executable.
+
+\section{Why Topic 17 Must Go Further}
+
+At this point, the natural next question is: if prompts can orchestrate steps, if retrieval can ground answers, if ReAct can interleave thought and action, and if coding assistants can navigate tools, what happens when those pieces are combined into larger autonomous workflows?
+
+That question belongs to Topic 17. There we will look at the frontier layer: modern agentic workflows, skills, multi-step tool use, and representative systems such as automated research assistants. Only after that does the human-in-the-loop issue become fully concrete. The more capable the workflow, the more urgent the questions of oversight, trust, accountability, and engineering responsibility.
+
+\begin{alert-box}
+\textbf{Transition to Topic 17:} Topic 16 showed that useful AI engineering begins well before full autonomy. Topic 17 will ask what changes when these first-generation workflows become persistent, tool-using, multi-step systems that look increasingly agentic.
+\end{alert-box}
 
 \end{document}
