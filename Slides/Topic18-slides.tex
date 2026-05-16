@@ -423,7 +423,8 @@
 \begin{frame}{From Language Interface to Physical Agency}
   \begin{figure}
     \centering
-    \begin{tikzpicture}[>=Stealth, font=\small, node distance=0.45cm, scale=0.82, transform shape]
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[>=Stealth, font=\small, node distance=0.45cm, transform shape]
       \tikzset{stage/.style={draw, rounded corners, minimum width=2.55cm, minimum height=0.95cm, align=center}}
       \node[stage, fill=blue!8] (text) {Language-only systems\\chat, coding, retrieval};
       \node[stage, fill=green!10, right=of text] (tools) {Tool-using systems\\search, code execution, workflows};
@@ -433,11 +434,11 @@
       \draw[->, thick] (tools) -- (models);
       \draw[->, thick] (models) -- (emb);
       \node[align=center, below=0.55cm of tools] {Increasing need for persistent state,\\causal prediction, and physical feedback};
-    \end{tikzpicture}
+    \end{tikzpicture}%
+    }
     \caption{Recreated teaching figure: from interface intelligence to physical agency.}
   \end{figure}
 \end{frame}
-
 \begin{frame}{Biological Analogies: Use Carefully}
   The biological examples are useful pedagogically if interpreted carefully:
   \begin{itemize}

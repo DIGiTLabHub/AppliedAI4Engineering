@@ -1,0 +1,349 @@
+\documentclass[12pt]{article}
+\usepackage{ceai}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+
+\lstdefinestyle{term}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!8},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!60},
+  breaklines=true,
+  columns=fullflexible,
+  showstringspaces=false,
+  commentstyle=\color{green!50!black},
+  morecomment=[l]{\#},
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  aboveskip=8pt,
+  belowskip=4pt,
+}
+
+\newcommand{\deliverable}[1]{\nolinkurl{#1}}
+
+\begin{document}
+
+\title{CE 488/5588: Applied AI for Engineering \\
+Final Project --- Agentic AI for Concrete Strength Prediction}
+\author{}
+\date{Spring 2026}
+
+\maketitle
+
+\begin{center}
+\pmb{Name: \rule{3in}{0.15mm}}
+\end{center}
+
+\newpage 
+
+\begin{ch-box}
+This final project asks you to use \textbf{OpenCode as an engineering AI agent} to investigate sparse longitudinal concrete-strength data, build a kernel support vector regression model, search the literature for support or counter-evidence, and prepare a professional report.  The emphasis is not only the final model accuracy.  The emphasis is your complete workflow: prompt design, tool use, code generation, verification, literature search, interpretation, and reusable skill creation.
+\end{ch-box}
+
+\section*{Project Theme}
+
+You will work with the UCI Concrete Compressive Strength dataset used in Tutorials 05B and 05C:
+
+\begin{lstlisting}[style=term]
+Tutorials/UCI-Concrete Data/Concrete_Data_CSV.csv
+\end{lstlisting}
+
+Tutorial 05B showed that the data are sparse and age-imbalanced.  Tutorial 05C showed a first prediction workflow using transformed age, normalized inputs, and a neural-network baseline.  Your project extends this sequence by using a \textbf{kernel support vector machine / support vector regression (SVR)} workflow and by asking whether the model's largest residuals are consistent with what the literature says about concrete strength development.  When you ask OpenCode to use the earlier tutorials as context, refer to the tutorial \textbf{PDF handouts} and the prompts below.
+
+\begin{def-box}
+\textbf{Prerequisite tutorials.}  Tutorial 05A gives the OpenCode mechanics: starting a session, writing prompts, reviewing tool calls, and deciding when to approve or deny agent actions.  Tutorial 05B gives the concrete-data exploration pattern.  Tutorial 05C gives the split-safe preprocessing and prediction pattern.  This project combines all three.
+\end{def-box}
+
+\begin{alert-box}
+\textbf{Important framing.}  This project is a demonstration of agentic AI-assisted engineering analysis.  Your OpenCode agent may help write code, run commands, generate plots, search literature, and draft text.  You remain responsible for checking correctness, interpreting results, and deciding what belongs in the final report.
+\end{alert-box}
+
+\section*{Learning Objectives}
+
+By completing this project, you should be able to:
+
+\begin{enumerate}[label=\arabic*.]
+  \item Reproduce and extend sparse-data exploration from Tutorial 05B.
+  \item Visualize measured concrete compressive strength against $\log(\text{age})$.
+  \item Build a kernel SVR prediction model using normalized inputs and $\log(\text{age})$.
+  \item Evaluate prediction residuals on testing data and identify which curing age produces the largest residual.
+  \item Use an AI agent to perform a cautious literature search about concrete strength prediction and age-dependent errors.
+  \item Write a full engineering report and create a reusable OpenCode skill for future longitudinal concrete-testing datasets.
+\end{enumerate}
+
+\section{Required Workflow}
+
+\subsection{Part 1 --- Revisit sparsity and age dependence}
+
+Start by asking OpenCode to review the relevant parts of the Tutorial 05B PDF handout.  You should duplicate several of the data exploration steps, especially the sparsity analysis.
+
+\begin{ex-box}
+\textbf{Suggested OpenCode prompt.}
+\begin{lstlisting}[style=term]
+Use the Tutorial 05B sparsity-exploration PDF handout as context:
+Tutorials/Tutorial05B-Concrete-OpenCode-AI-Sparsity-Exploration.pdf
+Then inspect the CSV file at Tutorials/UCI-Concrete Data/Concrete_Data_CSV.csv.
+Reproduce the key sparsity findings:
+- cleaned row count,
+- number of unique mixture designs,
+- number of unique mixture-age combinations,
+- distribution of observations per mixture,
+- age distribution and age imbalance.
+Then explain why this is a sparse longitudinal prediction problem.
+\end{lstlisting}
+\end{ex-box}
+
+Next, create a visualization of all measured concrete compressive strengths against the logarithm of curing age.  You may ask the agent to print a terminal visualization, but your submitted project must include a PDF figure.
+
+\begin{lstlisting}[style=term]
+Homework/final-project-assets/strength_vs_log_age.pdf
+\end{lstlisting}
+
+The plot should contain all cleaned observations with:
+\begin{itemize}[nosep]
+  \item horizontal axis: $\log(\text{age in days})$,
+  \item vertical axis: measured compressive strength in MPa,
+  \item readable labels and a short caption in your report.
+\end{itemize}
+
+\subsection{Part 2 --- Build a kernel SVR predictive model}
+
+Follow the preprocessing ideas from the Tutorial 05C PDF handout, but replace the MLP baseline with a kernel support vector regression model.
+
+\begin{def-box}
+\textbf{Required modeling choices.}
+\begin{itemize}[nosep]
+  \item Use the seven raw mixture components as input features.
+  \item Transform curing age using $\log(\text{age})$ and use it as an input feature.
+  \item Exclude derived columns such as \texttt{f'c at 28 day} and \texttt{NSC} from the prediction inputs.
+  \item Normalize/standardize the model inputs using a split-safe preprocessing pipeline.
+  \item Use a kernel SVR model, for example \texttt{SVR(kernel="rbf")} in scikit-learn.
+  \item Use a random train/test split, and clearly state the split ratio and random seed.
+\end{itemize}
+\end{def-box}
+
+\begin{ex-box}
+\textbf{Suggested OpenCode prompt.}
+\begin{lstlisting}[style=term]
+Use the Tutorial 05C prediction-workflow PDF handout as context:
+Tutorials/Tutorial05C-Concrete-OpenCode-AI-Lets-do-prediction.pdf
+Create a small Python program for a kernel support vector regression model on the concrete data.
+Requirements:
+- load the CSV safely with utf-8-sig,
+- drop the blank row,
+- use the 7 mixture components and log(age) as features,
+- exclude f'c at 28 day and NSC,
+- split into training and testing data,
+- use Pipeline(StandardScaler(), SVR(kernel="rbf")),
+- report R^2, MAE, and RMSE for the testing data,
+- save residual diagnostic plots as PDF files.
+After writing the program, explain how the preprocessing mirrors Tutorial 05C and how the model differs from the MLP baseline.
+\end{lstlisting}
+\end{ex-box}
+
+You should tune the model only modestly.  For example, you may compare a small grid of \texttt{C}, \texttt{epsilon}, and \texttt{gamma} values, but do not turn this project into a large hyperparameter-optimization exercise.  Your report should explain what you tried and why.
+
+\subsection{Part 3 --- Residual analysis by age}
+
+After training the SVR model, evaluate it on the testing data.  You must create a residual plot against ground-truth strength values:
+
+\begin{lstlisting}[style=term]
+Homework/final-project-assets/svr_residual_vs_ground_truth.pdf
+\end{lstlisting}
+
+At minimum, compute residuals as
+\[
+  r_i = y_i - \hat{y}_i,
+\]
+where $y_i$ is measured strength and $\hat{y}_i$ is predicted strength.  In your report, answer:
+
+\begin{enumerate}[label=(\alph*)]
+  \item At what curing age does the largest absolute residual occur in your testing data?
+  \item Is the largest residual an underprediction or overprediction?
+  \item Does the same age bin show generally larger errors, or is the largest residual an isolated point?
+  \item How might sparsity and age imbalance explain this behavior?
+\end{enumerate}
+
+You are encouraged to add a second plot showing mean absolute residual by age or age bin, for example early age, standard 28-day age, medium age, and long-term age.
+
+\subsection{Part 4 --- Agent-assisted literature search}
+
+Use OpenCode and its web/literature-search capability to investigate whether your residual observations are supported by prior studies.  You are not expected to prove a universal conclusion.  You are expected to compare your empirical observation with credible sources.
+
+\begin{ex-box}
+\textbf{Suggested OpenCode prompt.}
+\begin{lstlisting}[style=term]
+Search the literature for studies on concrete compressive strength prediction using support vector regression, neural networks, or other machine learning models.
+Focus on whether prediction errors depend on curing age, sparse age measurements, 28-day data imbalance, or long-term strength development.
+Return 3-5 credible sources with short notes explaining how each source supports, contradicts, or qualifies my residual observation.
+Do not overclaim. Separate evidence from speculation.
+\end{lstlisting}
+\end{ex-box}
+
+In your report, cite at least \textbf{three} credible sources.  Good sources may include journal papers, conference papers, standards/guidance documents on concrete strength development, or well-documented technical reports.  Your discussion should state whether the literature supports, partly supports, or does not clearly support your observed largest-residual age.
+
+\begin{def-box}
+\textbf{Useful search themes.}  Your literature search should include at least three of the following themes: support vector regression for concrete compressive strength, curing-age effects, 28-day data imbalance, sparse longitudinal concrete testing, maturity or hydration-based strength development, and uncertainty in long-term strength prediction.
+\end{def-box}
+
+\begin{alert-box}
+\textbf{Do not overclaim.}  If your largest residual occurs at a particular age, that does not prove that all models fail at that age.  Your job is to compare your observation with the literature and decide whether it is plausible, dataset-specific, or unsupported.
+\end{alert-box}
+
+\section{Final Report Requirements}
+
+Prepare one full report in either Microsoft Word or Markdown as your working format:
+
+\begin{lstlisting}[style=term]
+final-agentic-concrete-project.docx
+# or
+final-agentic-concrete-project.md
+\end{lstlisting}
+
+If you choose Markdown, use a reader/editor that renders headings, equations, code blocks, tables, and figures clearly.  On macOS, \textbf{MacDown} or \textbf{MarkText} are reasonable options.  On Windows or Linux, \textbf{MarkText} or the Markdown preview in Visual Studio Code are reasonable options.  Regardless of the working format, your submitted report must be exported to PDF:
+
+\begin{lstlisting}[style=term]
+final-agentic-concrete-project.pdf
+\end{lstlisting}
+
+\begin{ex-box}
+\textbf{Suggested OpenCode prompt for report PDF conversion.}
+\begin{lstlisting}[style=term]
+Convert my final project report into a clean PDF named final-agentic-concrete-project.pdf.
+If the source is Markdown, preserve headings, equations, code blocks, tables, figure captions, and references.
+If the source is DOCX, export it to PDF without changing the content.
+After conversion, verify that all required figures and citations appear in the PDF.
+\end{lstlisting}
+\end{ex-box}
+
+Your report must include the following sections.
+
+\begin{enumerate}[label=\arabic*.]
+  \item \textbf{Introduction and objective.}  Explain the engineering problem and why concrete strength prediction is time-dependent.
+  \item \textbf{Data exploration.}  Summarize dataset size, features, target, age distribution, mixture sparsity, and the strength-versus-$\log(\text{age})$ plot.
+  \item \textbf{Agentic workflow.}  Describe how you used OpenCode: what you asked it to do, what tools it used, how you verified outputs, and where you corrected or guided it.
+  \item \textbf{Machine-learning model design.}  Explain preprocessing, feature choices, normalization, train/test split, and kernel SVR model design.
+  \item \textbf{Evaluation performance.}  Report R$^2$, MAE, RMSE, residual plots, and the curing age with the largest absolute residual.
+  \item \textbf{Literature-supported discussion.}  Compare your residual observations with at least three sources found through literature search.
+  \item \textbf{Limitations and future work.}  Discuss sparsity, random-split limitations, possible grouped-by-mixture splits, data augmentation, and physics-informed time-dependent models.
+  \item \textbf{Appendix.}  Include important prompts, key code snippets, and a short verification log.
+\end{enumerate}
+
+\begin{alert-box}
+\textbf{Report quality expectation.}  A good report does not simply paste model output.  It tells a coherent engineering story: what the data allow us to conclude, what remains uncertain, and how the agent helped you work more systematically.
+\end{alert-box}
+
+\section{Reusable Skill Artifact}
+
+At the end of the project, work with OpenCode to create a succinct reusable skill for future longitudinal concrete mixture testing datasets.  Draft the skill in Markdown:
+
+\begin{lstlisting}[style=term]
+longitudinal-concrete-mixture-testing-data-exploration.md
+\end{lstlisting}
+
+Then convert the skill document to PDF for submission:
+
+\begin{lstlisting}[style=term]
+longitudinal-concrete-mixture-testing-data-exploration.pdf
+\end{lstlisting}
+
+The skill should be short, practical, and reusable.  It should not be a full report.  It should include:
+
+\begin{itemize}[nosep]
+  \item when to use the skill,
+  \item checklist for sparse longitudinal concrete data exploration,
+  \item required plots and diagnostics,
+  \item modeling cautions for age, sparsity, and leakage,
+  \item recommended prediction baselines such as SVR and MLP,
+  \item literature-search prompts for age-dependent concrete strength behavior.
+\end{itemize}
+
+\begin{ex-box}
+\textbf{Suggested OpenCode prompt.}
+\begin{lstlisting}[style=term]
+Based on my final project workflow, create a concise reusable OpenCode skill named longitudinal-concrete-mixture-testing-data-exploration.md.
+It should help future users process sparse longitudinal concrete mixture testing data.
+Keep it practical: purpose, checklist, plots, modeling cautions, validation steps, and literature-search prompts.
+Do not include my full report text.
+\end{lstlisting}
+\end{ex-box}
+
+\begin{ex-box}
+\textbf{Suggested OpenCode prompt for skill PDF conversion.}
+\begin{lstlisting}[style=term]
+Convert longitudinal-concrete-mixture-testing-data-exploration.md into a readable PDF named longitudinal-concrete-mixture-testing-data-exploration.pdf.
+Preserve the checklist structure, headings, and code/prompt blocks.
+Verify that the PDF is readable and complete.
+\end{lstlisting}
+\end{ex-box}
+
+\section{Submission Checklist}
+
+Submit a single zipped folder containing:
+
+\begin{enumerate}[label=\arabic*.]
+  \item \deliverable{final-agentic-concrete-project.pdf} as the official report deliverable.
+  \item Optional source copy of your report: \deliverable{final-agentic-concrete-project.docx} or \deliverable{final-agentic-concrete-project.md}.
+  \item Your Python scripts or notebook used for exploration, SVR modeling, and plotting.
+  \item \deliverable{strength_vs_log_age.pdf}.
+  \item \deliverable{svr_residual_vs_ground_truth.pdf}.
+  \item Any additional residual-by-age or age-bin plots.
+  \item Official skill PDF deliverable:
+\begin{lstlisting}[style=term]
+longitudinal-concrete-mixture-testing-data-exploration.pdf
+\end{lstlisting}
+  \item Optional source copy of the skill:
+\begin{lstlisting}[style=term]
+longitudinal-concrete-mixture-testing-data-exploration.md
+\end{lstlisting}
+  \item A short \deliverable{README.md} explaining how to run your code.
+\end{enumerate}
+
+\section{Grading Rubric}
+
+\begin{center}
+\begin{tabularx}{0.95\textwidth}{l r X}
+\toprule
+\textbf{Category} & \textbf{Points} & \textbf{What earns full credit} \\
+\midrule
+Data exploration and sparsity analysis & 20 & Correct row/feature summary, age distribution, mixture sparsity, and strength-versus-$\log(\text{age})$ plot with interpretation. \\
+SVR model workflow & 20 & Correct preprocessing, split-safe normalization, $\log(\text{age})$ input, kernel SVR model, no leakage from derived columns, reproducible code. \\
+Evaluation and residual analysis & 20 & R$^2$, MAE, RMSE, residual plots, largest-residual age identified, and thoughtful discussion of age/sparsity effects. \\
+Literature search and interpretation & 15 & At least three credible sources, clear connection to observed residual behavior, and careful distinction between evidence and speculation. \\
+Final report quality & 15 & Clear structure, engineering reasoning, figures/tables integrated into the narrative, limitations and future work discussed. \\
+Reusable skill artifact & 10 & Practical, concise, reusable skill file with checklist, plots, modeling cautions, validation steps, and literature-search prompts. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Academic Integrity and AI Use}
+
+You are expected to use OpenCode and other AI tools in this project.  However, you must document how you used them and verify the outputs.  Do not submit code, citations, or claims that you do not understand.  If the agent makes a mistake, describe how you found it and corrected it.  Your final grade depends on your engineering judgment, not on how polished an AI-generated answer looks.
+
+\begin{def-box}
+\textbf{Core principle.}  Agentic AI is allowed and encouraged here, but accountability remains with the student engineer.
+\end{def-box}
+
+\begin{thebibliography}{9}
+
+\bibitem{yeh1998}
+I-Cheng Yeh, ``Modeling of strength of high performance concrete using artificial neural networks,'' \emph{Cement and Concrete Research}, Vol.~28, No.~12, pp.~1797--1808 (1998).
+
+\bibitem{cortes1995}
+C. Cortes and V. Vapnik, ``Support-vector networks,'' \emph{Machine Learning}, Vol.~20, pp.~273--297 (1995).
+
+\bibitem{smola2004}
+A. J. Smola and B. Sch\"olkopf, ``A tutorial on support vector regression,'' \emph{Statistics and Computing}, Vol.~14, pp.~199--222 (2004).
+
+\bibitem{pedregosa2011}
+F. Pedregosa et al., ``Scikit-learn: Machine Learning in Python,'' \emph{Journal of Machine Learning Research}, Vol.~12, pp.~2825--2830 (2011).
+
+\bibitem{aci209}
+ACI Committee 209, \emph{Prediction of Creep, Shrinkage, and Temperature Effects in Concrete Structures}, American Concrete Institute.  Use this or an equivalent concrete time-dependent behavior reference when discussing curing-age effects.
+
+\end{thebibliography}
+
+\end{document}

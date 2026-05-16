@@ -1,0 +1,134 @@
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, graphics, setspace}
+\usepackage{graphicx} 
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage{bm}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Homework 13 Solutions},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 13 Solutions\\
+\vspace{2in}
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\maketitle
+
+\newpage
+\doublespacing
+
+\section*{Q1}
+Please refer to Lecture 16 notes for context.
+\begin{enumerate}
+  \item \textbf{Era of Expert Systems:} Expert systems emerged as a major AI research topic in the late 1970s and throughout the 1980s.  This period, often called the 
+  "Knowledge Engineering Era," was characterized by significant industry investment and commercial success of rule-based systems in domains such as medical diagnosis (e.g., MYCIN) and chemical process control (e.g., DENDRAL).
+
+  \item \textbf{Methodological Components:}
+    \begin{itemize}
+      \item \emph{Knowledge Base:} A curated set of if--then production rules encoding domain expertise.
+      \item \emph{Inference Engine:} Mechanisms for forward and/or backward chaining to derive conclusions from the knowledge base.
+      \item \emph{Knowledge Acquisition:} Processes (often interviews and manual rule authoring) for capturing expert knowledge.
+      \item \emph{Working Memory:} A database of facts and intermediate conclusions maintained during inference.
+      \item \emph{Explanation Facility:} Modules that generate human-readable justifications for the system’s reasoning.
+      \item \emph{User Interface:} Interactive shells allowing users to query the system and inspect reasoning steps.
+    \end{itemize}
+
+  \item \textbf{Challenges and Limitations:}
+    \begin{itemize}
+      \item \emph{Knowledge Acquisition Bottleneck:} Eliciting and formalizing expert rules was time-consuming and expensive.
+      \item \emph{Brittleness:} Systems failed catastrophically outside their narrow rule coverage.
+      \item \emph{Maintenance Overhead:} Rule bases grew large and became difficult to debug or update.
+      \item \emph{Uncertainty Handling:} Early systems lacked robust methods to manage imprecise or probabilistic information.
+      \item \emph{Scalability:} The rule explosion problem limited applicability to large, complex domains.
+    \end{itemize}
+
+  \item \textbf{Strengths and Weaknesses:}
+    \begin{itemize}
+      \item \emph{Classic AI (Expert Systems):}
+        \begin{itemize}
+          \item \textbf{Strengths:} Transparent reasoning, explicit domain knowledge, reliable performance within a defined scope, and explainability.
+          \item \textbf{Weaknesses:} Inflexible, high development and maintenance cost, poor handling of uncertainty, and limited learning capability.
+        \end{itemize}
+      \item \emph{Modern Generative AI (LLMs):}
+        \begin{itemize}
+          \item \textbf{Strengths:} Broad coverage of language tasks, few-/zero-shot learning, adaptability, fluent natural-language generation, and scalability via pretraining.
+          \item \textbf{Weaknesses:} Opaque reasoning ("black box"), potential for hallucinations, difficulty in precise control, large compute and data requirements, and limited inherent explainability.
+        \end{itemize}
+    \end{itemize}
+
+\end{enumerate}
+
+\newpage
+\section*{Q2}
+Please refer to Lecture 17 notes for context.
+\begin{enumerate}
+  \item \textbf{Transformers and the Move to Zero-/Few-Shot Frameworks:} 
+    The transformer architecture introduced by Vaswani \emph{et al.} (2017) powered the shift.  Key innovations included:
+    \begin{itemize}
+      \item \emph{Self-Attention Mechanism:} Allowing each token to attend to all others, capturing long-range dependencies efficiently.
+      \item \emph{Multi-Head Attention:} Learning diverse relational representations in parallel attention heads.
+      \item \emph{Positional Encoding:} Injecting token order information without recurrent structures.
+      \item \emph{Layer Normalization and Residual Connections:} Stabilizing training of very deep networks.
+      \item \emph{Parallelizable Computation:} Enabling large-batch pretraining on massive text corpora, which underlies few-shot transfer ability.
+    \end{itemize}
+
+  \item \textbf{Basic Components of a Transformer-Based LLM:}
+    \begin{enumerate}
+      \item \emph{Input Embedding Layer:} Maps tokens to continuous vectors.
+      \item \emph{Positional Encodings:} Adds sequence-order information.
+      \item \emph{Stack of Transformer Blocks:}
+        \begin{itemize}
+          \item Multi-Head Self-Attention sublayer.
+          \item Positionwise Feed-Forward Network.
+          \item Layer Normalization and Residual Connections around each sublayer.
+        \end{itemize}
+      \item \emph{Output Projection \& Softmax:} Projects final hidden states to vocabulary logits and applies softmax for token prediction.
+      \item \emph{Learned Parameters:} Query, Key, Value matrices for each head; feed-forward weights; embeddings; layer norms; etc.
+    \end{enumerate}
+
+  \item \textbf{Modern LLM Embedding Dimensionality:} 
+    Typical embedding dimensions range from 768 (e.g., BERT-base) up to 12,288 (e.g., GPT-3).  Larger dimensions provide greater representational capacity, capturing more semantic nuance at the cost of increased computation and memory.
+
+  \item \textbf{Chain-of-Thought Prompt for Cubic Maximization:}
+    \begin{tcolorbox}[colback=gray!5,colframe=gray!40]
+    "Let's solve the maximum/minimum of the cubic function
+    \begin{equation*}
+      y(x)=a_3 x^3 + a_2 x^2 + a_1 x + a_0.
+    \end{equation*}
+    \begin{enumerate}
+      \item Recall that extrema occur when the first derivative is zero. Compute:
+        \begin{equation*}
+          \frac{dy}{dx}=3a_3 x^2 + 2a_2 x + a_1.
+        \end{equation*}
+      \item Set the derivative equal to zero and solve the quadratic:
+        \begin{equation*}
+          3a_3 x^2 + 2a_2 x + a_1 = 0 \quad \Rightarrow \quad x=\frac{-2a_2 \pm \sqrt{4a_2^2 -12a_3 a_1}}{6a_3}.
+        \end{equation*}
+      \item Compute the second derivative:
+        \begin{equation*}
+          \frac{d^2y}{dx^2}=6a_3 x + 2a_2.
+        \end{equation*}
+      \item Evaluate $d^2y/dx^2$ at each critical point to classify as max (negative) or min (positive).
+      \item Finally, plug the critical $x$ values back into $y(x)$ and compare to determine the global maximum.
+    \end{enumerate}"
+    \end{tcolorbox}
+
+\end{enumerate}
+
+\end{document}

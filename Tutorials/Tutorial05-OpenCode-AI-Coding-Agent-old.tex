@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[12pt]{article}
 
 % ---- CeAI style (provides geometry, boxes, tikz, etc.) ----
 \usepackage{ceai}
@@ -40,7 +40,7 @@
 }
 
 % ---- Title ----
-\title{\textbf{Tutorial 5A: Getting Started with OpenCode}\\[4pt]
+\title{\textbf{Tutorial 5: Getting Started with OpenCode}\\[4pt]
        {\large AI Coding Agent for the Terminal}}
 \author{CE 488/5588 --- Applied Artificial Intelligence}
 \date{Spring 2026}
@@ -48,24 +48,8 @@
 \begin{document}
 \maketitle
 
-\begin{def-box}
-\textbf{Overview - AI Agentic Workflow.}
-This tutorial series is the \emph{starting point} for a much richer journey.
-Beyond simply chatting with an AI in your terminal, we will build toward an
-\textbf{AI agentic workflow} where you learn to:
-\begin{itemize}[nosep]
-  \item \textbf{Develop AI methods} --- design, implement, and evaluate ML pipelines and models.
-  \item \textbf{Call AI/ML tools and classic tools} --- orchestrate model inference, data processing, visualization, and testing from a single agent session.
-  \item \textbf{Plan and task} --- decompose complex projects into structured sub-tasks, assign them to specialized agents, and track progress.
-  \item \textbf{Validate} --- verify agent outputs against specifications, run automated tests, and close the loop on quality.
-  \item \textbf{Guardrail with AI safety} --- enforce permission boundaries, prevent destructive actions, and ensure human oversight at every critical step.
-  \item \textbf{Orchestrate human--AI collaboration} --- decide when the agent acts autonomously and when it must defer to you, creating a productive partnership between human judgment and AI capability.
-\end{itemize}
-Today we lay the foundation.  The skills you build here --- installing the agent, connecting to a model, reviewing permissions, and protecting your work with Git --- are the primitives that make the agentic workflow possible.
-\end{def-box}
-
 \begin{ch-box}
-In this tutorial, we will walk through installing \textbf{OpenCode} --- an AI coding agent that lives in your terminal --- and getting it ready for class.  By the end you will be able to chat with an AI that reads your code, edits files, runs commands, and more, all from the command line.
+This tutorial walks you through installing \textbf{OpenCode} --- an AI coding agent that lives in your terminal --- and getting it ready for class.  By the end you will be able to chat with an AI that reads your code, edits files, runs commands, and more, all from the command line.
 
 \medskip\noindent\textbf{What you will do today:}
 \begin{enumerate}[nosep]
@@ -104,14 +88,14 @@ Unlike browser-based AI tools where you copy-paste code back and forth, OpenCode
 \begin{tikzpicture}[
     node distance=1.4cm,
     every node/.style={align=center, font=\small},
-    stepbox/.style={rectangle, rounded corners=4pt, draw=blue!70!black,
+    step/.style={rectangle, rounded corners=4pt, draw=blue!70!black,
                  fill=ceaiLightBlue, minimum width=5.2cm, minimum height=0.9cm},
     arr/.style={-{Stealth[length=6pt]}, thick, blue!70!black}
   ]
-  \node[stepbox] (brew)    {Install Homebrew\\(\texttt{brew})};
-  \node[stepbox, below=of brew]   (iterm)   {Install iTerm2\\+ CLI tools};
-  \node[stepbox, below=of iterm]  (oc)      {Install OpenCode\\(\texttt{curl \ldots\ | bash})};
-  \node[stepbox, below=of oc]     (verify)  {Verify:\\\texttt{opencode --version}};
+  \node[step] (brew)    {Install Homebrew\\(\texttt{brew})};
+  \node[step, below=of brew]   (iterm)   {Install iTerm2\\+ CLI tools};
+  \node[step, below=of iterm]  (oc)      {Install OpenCode\\(\texttt{curl \ldots\ | bash})};
+  \node[step, below=of oc]     (verify)  {Verify:\\\texttt{opencode --version}};
   \draw[arr] (brew)  -- (iterm);
   \draw[arr] (iterm) -- (oc);
   \draw[arr] (oc)    -- (verify);
@@ -229,14 +213,14 @@ Windows needs a Linux layer called \textbf{WSL~2} to run OpenCode.  Do not worry
 \begin{tikzpicture}[
     node distance=1.4cm,
     every node/.style={align=center, font=\small},
-    stepbox/.style={rectangle, rounded corners=4pt, draw=blue!70!black,
+    step/.style={rectangle, rounded corners=4pt, draw=blue!70!black,
                  fill=ceaiLightBlue, minimum width=5.2cm, minimum height=0.9cm},
     arr/.style={-{Stealth[length=6pt]}, thick, blue!70!black}
   ]
-  \node[stepbox] (wsl)    {Enable WSL~2\\(\texttt{wsl --install})};
-  \node[stepbox, below=of wsl]   (wterm)   {Install Windows\\Terminal};
-  \node[stepbox, below=of wterm]  (woc)    {Install OpenCode\\(\texttt{curl \ldots\ | bash})};
-  \node[stepbox, below=of woc]    (wver)   {Verify:\\\texttt{opencode --version}};
+  \node[step] (wsl)    {Enable WSL~2\\(\texttt{wsl --install})};
+  \node[step, below=of wsl]   (wterm)   {Install Windows\\Terminal};
+  \node[step, below=of wterm]  (woc)    {Install OpenCode\\(\texttt{curl \ldots\ | bash})};
+  \node[step, below=of woc]    (wver)   {Verify:\\\texttt{opencode --version}};
   \draw[arr] (wsl)  -- (wterm);
   \draw[arr] (wterm) -- (woc);
   \draw[arr] (woc)   -- (wver);
@@ -290,36 +274,6 @@ export PATH="$HOME/.opencode/bin:$PATH"
 \end{lstlisting}
 \end{alert-box}
 
-% -----------------------------------------------------------
-\subsection{Where Is Your WSL Home Folder?}
-
-It helps to know where your Linux home folder lives, because you will want to create your project folders there~\cite{microsoft_wsl2026}.
-
-\begin{ex-box}
-\textbf{From inside WSL (Linux terminal):}
-\begin{lstlisting}[style=term]
-pwd          # shows your current directory
-echo $HOME   # prints your home folder path (usually /home/yourusername)
-\end{lstlisting}
-\end{ex-box}
-
-\begin{ex-box}
-\textbf{From Windows (File Explorer):}
-\begin{enumerate}[nosep]
-  \item Open \emph{File Explorer} (press \key{Win}+\key{E}).
-  \item In the address bar at the top, type:
-  \begin{lstlisting}[style=term,frame=none,backgroundcolor=\color{white}]
-\\wsl.localhost\Ubuntu
-  \end{lstlisting}
-  (If your distro is named differently, replace \texttt{Ubuntu} with that name.)
-  \item You will see your Linux home folder.  Navigate to \texttt{home\/>\,yourusername\/>\,} and create your project folders here.
-\end{enumerate}
-\end{ex-box}
-
-\begin{alert-box}
-\textbf{Tip:} Anything you create inside \texttt{\\wsl\textbackslash localhost\textbackslash Ubuntu} is \emph{Linux storage}. Files created in your Windows \texttt{C:\textbackslash{} drive} are \emph{not} accessible from WSL by default. Always work inside your WSL home folder.
-\end{alert-box}
-
 % ===========================================================
 \section{Connecting to an AI Model}
 \label{sec:connect}
@@ -362,15 +316,15 @@ OpenCode needs access to an AI model to think.  There are \textbf{two ways} to c
 \begin{tikzpicture}[
     node distance=1.2cm,
     every node/.style={align=center, font=\small},
-    stepbox/.style={rectangle, rounded corners=4pt, draw=blue!70!black,
+    step/.style={rectangle, rounded corners=4pt, draw=blue!70!black,
                  fill=ceaiLightBlue, minimum width=5.8cm, minimum height=0.85cm},
     arr/.style={-{Stealth[length=6pt]}, thick, blue!70!black}
   ]
-  \node[stepbox] (cd)   {\texttt{cd \textasciitilde/my-project \&\& opencode}};
-  \node[stepbox, below=of cd]   (auth)  {Run \texttt{opencode providers login -p openai}\\or \texttt{-p google}};
-  \node[stepbox, below=of auth] (signin){Sign in via browser (OpenAI)\\or paste API key (Google)};
-  \node[stepbox, below=of signin](verify){\texttt{opencode providers list}\\(check green dot)};
-  \node[stepbox, below=of verify](model) {Press \key{Ctrl+O} $\to$ pick a model};
+  \node[step] (cd)   {\texttt{cd \textasciitilde/my-project \&\& opencode}};
+  \node[step, below=of cd]   (auth)  {Run \texttt{opencode providers login -p openai}\\or \texttt{-p google}};
+  \node[step, below=of auth] (signin){Sign in via browser (OpenAI)\\or paste API key (Google)};
+  \node[step, below=of signin](verify){\texttt{opencode providers list}\\(check green dot)};
+  \node[step, below=of verify](model) {Press \key{Ctrl+O} $\to$ pick a model};
   \draw[arr] (cd)     -- (auth);
   \draw[arr] (auth)   -- (signin);
   \draw[arr] (signin) -- (verify);
@@ -784,71 +738,6 @@ rm -rf ~/.opencode/bin/opencode
   \node at (7.0,0.3) {\key{d} Deny};
 \end{tikzpicture}
 \end{center}
-
-% ===========================================================
-\section{Looking Ahead --- From Terminal Chat to AI Agentic Workflow}
-\label{sec:outlook}
-% ===========================================================
-
-\begin{def-box}
-Through this tutorial you have learned the \emph{mechanics} of working with an AI coding agent: installing it, authenticating with a model, navigating the interface, and --- critically --- controlling what it can and cannot do.  These mechanics are the scaffolding on which we will build a much more powerful practice.
-
-\medskip
-\noindent\textbf{What comes next?}
-
-\begin{enumerate}[nosep]
-  \item \textbf{AI Method Development.}  You will use the agent not just to answer questions but to \emph{develop} ML methods --- writing training loops, designing loss functions, running experiments, and iterating on results, all within the same session.
-  \item \textbf{Tool Orchestration.}  An agent that can call both AI/ML libraries (PyTorch, scikit-learn, Hugging Face) and classic software tools (git, make, docker) becomes a force multiplier.  You will learn to compose these tool calls into coherent, reproducible pipelines.
-  \item \textbf{Planning and Task Decomposition.}  Complex projects need structure.  You will practice breaking a goal into sub-tasks, assigning each to the right agent or tool, tracking progress, and recovering when a sub-task fails.
-  \item \textbf{Validation and Verification.}  Every agent output must be checked.  You will learn to write validation scripts, run automated test suites, and close the loop between specification and implementation.
-  \item \textbf{AI Guardrailing.}  The permission system you practiced in Section~\ref{sec:safety} is just the beginning.  Future tutorials will extend it: limiting what agents can access, enforcing output schemas, and detecting when the agent has drifted off task.
-  \item \textbf{Human--AI Orchestration.}  The most important skill is knowing \emph{when} to let the agent act autonomously and \emph{when} to take the wheel yourself.  You will develop judgment for delegating, reviewing, and overriding agent decisions --- turning the human--AI relationship from a chat into a structured, productive collaboration.
-\end{enumerate}
-
-\medskip
-\noindent The permission dialog you learned today --- \key{a} to allow once, \key{d} to deny --- is the simplest form of \emph{human--AI orchestration}.  Every future tutorial builds on this primitive.  Master it now, and the rest follows.
-\end{def-box}
-
-% ===========================================================
-% Appendix: Basic Linux Commands
-% ===========================================================
-
-\appendix
-\section{Basic Linux Directory Commands}
-\label{app:linux-commands}
-
-If you are new to Linux (or WSL), the following commands are the ones you will use most often~\cite{microsoft_wsl2026}:
-
-\begin{center}
-\begin{tabular}{lll}
-\toprule
-\textbf{Command} & \textbf{What it does} & \textbf{Example} \\
-\midrule
-\texttt{pwd}        & Print the current directory & \texttt{\$ pwd} \\
-\texttt{ls}         & List files in the current directory & \texttt{\$ ls} \\
-\texttt{ls -la}     & List all files (including hidden) with details & \texttt{\$ ls -la} \\
-\texttt{cd \textless{}path\textgreater{}} & Change to the given directory & \texttt{\$ cd \textasciitilde/my-project} \\
-\texttt{cd \textasciitilde{}} & Jump to your home folder & \texttt{\$ cd} \\
-\texttt{cd ..}            & Go up one directory & \texttt{\$ cd ..} \\
-\texttt{mkdir \textless{}name\textgreater{}} & Create a new directory & \texttt{\$ mkdir my-project} \\
-\texttt{cp \textless{}src\textgreater{} \textless{}dst\textgreater{}} & Copy a file & \texttt{\$ cp main.py backup.py} \\
-\texttt{cp -r \textless{}src\textgreater{} \textless{}dst\textgreater{}} & Copy a directory (recursively) & \texttt{\$ cp -r data/ data-backup/} \\
-\texttt{mv \textless{}src\textgreater{} \textless{}dst\textgreater{}} & Move or rename a file & \texttt{\$ mv old.py new.py} \\
-\texttt{rm \textless{}file\textgreater{}} & Delete a file & \texttt{\$ rm old.py} \\
-\texttt{rm -r \textless{}dir\textgreater{}} & Delete a directory & \texttt{\$ rm -r temp/} \\
-\texttt{cat \textless{}file\textgreater{}} & Print a file's contents & \texttt{\$ cat README.md} \\
-\texttt{touch \textless{}name\textgreater{}} & Create an empty file & \texttt{\$ touch main.py} \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{alert-box}
-\textbf{Warning:} \texttt{rm} deletes files \emph{permanently} --- there is no Recycle Bin in Linux.  Always double-check the file name before pressing \key{Enter}.
-\end{alert-box}
-
-\begin{alert-box}
-\textbf{Tip:} Press \key{Tab} to auto-complete file and directory names, and press \key{Up} to cycle through previous commands.  These two shortcuts will save you a lot of time.
-\end{alert-box}
 
 % ===========================================================
 % References

@@ -1,0 +1,20 @@
+Concrete prediction workflow complete
+Mode: full
+Cleaned rows: 1030
+Features (9): cement, blast_furnace_slag, fly_ash, water, superplasticizer, coarse_aggregate, fine_aggregate, log_age, cement_to_water
+Excluded columns: f'c at 28 day, NSC
+Train rows: 721
+Test rows: 309
+Metrics:
+  train_r2: 0.9286
+  train_mae: 3.2976
+  train_rmse: 4.4878
+  test_r2: 0.8905
+  test_mae: 4.0215
+  test_rmse: 5.4425
+Generated plots:
+  Tutorials/concrete-prediction-assets/predicted_vs_actual.png
+  Tutorials/concrete-prediction-assets/residuals_vs_predicted.png
+  Tutorials/concrete-prediction-assets/residual_histogram.png
+  Tutorials/concrete-prediction-assets/error_by_age_bin.png
+  Tutorials/concrete-prediction-assets/training_loss_curve.png

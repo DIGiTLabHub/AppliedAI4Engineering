@@ -1,0 +1,179 @@
+============================================================
+  CONCRETE COMPRESSIVE STRENGTH - SPARSITY EXPLORATION
+============================================================
+
+  Data file: /Users/chenzhiq/MyProjects/CoursesDev/AppliedAI4Engineering/Tutorials/UCI-Concrete Data/Concrete_Data_CSV.csv
+  Using encoding: utf-8-sig (handles BOM)
+  After cleaning: 1030 rows
+
+============================================================
+  1. BASIC DATASET INFO
+============================================================
+  Rows: 1030
+  Columns (11):
+     1. Cement (component 1)(kg in a m^3 mixture)
+     2. Blast Furnace Slag (component 2)(kg in a m^3 mixture)
+     3. Fly Ash (component 3)(kg in a m^3 mixture)
+     4. Water  (component 4)(kg in a m^3 mixture)
+     5. Superplasticizer (component 5)(kg in a m^3 mixture)
+     6. Coarse Aggregate  (component 6)(kg in a m^3 mixture)
+     7. Fine Aggregate (component 7)(kg in a m^3 mixture)
+     8. Age (day)
+     9. Concrete compressive strength(MPa, megapascals)
+    10. f'c at 28 day
+    11. NSC
+
+  Data types:
+    Cement (component 1)(kg in a m^3 mixture) float64
+    Blast Furnace Slag (component 2)(kg in a m^3 mixture) float64
+    Fly Ash (component 3)(kg in a m^3 mixture) float64
+    Water  (component 4)(kg in a m^3 mixture) float64
+    Superplasticizer (component 5)(kg in a m^3 mixture) float64
+    Coarse Aggregate  (component 6)(kg in a m^3 mixture) float64
+    Fine Aggregate (component 7)(kg in a m^3 mixture) float64
+    Age (day)                                float64
+    Concrete compressive strength(MPa, megapascals) float64
+    f'c at 28 day                            float64
+    NSC                                      int64
+
+============================================================
+  2. BASIC STATISTICS (Numeric Columns)
+============================================================
+       Cement (component 1)(kg in a m^3 mixture)  Blast Furnace Slag (component 2)(kg in a m^3 mixture)  Fly Ash (component 3)(kg in a m^3 mixture)  Water  (component 4)(kg in a m^3 mixture)  Superplasticizer (component 5)(kg in a m^3 mixture)  Coarse Aggregate  (component 6)(kg in a m^3 mixture)  Fine Aggregate (component 7)(kg in a m^3 mixture)  Age (day)  Concrete compressive strength(MPa, megapascals)
+count                                    1030.00                                                1030.00                                     1030.00                                    1030.00                                              1030.00                                               1030.00                                            1030.00    1030.00                                          1030.00
+mean                                      281.17                                                  73.90                                       54.19                                     181.57                                                 6.20                                                972.92                                             773.58      45.66                                            35.82
+std                                       104.51                                                  86.28                                       64.00                                      21.35                                                 5.97                                                 77.75                                              80.18      63.17                                            16.71
+min                                       102.00                                                   0.00                                        0.00                                     121.80                                                 0.00                                                801.00                                             594.00       1.00                                             2.33
+25%                                       192.38                                                   0.00                                        0.00                                     164.90                                                 0.00                                                932.00                                             730.95       7.00                                            23.71
+50%                                       272.90                                                  22.00                                        0.00                                     185.00                                                 6.40                                                968.00                                             779.50      28.00                                            34.44
+75%                                       350.00                                                 142.95                                      118.30                                     192.00                                                10.20                                               1029.40                                             824.00      56.00                                            46.14
+max                                       540.00                                                 359.40                                      200.10                                     247.00                                                32.20                                               1145.00                                             992.60     365.00                                            82.60
+
+============================================================
+  3. AGE DISTRIBUTION
+============================================================
+  Total rows: 1030
+  Unique ages: 14
+  Age (days)      Count        % Bar
+  --------------------------------------------------
+  1.0                 2    0.2%  
+  3.0               134   13.0%  ######
+  7.0               126   12.2%  ######
+  14.0               62    6.0%  ###
+  28.0              425   41.3%  ####################
+  56.0               91    8.8%  ####
+  90.0               54    5.2%  ##
+  91.0               22    2.1%  #
+  100.0              52    5.0%  ##
+  120.0               3    0.3%  
+  180.0              26    2.5%  #
+  270.0              13    1.3%  
+  360.0               6    0.6%  
+  365.0              14    1.4%  
+
+============================================================
+  4. UNIQUE MIXTURE DESIGNS
+============================================================
+  Total rows: 1030
+  Unique mixtures: 427
+  Avg rows per mixture: 2.41
+  Max rows per mixture: 20
+
+  Zero-inflated components (fraction of zeros):
+    Cement (component 1)(kg in a m^3 mixture) 0.0%
+    Blast Furnace Slag (component 2)(kg in a m^3 mixture) 45.7%
+    Fly Ash (component 3)(kg in a m^3 mixture) 55.0%
+    Water  (component 4)(kg in a m^3 mixture) 0.0%
+    Superplasticizer (component 5)(kg in a m^3 mixture) 36.8%
+    Coarse Aggregate  (component 6)(kg in a m^3 mixture) 0.0%
+    Fine Aggregate (component 7)(kg in a m^3 mixture) 0.0%
+
+============================================================
+  5. GROWTH CURVE DATA
+============================================================
+  Mixtures with 1 age:   246 (57.6%)
+  Mixtures with 2+ ages: 181 (42.4%)
+  Total growth curve rows: 784
+
+  Top 5 mixtures by number of age measurements:
+    Ages: [np.float64(1.0), np.float64(3.0), np.float64(7.0), np.float64(14.0), np.float64(28.0), np.float64(90.0), np.float64(180.0), np.float64(270.0)]  Strengths: [12.64, 26.06, 33.21, 36.94, 44.09, 47.22, 51.04, 55.16]
+    Ages: [np.float64(3.0), np.float64(7.0), np.float64(14.0), np.float64(28.0), np.float64(90.0), np.float64(180.0), np.float64(365.0)]  Strengths: [13.22, 20.97, 27.04, 32.04, 35.17, 36.45, 38.89]
+    Ages: [np.float64(3.0), np.float64(7.0), np.float64(14.0), np.float64(28.0), np.float64(90.0), np.float64(180.0), np.float64(270.0)]  Strengths: [33.8, 42.42, 48.4, 55.94, 58.78, 61.92, 67.11]
+    Ages: [np.float64(3.0), np.float64(7.0), np.float64(14.0), np.float64(28.0), np.float64(90.0), np.float64(180.0), np.float64(270.0)]  Strengths: [41.64, 52.61, 59.76, 67.31, 69.66, 71.62, 74.17]
+    Ages: [np.float64(3.0), np.float64(7.0), np.float64(28.0), np.float64(90.0), np.float64(180.0), np.float64(360.0)]  Strengths: [8.06, 14.59, 28.24, 39.36, 44.21, 44.7]
+
+============================================================
+  6. SPARSITY ANALYSIS
+============================================================
+  Total rows: 1030
+  Unique mixture-age combos: 992
+  Sparsity ratio: 96.3%
+  Interpretation: 3.7% of data points are unique observations
+
+  Combos with 1 observation: 973
+  Combos with 2 observations: 5
+  Combos with 3+ observations: 14
+  Max observations per combo: 4
+
+============================================================
+  7. CORRELATION MATRIX (with Strength)
+============================================================
+
+  Feature                         Correlation
+  ---------------------------------------------
+  Cement (component 1)(kg in a m^3 mixture)        0.498
+  Blast Furnace Slag (component 2)(kg in a m^3 mixture)        0.135
+  Fly Ash (component 3)(kg in a m^3 mixture)       -0.106
+  Water  (component 4)(kg in a m^3 mixture)       -0.290
+  Superplasticizer (component 5)(kg in a m^3 mixture)        0.366
+  Coarse Aggregate  (component 6)(kg in a m^3 mixture)       -0.165
+  Fine Aggregate (component 7)(kg in a m^3 mixture)       -0.167
+  Age (day)                             0.329
+
+  Strongest positive: Cement (0.498)
+  Strongest negative: Water (-0.290)
+
+============================================================
+  8. OUTLIER DETECTION (IQR Method)
+============================================================
+  Q1: 23.71, Q3: 46.14, IQR: 22.43
+  Lower bound: -9.93, Upper bound: 79.77
+
+  Number of outliers: 4
+
+    Strength    Age     Cement
+       82.60     91      389.9
+       81.75     28      315.0
+       80.20     56      323.7
+       79.99     28      540.0
+
+  Strength distribution:
+    Min:   2.33 MPa
+    Max:   82.60 MPa
+    Mean:  35.82 MPa
+    Median:34.45 MPa
+    70th percentile: 43.29 MPa (70% of data below this)
+
+============================================================
+  9. MISSING VALUES
+============================================================
+  No missing values detected.
+
+============================================================
+  10. DATA IMBALANCE SUMMARY
+============================================================
+  Bin                          Count        %
+  ---------------------------------------------
+  Early (1-7 days)               262    25.4%
+  Standard (8-28 days)           487    47.3%
+  Medium (29-90 days)            145    14.1%
+  Long (91-180 days)             103    10.0%
+  Very Long (181-365 days)        33     3.2%
+
+  Key insight: Most data is concentrated at 28 days (~41%).
+  This means models may overfit to the 28-day regime and
+  perform poorly on other curing times.
+
+============================================================
+  EXPLORATION COMPLETE
+============================================================

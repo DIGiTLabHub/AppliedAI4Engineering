@@ -1,0 +1,131 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,setspace}
+\usepackage{graphicx}
+\usepackage{bm}
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% Define colors for lstlisting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\normalsize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,  
+    columns=flexible,         
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    literate={'}{{\textquotesingle}}1{''}{{\textquotedbl}}2
+}
+\lstset{style=mystyle}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Your Document Title},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+\newcommand{\fullunderline}{\noindent\makebox[\linewidth]{\rule{\linewidth}{0.1pt}}\\[-2em]}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 04\\
+\vspace{2in}
+\pmb{Name: \rule{2in}{0.15mm}}
+\author{}
+}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+
+\section{Programming Practice and Data Operation}
+This homework assignment is designed to reinforce and extend the concepts covered in class (Topic03 - ML Modeling Overview). In both problems, similar to what we covered in class, you will experiment with ML model parameter values, noise ratios, and distribution settings for two types of simple classifiers: a discriminative  toy classifier (Problem 1) and a simple generative classifier (Problem 2). Use the functions and modules (e.g., \texttt{data\_generator.py} and \texttt{flip\_a\_coin\_generator}) and the shared notebooks introduced in class.
+
+\section*{Submission Instructions}
+\begin{itemize}
+    \item Follow the questions asked in each problem, report the experimental results including figures or/and remarks. 
+    \item You can print out your final Co-lab notebooks as appendices clearly indicating the modifications made for each experiment.
+\end{itemize}
+
+
+\subsection*{Problem 1: Discriminative Toy Classifier}
+\textbf{Task:} Investigate how different noise ratios affect the classification performance and decision boundary.
+
+\begin{enumerate}[label=\alph*.]
+    \item Use the data generation function (e.g., \texttt{generate\_data}) to create two synthetic datasets by setting two different noise ratios (for example, 0\% and 10\%).
+    \item For each noise ratio, apply the discriminative classifier with the predetermined decision function, where you will choose and set your own model parameter values $\bm{w} = [w_1, w_2, w_0]$
+    \[
+    m(\mathbf{x}) =
+    \begin{cases}
+    c_1, & \text{if } w_1x_1 + w_2x_2 + w_0 > 0, \\
+    c_2, & \text{otherwise.}
+    \end{cases}
+    \]
+    \item Report the resulting confusion matrix and the classification accuracy for each noise setting. Write the confusion matrix in the form of:
+        \[
+ cm = \begin{pmatrix}
+
+TP & FN \\
+
+FP & TN
+\end{pmatrix}
+    \]
+    \item Plot the decision boundary overlaid with the scatter plot of the data points for each noise ratio.
+    \item Simply remark/discuss how the noise level impacts the classifier’s performance and the visual separation of classes.
+\end{enumerate}
+
+\newpage
+\subsection*{Problem 2: Simple Generative Classifier}
+\textbf{Task:} Explore the effect of varying distribution settings and noise ratios on the classification performance and likelihood estimations.
+
+\begin{enumerate}[label=\alph*.]
+    \item Use the \texttt{flip\_a\_coin\_generator} function to generate datasets with different settings for the uniform distributions (i.e., varying the intervals for \(f\) for Heads and Tails, i.e., $p(f\mid H)$ and $p(f\mid T)$) and two different noise ratios. Review the \href{https://umsystem.instructure.com/courses/280496/files/32565390?module_item_id=9779383}{Topic 3 tutorial} what a uniform distribution is. 
+    \item For each setting, perform classification using the generative classifier that estimates: the priors \(P(H)\) and \(P(T)\); the likelihood functions \(p(f\mid H)\) and \(p(f\mid T)\) assuming uniform distributions; and the resulting decision function as a posterior probability measure $ m(f)$
+    \begin{itemize}
+    \item Report the classification accuracy for each experimental condition.
+    \item Explicitly write out the resulting likelihood functions and the estimated priors based on your training data. \textit{Hint: may prompt Gemini how to do this.}
+    \end{itemize}
+    \item Plot the likelihood function curves for \(p(f\mid H)\) and \(p(f\mid T)\) along with the overall feature density:
+    \[
+    p(f) = p(f\mid H)P(H) + p(f\mid T)P(T).
+    \]
+    Given the resulting priors and the likelihood parameters, simply evaluate (can be done manually based on the plot) that the area under the distribution `curve' of $  p(f) $ is 1 or verify that:
+    \[
+    \int_{-\infty}^{\infty} p(f) \mathrm{d} f = 1
+    \]
+    \item Discuss the effect of different distribution settings and noise levels on both the likelihood estimations and classification performance.
+\end{enumerate}
+
+
+
+\end{document}

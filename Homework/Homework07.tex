@@ -1,0 +1,115 @@
+%% AMS-LaTeX Created with the Wolfram Language : www.wolfram.com
+
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,setspace}
+\usepackage{graphicx}
+\usepackage{bm}
+\graphicspath{{./figs/}}
+\usepackage{tcolorbox}
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[cal=boondox]{mathalfa}
+
+% Define colors for lstlisting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+% First, add this in your preamble if not already done
+\usepackage{setspace}
+
+% Then, modify your lstlisting style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\normalsize\setstretch{1}, % set single spacing explicitly here
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,  
+    columns=flexible,         
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    literate={'}{{\textquotesingle}}1 {''}{{\textquotedbl}}2
+}
+
+\lstset{style=mystyle}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Your Document Title},
+    pdfpagemode=FullScreen,
+}
+
+\def\mathbi#1{\textbf{\em #1}}
+\newcommand{\fullunderline}{\noindent\makebox[\linewidth]{\rule{\linewidth}{0.1pt}}\\[-2em]}
+
+\begin{document}
+\doublespacing	
+
+\title{CE 401/5501 Homework 07\\[2in]
+\textbf{Name: \rule{2in}{0.15mm}}}
+\author{}
+\date{}
+\maketitle
+
+\newcommand*{\I}{\imath} % imaginary unit i
+
+\newpage
+
+\section{Programming Practice on Using an MLP}
+
+In this practice, we will continue the class demo (please download the \href{https://umsystem.instructure.com/courses/280496/files/33044269?module_item_id=9829615}{notebook file}) and further study the behavior of an MLP classifier. 
+
+First, you will replace the single line defining the MLP classifier with the following code to add flexibility. For technical details, please refer to the \href{https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html}{scikit-learn documentation}. In this assignment, we will test the effects of choosing the following model parameters (i.e., hyperparameters):
+\begin{itemize}
+    \item \textit{activation}: the activation function for the hidden layers; note that the activation for the output layer in the MLP classifier provided by scikit-learn is always the logistic function.
+    \item \textit{hidden\_layer\_sizes}: a Python tuple (i.e., an ordered list) that defines the number of hidden layers and the number of neurons in each hidden layer.
+    \item \textit{learning\_rate\_init}: the initial learning rate used. It controls the step size in updating the weights when using the \texttt{sgd} or \texttt{adam} solver. 
+\end{itemize}
+
+\begin{lstlisting}[numbers=none,language=Python, caption=Code snippet for defining an MLP]
+HL_size = (5, 5) # can change to (7, 7), or (3, 3, 3)
+ACT_fun = "relu" # change to 'tanh' or 'identity'
+Solver_method = "sgd" # can change to 'adam'; for this case, it is not necessary
+
+LR = 0.001 # the initial learning rate
+
+mlp = MLPClassifier(hidden_layer_sizes=HL_size, 
+    activation=ACT_fun, 
+    solver=Solver_method, 
+    learning_rate_init=LR, 
+    learning_rate="adaptive", % can use "constant"
+    random_state=42)
+...
+\end{lstlisting}
+
+The following tasks are to be completed:
+\begin{enumerate}
+    \item Keep all other hyperparameters fixed, but design a set of different hidden layer configurations, e.g., (3,3), (3,3,3), (5,5), and (5,5,5) or even (20, 20, 20). Then, observe the resulting confusion matrices and accuracies for both the training and testing datasets. 
+    \item Keep all other hyperparameters fixed, and use two different initial learning rates, e.g., LR = 0.05 and LR = 0.001. Observe the differences in the resulting loss functions (plot them and comment; you may need to plot them in a single figure, if preferred).
+    \item While performing the above practices, observe the changes in the decision boundary plots. 
+    \begin{itemize}
+        \item Prompt and inquire about the mathematical principles and numerical methods used for plotting the decision boundary function. Provide your understanding here. 
+        \item Observe the decision boundary contours with probability score values of 0.25, 0.5, and 0.75, and choose the one that is most interesting or sensible to you (maybe from a bad classifier model). 
+        [\textit{When changing the MLP architecture per different hidden layer design, you may encounter a classifier that outputs low accuracies. Then check against with the decision-boundary plot - does it make sense?}]
+    \end{itemize}
+\end{enumerate}
+
+\end{document}

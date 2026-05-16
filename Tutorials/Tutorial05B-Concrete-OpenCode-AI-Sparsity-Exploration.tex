@@ -192,8 +192,16 @@ Now we put theory into practice.  You will use OpenCode to direct a systematic e
 \textbf{How to use this section:}  For each experiment, you will:
 \begin{enumerate}[nosep]
   \item Read the \emph{Objective} to understand what you are looking for
-  \item Type the provided OpenCode prompt in the message box (\key{i} to start typing)
-  \item Press \key{Ctrl+S} to send the prompt
+  \item Type the provided OpenCode prompt in the message box 
+  \begin{itemize}
+        \item Press \key{Enter} to send the prompt
+        \item Press \key{Shift+Enter} to change line
+        \item Use basic Markdown formats (e.g., **text** for bold fonts; - for unordered list, \texttt{`code`} for codes, etc.)
+  \end{itemize}
+
+
+
+  
   \item Review the agent's output and compare it with the \emph{Expected Results}
   \item Read the \emph{Discussion} to reflect on what the results mean
 \end{enumerate}
@@ -432,7 +440,7 @@ However, correlations do not tell us about the \emph{time-dependent} nature of s
 \subsection{Experiment 6: Outlier Detection}
 \label{sec:experiment-6}
 
-\textbf{Objective:} Identify outliers in strength using the IQR method.
+\textbf{Objective:} Identify outliers in strength using the \href{https://en.wikipedia.org/wiki/Interquartile_range}{IQR method}.
 
 \textbf{OpenCode prompt:}
 \begin{lstlisting}[style=term]

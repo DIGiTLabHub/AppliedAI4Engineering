@@ -84,8 +84,19 @@
 \newcommand{\Zset}{\field{Z}}
 \newcommand{\Qset}{\field{Q}}
 \newcommand{\Nset}{\field{N}}
-\newcommand{\fullunderline}{\noindent\makebox[\linewidth]{\rule{\linewidth}{0.1pt}}\\[-2em]}
+\RequirePackage{forloop}
 
+
+
+
+\newcounter{underlinecnt}
+
+\newcommand{\fullunderline}[1][1]{%
+  \forloop{underlinecnt}{0}{\value{underlinecnt} < #1}{%
+    \noindent\rule{\linewidth}{0.2pt}\par
+    \vspace{3\baselineskip}
+  }%
+}
 
 % use TikZ repeatedly in the course
 \RequirePackage{tikz}

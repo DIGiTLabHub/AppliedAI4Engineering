@@ -395,8 +395,23 @@
   \begin{conceptbox}{Big Shift}
     Every token can interact directly with every other token in the same layer. The model no longer has to pass information step by step through time.
   \end{conceptbox}
-
+  
   This is why Transformers scale so well on modern hardware.
+\begin{warningbox}{What is a Token?}
+
+\textbf{Plain language:}  
+A token is a small unit of data that the model processes.
+
+\textbf{Examples:}  
+\begin{itemize}
+
+    \item Text: \texttt{"Hello world"} $\rightarrow$ ["Hello", "world"]  
+    \item Image: an image $\rightarrow$ small patches (tokens)
+
+\end{itemize}
+\end{warningbox}
+
+
 \end{frame}
 
 \begin{frame}{Queries, Keys, and Values}
@@ -636,11 +651,25 @@
     CNNs, Transformers, and diffusion models are not automatically generative. They become generative when they are trained to produce new samples rather than only classify or predict from existing inputs.
   \end{conceptbox}
 
+  
+ 
+  
+\end{frame}
+
+\begin{frame}{What Makes These Architectures Generative?}
+
   \begin{itemize}
-    \item CNNs become generative inside decoders, U-Nets, and image generators.
-    \item Transformers become generative when they generate sequences token by token.
+    \item CNNs become generative inside when integrating decoders; if just encoders or encoders-like, it is for classification or feature extraction, as in classic ML classification or clustering. 
+    
+  \begin{itemize}
+        \item U-Nets: Encoder–decoder CNNs that generate structured outputs conditioned on input.
+        \item GAN: Uses a generator (decoder) – discriminator (encoder-like) setup to produce realistic new data from noise
+    \end{itemize}
+    
+    \item Transformers have built-in encoders or/and decoders, becoming generative when they generate sequences token by token.
     \item Diffusion models are generative because they learn a sampling process from noise to data.
   \end{itemize}
+  
 \end{frame}
 
 \begin{frame}{Old Generative Models versus New Generative AI}
@@ -656,7 +685,7 @@
   \end{conceptbox}
 \end{frame}
 
-\begin{frame}{From Topic 13 to Topic 14}
+\begin{frame}{Regardless,}
   \begin{itemize}
     \item A \textbf{discriminative} model asks: given this input, what label, class, or value should I predict?
     \item A \textbf{generative} model asks: what plausible sample could have come from this data-generating process?
